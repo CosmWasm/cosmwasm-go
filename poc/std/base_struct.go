@@ -1,6 +1,4 @@
-package poc_std
-
-import "math/big"
+package std
 
 type BlockInfo struct {
 	Height uint64
@@ -10,7 +8,7 @@ type BlockInfo struct {
 
 type Coin struct {
 	denom string
-	amount big.Int
+	amount uint64
 }
 
 type MessageInfo struct {
@@ -27,3 +25,11 @@ type Env struct {
 	Message MessageInfo
 	Contract ContractInfo
 }
+
+type MemRegion struct {
+	Offset 		uint32
+	Capacity 	uint32
+	Length		uint32
+}
+
+const REGION_HEAD_SIZE uint32 = 12
