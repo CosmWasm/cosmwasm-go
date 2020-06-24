@@ -10,7 +10,8 @@ some code very rough now, just a debugging code for test
 The next work is testing suitable json lib and process param and return value
 
 ## Build
- Docker tool required     
+
+Docker tool required     
 ```sh
 make build-cosmwasm
 ```

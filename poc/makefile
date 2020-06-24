@@ -2,6 +2,7 @@
 
 DOCKER_IMAGE=tinygo/tinygo:0.13.1
 DOCKER_CUSTOM=cosmwasm/tinygo:latest
+WASM_FILE=contract.wasm
 
 all: build-docker public
 	@ ls -l main.wasm
@@ -26,9 +27,9 @@ build-cosmwasm-trim:
 	docker run --rm -v $(shell pwd):/code $(DOCKER_CUSTOM) tinygo build -tags cosmwasm -no-debug -o /code/main.wasm -target wasm /code/main.go
 
 view:
-	@ wasm-nm main.wasm
-	@ ls -l main.wasm
+	@ wasm-nm $(WASM_FILE)
+	@ ls -l $(WASM_FILE)
 
 public:
-	wasm-nm -e main.wasm
-	wasm-nm -i main.wasm
+	wasm-nm -e $(WASM_FILE)
+	wasm-nm -i $(WASM_FILE)
