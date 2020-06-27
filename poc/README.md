@@ -23,7 +23,7 @@ make build-cosmwasm
 * tinyGo compiler has already packed into docker image file, just need install `docker` and build poc, it will finish automatically
 ### Start debug
 1. Build poc, copy absloute path of `contract.wasm` 
-2. Open CLion, load cosmwasm-simulate, Add cargo config, Set Command like `run [absloute path of contract.wasm]`, change Channel to nightly
+2. Open CLion, load cosmwasm-simulate, Add cargo config, Set Command like `run [absloute path of contract.wasm]`, change Channel to nightly, compile it in IDE
 3. Add breakpoint at [Here](https://github.com/CosmWasm/cosmwasm-simulate/blob/master/src/contract_vm/engine.rs#L124)
 4. Start debug in CLion, input all message as follow:
 ```shell
