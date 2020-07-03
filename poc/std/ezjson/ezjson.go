@@ -1,7 +1,7 @@
 package ezjson
 
 import (
-	"github.com/cosmwasm/cosmwasm-go/poc/extern/vjson"
+	"github.com/cosmwasm/cosmwasm-go/poc/ext/vjson"
 )
 
 func Marshal(v interface{}) ([]byte, error){
