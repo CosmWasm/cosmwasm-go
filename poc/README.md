@@ -16,7 +16,7 @@ Docker tool required
 make build-cosmwasm
 ```
 ## Run Test
-* Prepare
+* Prepare   
 Clone cosmwasm-simulate tool from https://github.com/CosmWasm/cosmwasm-simulate/tree/debug-cosmwasm-go 
 ```sh
 git clone git@github.com:CosmWasm/cosmwasm-simulate.git
