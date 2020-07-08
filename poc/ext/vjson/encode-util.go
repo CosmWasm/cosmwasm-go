@@ -19,7 +19,6 @@ func encodeString(w io.Writer, s string, escapeHTML bool) error {
 			if start < i {
 				w.Write([]byte(s[start:i]))
 			}
-			w.Write([]byte{'\\'})
 			switch b {
 			case '\\', '"':
 				w.Write([]byte{b})

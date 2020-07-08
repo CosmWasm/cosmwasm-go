@@ -34,6 +34,7 @@ func ReadStorage(key []byte) ([]byte,error){
 	val_ptr,_ := std.Build_region(1024,0)
 	region := std.TranslateToRegion(key,uintptr(ptr))
 	ret := C.db_read(unsafe.Pointer(region),unsafe.Pointer(val_ptr))
+	C.free(ptr)
 	if ret != 0{
 		if ret == -1001001{
 			return nil,errors.New("key not existed~ ")

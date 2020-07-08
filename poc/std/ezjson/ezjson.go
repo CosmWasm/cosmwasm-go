@@ -11,3 +11,11 @@ func Marshal(v interface{}) ([]byte, error){
 func Unmarshal(data []byte, v interface{}) error {
 	return vjson.Unmarshal(data,v)
 }
+
+func MarshalEx(v interface{}) ([]byte, error){
+	return vjson.MarshalEx(v)
+}
+
+func UnmarshalEx(data []byte,vin interface{}) error{
+	return vjson.UnmarshalEx(data,vin)
+}

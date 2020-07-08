@@ -14,9 +14,7 @@ func TestAllocate(t *testing.T) {
 }
 
 func TestInit(t *testing.T){
-	trans_msg := InitMsg{}
-	json_msg := "{\"Verifier\":\"p\",\"Beneficiary\":\"O\",\"Legacy\":1000}"
-	ezjson.Unmarshal([]byte(json_msg),&trans_msg)
+
 	msg := InitMsg{
 		Verifier:    "AAAAAA",
 		Beneficiary: "BBBBBB",

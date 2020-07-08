@@ -25,61 +25,62 @@ func initialize(env_ptr uint32, msg_ptr uint32) unsafe.Pointer {
 	var initMsg InitMsg
 	msg_data := std.Translate_range_custom(uintptr(msg_ptr))
 	str := string(msg_data)
-	if str == "initialize"{
-		ezdb.WriteStorage([]byte("inited"),[]byte("1"))
-		return std.Package_message([]byte("{\"Ok\":{\"messages\":[],\"log\":[],\"data\":null}}"))
-	}
-	return std.Package_message([]byte("{\"Err\":{\"parse_err\":{\"target\":\"InitMsg\",\"msg\":\"you just input a error command, try input initialize\"}}}"))
-
-	//todo need confirm that is reflect package have full support on wasm?
-	//https://github.com/tinygo-org/tinygo/issues/1207 waiting response from tinyGo
-	e := ezjson.Unmarshal(msg_data,&initMsg)
+	e := ezjson.UnmarshalEx([]byte(str),&initMsg)
 	if e == nil {
 		ok,err := go_init(initMsg)
 		if ok != nil {
-			b,e := ezjson.Marshal(ok)
-			if e == nil {
-				return std.Package_message(b)
-			}else {
-				return std.Package_message([]byte("ezjson.Marshal(ok)" + e.Error()))
-			}
+			ezdb.WriteStorage([]byte("inited"),[]byte("true"))
+			return std.Package_message([]byte(ok.WrapMessage(ok.Ok)))
 		}else {
-			b,e := ezjson.Marshal(err)
-			if e == nil {
-				return std.Package_message(b)
-			}else {
-				return std.Package_message([]byte("ezjson.Marshal(err)" + e.Error()))
-			}
+			return std.Package_message([]byte(err.WrapMessage(err.Err)))
 		}
 	}else {
-		return std.Package_message([]byte("first + " + e.Error()))
+		return std.Package_message([]byte(newErrResponse("").WrapMessage(std.Build_ErrResponse("Json analyze failed: " + e.Error()))))
 	}
 }
 
 //export handle
 func handle(env_ptr uint32, msg_ptr uint32) unsafe.Pointer  {
+	var handleMsg HandleMsg
 	_ ,e:= ezdb.ReadStorage([]byte("inited"))
 	if e != nil{
-		return std.Package_message([]byte("{\"Err\":{\"messages\":[Uninit contract],\"log\":[],\"data\":null}}"))
+		return std.Package_message([]byte(newErrResponse("").WrapMessage(std.Build_ErrResponse("Uninited contract, need init first"))))
 	}
 	msg_data := std.Translate_range_custom(uintptr(msg_ptr))
 	str := string(msg_data)
-	ezdb.WriteStorage([]byte("key"),[]byte(str))
-	return std.Package_message([]byte("{\"Ok\":{\"messages\":[],\"log\":[],\"data\":null}}"))
+	e = ezjson.UnmarshalEx([]byte(str),&handleMsg)
+	if e == nil{
+		ok,err := go_handle(handleMsg)
+		if ok != nil {
+			return std.Package_message([]byte(ok.WrapMessage(ok.Ok)))
+		}else {
+			return std.Package_message([]byte(err.WrapMessage(err.Err)))
+		}
+	}else {
+		return std.Package_message([]byte(newErrResponse("").WrapMessage(std.Build_ErrResponse("Json analyze failed: " + e.Error()))))
+	}
 }
 
 //export query
 func query(msg_ptr uint32) unsafe.Pointer  {
+	var queryMsg QueryMsg
 	_ ,e:= ezdb.ReadStorage([]byte("inited"))
 	if e != nil{
-		return std.Package_message([]byte(std.Build_query_response(std.FakeQueryJson("contract is uninit~ "))))
+		return std.Package_message([]byte(newErrResponse("").WrapMessage(std.Build_ErrResponse("Uninited contract, need init first"))))
 	}
-	v ,e := ezdb.ReadStorage([]byte("key"))
-	if e == nil {
-		str := string(v[:])
-		return std.Package_message([]byte(std.Build_query_response(std.FakeQueryJson(str))))
+	msg_data := std.Translate_range_custom(uintptr(msg_ptr))
+	str := string(msg_data)
+	e = ezjson.UnmarshalEx([]byte(str),&queryMsg)
+	if e == nil{
+		ok,err := go_query(queryMsg)
+		if ok != nil {
+			return std.Package_message([]byte(ok.WrapMessage(ok.Ok)))
+		}else {
+			return std.Package_message([]byte(err.WrapMessage(err.Err)))
+		}
+	}else {
+		return std.Package_message([]byte(newErrResponse("").WrapMessage(std.Build_ErrResponse("Json analyze failed: " + e.Error()))))
 	}
-	return std.Package_message([]byte(std.Build_query_response(e.Error())))
 }
 
 func DoNothing(){

@@ -11,6 +11,7 @@ void CopyMessage(char* to,char* from,unsigned int size){
  */
 import "C"
 import (
+	"encoding/base64"
 	"unsafe"
 
 )
@@ -86,4 +87,17 @@ func Build_query_response(msg string) string{
 
 func FakeQueryJson(msg string) string{
 	return "\"handle\":\"" + msg + "\""
+}
+
+func Build_QueryResponse(msg string) string{
+	encoding := base64.StdEncoding.EncodeToString([]byte(`{"QueryResult":"` + msg +`"}`))
+	return `"` + encoding + `"`
+}
+
+func Build_OkResponse(msg string) string{
+	return `{"messages":[],"log":[{"key":"result","value":"` + msg + `"}],"data":null}`
+}
+
+func Build_ErrResponse(msg string) string{
+	return `{"generic_err":{"msg":"` + msg + `","backtrace":null}}`
 }

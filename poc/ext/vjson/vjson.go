@@ -29,6 +29,82 @@ func marshal(v interface{}) ([]byte, error) {
 	return buf.Bytes(), err
 }
 
+func marshalEx(v interface{}) ([]byte, error) {
+	var buf bytes.Buffer
+	err := marshalToEx(&buf, v)
+	return buf.Bytes(), err
+}
+
+func marshalToEx(w io.Writer, vin interface{}) (err error){
+	bb := make([]byte, 0, 128) // hopefully stack alloc
+
+	typeof := reflect.TypeOf(vin)
+	if typeof == reflect.TypeOf(bool(true)) {
+		val := reflect.ValueOf(vin)
+		bb = strconv.AppendBool(bb, val.Bool())
+	}else if typeof == reflect.TypeOf(int(0)) ||
+		typeof == reflect.TypeOf(int8(0)) ||
+		typeof == reflect.TypeOf(int16(0))||
+		typeof == reflect.TypeOf(int32(0))||
+		typeof == reflect.TypeOf(int64(0)){
+			val := reflect.ValueOf(vin)
+			bb = strconv.AppendInt(bb, val.Int(),10)
+	}else if typeof == reflect.TypeOf(uint(0))||
+		typeof == reflect.TypeOf(uint8(0)) ||
+		typeof == reflect.TypeOf(uint16(0)) ||
+		typeof == reflect.TypeOf(uint32(0)) ||
+		typeof == reflect.TypeOf(uint64(0)) {
+			val := reflect.ValueOf(vin)
+			bb = strconv.AppendUint(bb, val.Uint(),10)
+	}else if typeof == reflect.TypeOf(string("")){
+		val := reflect.ValueOf(vin)
+		return encodeString(w, val.String(), false)
+	}else{		//default to interface{}
+		t := reflect.TypeOf(vin)
+		if t.Kind() == reflect.Ptr {
+			t = t.Elem()
+		}
+		first := true
+		if t.Kind()== reflect.Struct {
+			w.Write([]byte(`{`))
+			vals := reflect.ValueOf(vin)
+
+			if vals.Kind() == reflect.Ptr {
+				vals = vals.Elem()
+			}
+			for i := 0; i < t.NumField(); i++ {
+				if vals.Field(i).CanInterface(){
+					if !first {
+						w.Write([]byte(`,`))
+					}
+					data := vals.Field(i).Interface()
+					w.Write([]byte(`"`))
+					w.Write([]byte(t.Field(i).Name))
+					w.Write([]byte(`":`))
+					vkind := vals.Field(i).Kind()
+					if (vkind == reflect.Ptr || vkind == reflect.UnsafePointer) && vals.Field(i).IsNil() {
+						w.Write([]byte(`null`))
+					}else{
+						err := marshalToEx(w, data)
+						if err != nil {
+							return err
+						}
+					}
+					first = false
+				}
+			}
+			_, err := w.Write([]byte(`}`))
+			return err
+		}
+	}
+	if len(bb) == 0 {
+		return errors.New("unexpected zero length buffer")
+	}
+	_, err = w.Write(bb)
+	return err
+
+}
+
 func marshalTo(w io.Writer, vin interface{}) (err error) {
 
 	bb := make([]byte, 0, 64) // hopefully stack alloc
@@ -174,6 +250,40 @@ func unmarshal(data []byte, v interface{}) error {
 	return unmarshalFrom(data,bytes.NewReader(data), v)
 }
 
+func unmarshalStruct(data []byte, vin interface{}) error{
+
+	tps := reflect.TypeOf(vin)
+	vals := reflect.ValueOf(vin)
+	if tps.Kind() == reflect.Ptr{
+		tps = tps.Elem()
+	}
+	if vals.Kind() == reflect.Ptr {
+		vals = vals.Elem()
+	}
+	for i := 0; i < vals.NumField(); i++ {
+		tp := tps.Field(i).Type
+		valName := tps.Field(i).Name
+		if tp == reflect.TypeOf(int(0)) {
+			rint,e := jsonparser.GetInt(data,valName)
+			if e == nil {
+				vals.Field(i).SetInt(rint)
+			}else {
+				return errors.New("Can not find ["+valName + "], error: " + e.Error())
+			}
+		}else if tp == reflect.TypeOf(string("0")){
+			rstr,e := jsonparser.GetString(data,valName)
+			if e == nil {
+				vals.Field(i).SetString(rstr)
+			}else {
+				return errors.New("Can not find ["+valName + "], error: " + e.Error())
+			}
+		}else {
+			return errors.New("unsupported struct type")
+		}
+	}
+	return nil
+}
+
 func unmarshalFrom(data []byte,r unreader, vin interface{}) error {
 
 	// read the next token, whatever it is
@@ -203,14 +313,14 @@ func unmarshalNext(data []byte, r unreader, tok Token, vin interface{}) error {
 				vals = vals.Elem()
 			}
 			for i := 0; i < vals.NumField(); i++ {
-				tpName := tps.Field(i).Type.String()
+				tp := tps.Field(i).Type
 				valName := tps.Field(i).Name
-				if tpName == "int" {
+				if tp == reflect.TypeOf(int(0)) {
 					rint,e := jsonparser.GetInt(data,valName)
 					if e == nil {
 						vals.Field(i).SetInt(rint)
 					}
-				}else if tpName == "string"{
+				}else if tp == reflect.TypeOf(string("0")){
 					rstr,e := jsonparser.GetString(data,valName)
 					if e == nil {
 						vals.Field(i).SetString(rstr)
@@ -330,7 +440,7 @@ func unmarshalNext(data []byte, r unreader, tok Token, vin interface{}) error {
 		*v = mapV
 
 	default:
-		return errors.New("vjson.unmarshalNext error unknown type " + reflect.TypeOf(vin).Elem().String())
+		return errors.New("vjson.unmarshalNext error unknown type ")
 
 	}
 
