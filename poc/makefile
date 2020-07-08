@@ -24,7 +24,7 @@ build-cosmwasm:
 
 # build-cosmwasm-trim is like build-cosmwasm but trims out debug code for small byte size
 build-cosmwasm-trim:
-	docker run --rm -v $(shell pwd):/code $(DOCKER_CUSTOM) tinygo build -tags cosmwasm -no-debug -o /code/main.wasm -target wasm /code/main.go
+	docker run --rm -v $(shell pwd):/code -v $(shell pwd):/go/src/github.com/cosmwasm/cosmwasm-go/poc $(DOCKER_CUSTOM) tinygo build -tags cosmwasm -no-debug -o /code/contract.wasm -target wasm /code/main.go
 
 view:
 	@ wasm-nm $(WASM_FILE)
