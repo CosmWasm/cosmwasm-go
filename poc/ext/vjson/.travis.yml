@@ -1,0 +1,27 @@
+language: go
+go:
+  - 1.14.x
+
+os:
+  - linux
+
+dist: trusty
+sudo: false
+
+install: true
+
+env:
+  - GO111MODULE=on
+
+script:
+  - go test .
+
+notifications:
+  email: true
+
+before_install:
+#  - go get golang.org/x/tools/cmd/goimports && go install golang.org/x/tools/cmd/goimports
+  - docker pull tinygo/tinygo:latest
+
+services:
+  - docker
