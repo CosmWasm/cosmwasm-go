@@ -8,6 +8,10 @@ import (
 	"testing"
 )
 
+func db_read(key, value int) int{
+	return 100
+}
+
 func TestAllocate(t *testing.T) {
 	result := std.Package_message([]byte("1234567"))
 	_ = result
@@ -16,9 +20,9 @@ func TestAllocate(t *testing.T) {
 func TestInit(t *testing.T){
 
 	msg := InitMsg{
-		Verifier:    "AAAAAA",
-		Beneficiary: "BBBBBB",
-		Legacy:      1100,
+		UserName:    "AAAAAA",
+		Password: "BBBBBB",
+		Money:      1100,
 	}
 	msg_alloc := allocate(1000)
 	msg_str,e := ezjson.Marshal(msg)
