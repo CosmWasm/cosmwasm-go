@@ -16,7 +16,7 @@ Docker tool required
 make build-cosmwasm
 ```
 
-## Run Test
+## Run
 * Prepare   
 Clone cosmwasm-simulate tool from https://github.com/CosmWasm/cosmwasm-simulate/tree/debug-cosmwasm-go 
 ```sh
@@ -28,6 +28,21 @@ The file `wasm_go_poc/contract.wasm` was built by `make build-cosmwasm`, you can
 ```sh
 ./run-go.sh
 ```
+## Test
+Now, `go test` are unusable, because of that some imported interface can not running in go environment, if you run test, you will get message as follow:
+```sh
+go test ./src
+# github.com/cosmwasm/cosmwasm-go/poc/std/ezdb
+Undefined symbols for architecture x86_64:
+  "_db_read", referenced from:
+      __cgo_f15e86382161_Cfunc_db_read in _x002.o
+     (maybe you meant: __cgo_f15e86382161_Cfunc_db_read)
+  "_db_write", referenced from:
+      __cgo_f15e86382161_Cfunc_db_write in _x002.o
+     (maybe you meant: __cgo_f15e86382161_Cfunc_db_write)
+ld: symbol(s) not found for architecture x86_64
+```
+Ethan will fix this error by using  techniques from the rust contract libs
 
 ## What's stuff in contract
 * init
