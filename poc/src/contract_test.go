@@ -9,14 +9,14 @@ import (
 	"github.com/cosmwasm/cosmwasm-go/poc/std/ezdb"
 )
 
-func TestInit(t *testing.T){
+func TestInit(t *testing.T) {
 	// we need to reset the database as this acts on a singleton
 	ezdb.Reset()
 
 	msg := InitMsg{
-		UserName:    "AAAAAA",
+		UserName: "AAAAAA",
 		Password: "BBBBBB",
-		Money:      1100,
+		Money:    1100,
 	}
 
 	res, err := go_init(msg)
@@ -25,14 +25,14 @@ func TestInit(t *testing.T){
 	require.Equal(t, res.Ok, `{"messages":[],"log":[{"key":"result","value":"success to init contract"}],"data":null}`)
 }
 
-func TestInitUsernameDifferentPassword(t *testing.T){
+func TestInitUsernameDifferentPassword(t *testing.T) {
 	// we need to reset the database as this acts on a singleton
 	ezdb.Reset()
 
 	msg := InitMsg{
 		UserName: "AAAAAA",
 		Password: "AAAAAA",
-		Money:      1100,
+		Money:    1100,
 	}
 
 	res, err := go_init(msg)
@@ -84,9 +84,9 @@ func TestHandle(t *testing.T) {
 
 	// initialize the contract
 	msg := InitMsg{
-		UserName:    "AAAAAA",
+		UserName: "AAAAAA",
 		Password: "BBBBBB",
-		Money:      1100,
+		Money:    1100,
 	}
 	_, err := go_init(msg)
 	require.Nil(t, err)
