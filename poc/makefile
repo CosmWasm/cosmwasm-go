@@ -1,4 +1,4 @@
-.PHONY: build view all build-docker build-custom
+.PHONY: build view all build-docker build-custom test
 
 DOCKER_IMAGE=tinygo/tinygo:0.13.1
 DOCKER_CUSTOM=cosmwasm/tinygo:latest
@@ -7,16 +7,11 @@ WASM_FILE=contract.wasm
 all: build-docker public
 	@ ls -l main.wasm
 
+test:
+	GO111MODULE=off go test ./src
+
 build:
 	tinygo build -o main.wasm -target wasm ./main.go
-
-# build-docker uses the official build and default flags
-build-docker:
-	docker run --rm -v $(shell pwd):/code $(DOCKER_IMAGE) tinygo build -o /code/main.wasm -target wasm /code/main.go
-
-# build-custom uses our custom build, but default flags
-build-custom:
-	docker run --rm -v $(shell pwd):/code $(DOCKER_CUSTOM) tinygo build -o /code/main.wasm -target wasm /code/main.go
 
 # build-cosmwasm uses our custom build, and custom flags
 build-cosmwasm:
@@ -33,3 +28,13 @@ view:
 public:
 	wasm-nm -e $(WASM_FILE)
 	wasm-nm -i $(WASM_FILE)
+
+### FOR REFERENCE - don't produce useful output #####
+
+# # build-docker uses the official build and default flags
+# build-docker:
+# 	docker run --rm -v $(shell pwd):/code $(DOCKER_IMAGE) tinygo build -o /code/main.wasm -target wasm /code/main.go
+#
+# # build-custom uses our custom build, but default flags
+# build-custom:
+# 	docker run --rm -v $(shell pwd):/code $(DOCKER_CUSTOM) tinygo build -o /code/main.wasm -target wasm /code/main.go
