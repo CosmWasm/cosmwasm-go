@@ -31,12 +31,13 @@ func initialize(env_ptr uint32, msg_ptr uint32) unsafe.Pointer {
 		ok, err := go_init(initMsg)
 		if ok != nil {
 			ezdb.WriteStorage([]byte("inited"), []byte("true"))
-			return std.Package_message([]byte(ok.WrapMessage(ok.Ok)))
+			return std.Package_message(ok.ToJSON())
 		} else {
-			return std.Package_message([]byte(err.WrapMessage(err.Err)))
+			return std.Package_message(err.ToJSON())
 		}
 	} else {
-		return std.Package_message([]byte(newErrResponse("").WrapMessage(std.Build_ErrResponse("Json analyze failed: " + e.Error()))))
+		e := std.Build_ErrResponse("Json analyze failed: " + e.Error())
+		return std.Package_message(newErrResponse(e).ToJSON())
 	}
 }
 
@@ -45,7 +46,8 @@ func handle(env_ptr uint32, msg_ptr uint32) unsafe.Pointer {
 	var handleMsg HandleMsg
 	_, e := ezdb.ReadStorage([]byte("inited"))
 	if e != nil {
-		return std.Package_message([]byte(newErrResponse("").WrapMessage(std.Build_ErrResponse("Uninited contract, need init first"))))
+		err := std.Build_ErrResponse("Uninited contract, need init first")
+		return std.Package_message(newErrResponse(err).ToJSON())
 	}
 	msg_data := std.Translate_range_custom(uintptr(msg_ptr))
 	str := string(msg_data)
@@ -53,12 +55,13 @@ func handle(env_ptr uint32, msg_ptr uint32) unsafe.Pointer {
 	if e == nil {
 		ok, err := go_handle(handleMsg)
 		if ok != nil {
-			return std.Package_message([]byte(ok.WrapMessage(ok.Ok)))
+			return std.Package_message(ok.ToJSON())
 		} else {
-			return std.Package_message([]byte(err.WrapMessage(err.Err)))
+			return std.Package_message(err.ToJSON())
 		}
 	} else {
-		return std.Package_message([]byte(newErrResponse("").WrapMessage(std.Build_ErrResponse("Json analyze failed: " + e.Error()))))
+		e := std.Build_ErrResponse("Json analyze failed: " + e.Error())
+		return std.Package_message(newErrResponse(e).ToJSON())
 	}
 }
 
@@ -67,7 +70,8 @@ func query(msg_ptr uint32) unsafe.Pointer {
 	var queryMsg QueryMsg
 	_, e := ezdb.ReadStorage([]byte("inited"))
 	if e != nil {
-		return std.Package_message([]byte(newErrResponse("").WrapMessage(std.Build_ErrResponse("Uninited contract, need init first"))))
+		err := std.Build_ErrResponse("Uninited contract, need init first")
+		return std.Package_message(newErrResponse(err).ToJSON())
 	}
 	msg_data := std.Translate_range_custom(uintptr(msg_ptr))
 	str := string(msg_data)
@@ -75,12 +79,13 @@ func query(msg_ptr uint32) unsafe.Pointer {
 	if e == nil {
 		ok, err := go_query(queryMsg)
 		if ok != nil {
-			return std.Package_message([]byte(ok.WrapMessage(ok.Ok)))
+			return std.Package_message(ok.ToJSON())
 		} else {
-			return std.Package_message([]byte(err.WrapMessage(err.Err)))
+			return std.Package_message(err.ToJSON())
 		}
 	} else {
-		return std.Package_message([]byte(newErrResponse("").WrapMessage(std.Build_ErrResponse("Json analyze failed: " + e.Error()))))
+		e := std.Build_ErrResponse("Json analyze failed: " + e.Error())
+		return std.Package_message(newErrResponse(e).ToJSON())
 	}
 }
 

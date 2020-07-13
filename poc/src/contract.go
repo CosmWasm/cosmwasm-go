@@ -41,18 +41,20 @@ func newOkResponse(resp string) *OKResponse {
 	}
 }
 
-func (OKResponse) WrapMessage(msg string) string {
-	return `{"Ok":` + msg + `}`
-}
-
-func (ERRResponse) WrapMessage(msg string) string {
-	return `{"Err":` + msg + `}`
+func (o OKResponse) ToJSON() []byte {
+	msg := `{"Ok":` + o.Ok + `}`
+	return []byte(msg)
 }
 
 func newErrResponse(resp string) *ERRResponse {
 	return &ERRResponse{
 		Err: resp,
 	}
+}
+
+func (e ERRResponse) ToJSON() []byte {
+	msg := `{"Err":` + e.Err + `}`
+	return []byte(msg)
 }
 
 func getMoneyLeft() (int, error) {
