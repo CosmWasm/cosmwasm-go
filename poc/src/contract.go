@@ -21,42 +21,6 @@ type QueryMsg struct {
 	QueryType string
 }
 
-type OKResponse struct {
-	Ok string
-}
-
-type ERRResponse struct {
-	Err string
-}
-
-type InitResponse struct {
-	Data     string
-	Log      string
-	Messages string
-}
-
-func newOkResponse(resp string) *OKResponse {
-	return &OKResponse{
-		Ok: resp,
-	}
-}
-
-func (o OKResponse) ToJSON() []byte {
-	msg := `{"Ok":` + o.Ok + `}`
-	return []byte(msg)
-}
-
-func newErrResponse(resp string) *ERRResponse {
-	return &ERRResponse{
-		Err: resp,
-	}
-}
-
-func (e ERRResponse) ToJSON() []byte {
-	msg := `{"Err":` + e.Err + `}`
-	return []byte(msg)
-}
-
 func getMoneyLeft() (int, error) {
 	money, err := ezdb.ReadStorage([]byte("Money"))
 	if err != nil {
