@@ -1,3 +1,5 @@
+// +build cosmwasm
+
 package src
 
 import "C"

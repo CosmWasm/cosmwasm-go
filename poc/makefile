@@ -8,7 +8,7 @@ all: build-docker public
 	@ ls -l main.wasm
 
 test:
-	GO111MODULE=off go test ./src
+	GO111MODULE=on go test ./src
 
 build:
 	tinygo build -o main.wasm -target wasm ./main.go

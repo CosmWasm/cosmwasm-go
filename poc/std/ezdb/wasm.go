@@ -1,3 +1,5 @@
+// +build cosmwasm
+
 package ezdb
 
 /*
