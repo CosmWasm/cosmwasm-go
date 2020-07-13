@@ -7,6 +7,10 @@ import "errors"
 var storage map[string][]byte
 
 func init() {
+	Reset()
+}
+
+func Reset() {
 	storage = make(map[string][]byte)
 }
 
