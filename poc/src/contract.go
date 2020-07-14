@@ -1,9 +1,10 @@
 package src
 
 import (
+	"strconv"
+
 	"github.com/cosmwasm/cosmwasm-go/poc/std"
 	"github.com/cosmwasm/cosmwasm-go/poc/std/ezdb"
-	"strconv"
 )
 
 type InitMsg struct {
@@ -19,6 +20,10 @@ type HandleMsg struct {
 
 type QueryMsg struct {
 	QueryType string
+}
+
+type QueryResponse struct {
+	QueryResult string
 }
 
 func getMoneyLeft() (int, error) {
@@ -103,13 +108,15 @@ func go_query(msg QueryMsg) (*OKResponse, *ERRResponse) {
 		if e != nil {
 			return nil, newErrResponse(std.Build_ErrResponse(e.Error()))
 		}
-		return newOkResponse(std.Build_QueryResponse("balance is : " + strconv.Itoa(moneyInt))), nil
+		resp := QueryResponse{"balance is : " + strconv.Itoa(moneyInt)}
+		return EncodeResult(resp)
 	case "user":
 		username, err := ezdb.ReadStorage([]byte("UserName"))
 		if err != nil {
 			return nil, newErrResponse(std.Build_ErrResponse("Read UserName failed: " + err.Error()))
 		}
-		return newOkResponse(std.Build_QueryResponse(string(username))), nil
+		resp := QueryResponse{string(username)}
+		return EncodeResult(resp)
 	default:
 		return nil, newErrResponse(std.Build_ErrResponse("required balance or user, found unsupport query type :" + msg.QueryType))
 	}

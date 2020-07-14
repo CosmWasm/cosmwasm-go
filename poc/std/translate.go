@@ -12,7 +12,6 @@ void CopyMessage(char* to,char* from,unsigned int size){
 */
 import "C"
 import (
-	"encoding/base64"
 	"unsafe"
 )
 
@@ -80,11 +79,6 @@ func Package_message(msg []byte) unsafe.Pointer {
 		result += 1
 	}
 	return ptr
-}
-
-func Build_QueryResponse(msg string) string {
-	encoding := base64.StdEncoding.EncodeToString([]byte(`{"QueryResult":"` + msg + `"}`))
-	return `"` + encoding + `"`
 }
 
 func Build_OkResponse(msg string) string {

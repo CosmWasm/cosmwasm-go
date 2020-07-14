@@ -41,10 +41,6 @@ func TestInitUsernameDifferentPassword(t *testing.T) {
 	require.Equal(t, err.Err, `{"generic_err":{"msg":"error, UserName cannot equal with Password","backtrace":null}}`)
 }
 
-type QueryResponse struct {
-	QueryResult string
-}
-
 func TestQuery(t *testing.T) {
 	// we need to reset the database as this acts on a singleton
 	ezdb.Reset()
@@ -66,6 +62,7 @@ func TestQuery(t *testing.T) {
 	require.NotNil(t, res)
 
 	// output is json encoded base64
+	// TODO: we should change the return type to hold []byte
 	var rawData []byte
 	stderr := json.Unmarshal([]byte(res.Ok), &rawData)
 	require.NoError(t, stderr)
