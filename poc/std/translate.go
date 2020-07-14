@@ -82,14 +82,6 @@ func Package_message(msg []byte) unsafe.Pointer {
 	return ptr
 }
 
-func Build_query_response(msg string) string {
-	return "{\"Err\":{" + msg + "}"
-}
-
-func FakeQueryJson(msg string) string {
-	return "\"handle\":\"" + msg + "\""
-}
-
 func Build_QueryResponse(msg string) string {
 	encoding := base64.StdEncoding.EncodeToString([]byte(`{"QueryResult":"` + msg + `"}`))
 	return `"` + encoding + `"`
