@@ -16,7 +16,20 @@ Docker tool required
 make build-cosmwasm
 ```
 
-## Run Test
+## Unit Tests
+
+If you run `make test`, it will run some pure Go unit tests on the contracts
+This is meant to show how to use two build environments: go for testing vs. 
+TinyGo for building and build flags to inject the proper dependencies.
+
+Please look at `src/contract.go` and `src/contract_test.go`. Besides
+maintaining the integration tests (below) in working order (very important),
+we also want to use the go unit tests to work on simplfying the APIs
+the developers will have to work with (all the std and lib.go stuff
+should be hidden from them usually).
+
+## Run Integration Test
+
 * Prepare   
 Clone cosmwasm-simulate tool from https://github.com/CosmWasm/cosmwasm-simulate/tree/debug-cosmwasm-go 
 ```sh
