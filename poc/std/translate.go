@@ -1,4 +1,5 @@
 package std
+
 //#include "stdlib.h"
 //#include "string.h"
 /*
@@ -50,6 +51,20 @@ func TranslateToSlice(ptr uintptr)[]byte{
 		Cap: uintptr(region.Capacity),
 	}
 	b := *(*[]byte)(unsafe.Pointer(&header))
+	return b
+}
+
+func TranslateToUint32(ptr uintptr) uint32{
+	if ptr == 0 {
+		return 0
+	}
+	region := (*MemRegion)(unsafe.Pointer(ptr))
+	header := SliceHeader_tinyGo{
+		Data : ptr + 12,
+		Len: uintptr(region.Length),
+		Cap: uintptr(region.Capacity),
+	}
+	b := *(*uint32)(unsafe.Pointer(&header))
 	return b
 }
 

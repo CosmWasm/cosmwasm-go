@@ -2,150 +2,89 @@ package src
 
 import (
 	"github.com/cosmwasm/cosmwasm-go/poc/std"
-	"github.com/cosmwasm/cosmwasm-go/poc/std/ezdb"
-	"strconv"
+	"github.com/cosmwasm/cosmwasm-go/poc/std/ezjson"
 )
 
-type InitMsg struct{
-	UserName 	string
-	Password 	string
-	Money 		int
+func Init(deps *std.Extern, _env std.Env, msg []byte) std.InitResponse {
+	return std.InitResponse{}
 }
 
-type HandleMsg struct{
-	Operation 	string
-	Password	string
-}
-
-type QueryMsg struct{
-	QueryType string
-}
-
-type OKResponse struct {
-	Ok string
-}
-
-type ERRResponse struct {
-	Err string
-}
-
-type InitResponse struct {
-	Data string
-	Log string
-	Messages string
-}
-
-func newOkResponse(resp string) *OKResponse{
-	return &OKResponse{
-		Ok: resp,
-	}
-}
-
-func (OKResponse) WrapMessage(msg string) string{
-	return `{"Ok":` + msg + `}`
-}
-
-func (ERRResponse) WrapMessage(msg string) string{
-	return `{"Err":` + msg + `}`
-}
-
-func newErrResponse(resp string) *ERRResponse{
-	return &ERRResponse{
-		Err: resp,
-	}
-}
-
-func getMoneyLeft()(int,error) {
-	money,err := ezdb.ReadStorage([]byte("Money"))
+func Invoke(deps *std.Extern, _env std.Env, msg []byte) std.HandleResponse {
+	var handlerMsg HandleMsg
+	err := ezjson.Unmarshal(msg, &handlerMsg)
 	if err != nil {
-		return 0,err
+		return std.HandleResponse{
+			Messages: nil,
+			Logs:     []string{err.Error()},
+			Data:     nil,
+		}
 	}
-	moneyInt ,e:= strconv.Atoi(string(money))
-	if e != nil {
-		return 0,e
+
+	if handlerMsg.Register != nil {
+		return tryRegister(deps, _env, handlerMsg.Register)
+	} else if handlerMsg.Sell != nil {
+		return trySell(deps, _env, handlerMsg.Sell)
 	}
-	return moneyInt,nil
+
+	return std.HandleResponse{
+		Messages: nil,
+		Logs:     []string{"unknowns function called!"},
+		Data:     nil,
+	}
 }
 
-func saveMoeny(money int) error {
-	return ezdb.WriteStorage([]byte("Money"),[]byte(strconv.Itoa(money)))
+func Query(deps *std.Extern, msg []byte) std.Binary {
+	var queryMsg QueryMsg
+	err := ezjson.Unmarshal(msg, &queryMsg)
+	if err != nil {
+		return std.Binary([]byte(err.Error()))
+	}
+
+	if queryMsg.Get != nil {
+		return tryGetDomain(deps, queryMsg.Get)
+	}
+
+	return std.Binary([]byte("unknowns function called!"))
 }
 
+func tryRegister(deps *std.Extern, _env std.Env, registerInfo *RegisterDomain) std.HandleResponse {
+	if err := deps.EStorage.Set([]byte(registerInfo.Domain), _env.Message.Sender); err != nil {
+		return std.HandleResponse{
+			Messages: nil,
+			Logs:     []string{err.Error()},
+			Data:     nil,
+		}
+	}
 
-func go_init(msg InitMsg)(*OKResponse,*ERRResponse){
-	if msg.UserName == msg.Password {
-		return nil,newErrResponse(std.Build_ErrResponse("error, UserName cannot equal with Password"))
-	}
-	_,err := ezdb.ReadStorage([]byte("inited"))
-	if err == nil {
-		return nil,newErrResponse(std.Build_ErrResponse("Contract already inited"))
-	}
-	e := ezdb.WriteStorage([]byte("UserName"),[]byte(msg.UserName))
-	if e != nil {
-		return nil,newErrResponse(std.Build_ErrResponse("WriteStorage"))
-	}
-	ezdb.WriteStorage([]byte("Password"),[]byte(msg.Password))
-	ezdb.WriteStorage([]byte("Money"),[]byte(strconv.Itoa(msg.Money)))
-	return newOkResponse(std.Build_OkResponse("success to init contract")),nil
+	return std.HandleResponse{}
 }
 
-func go_handle(msg HandleMsg)(*OKResponse,*ERRResponse){
-	p,err := ezdb.ReadStorage([]byte("Password"))
-	if err != nil{
-		return nil,newErrResponse(std.Build_ErrResponse(err.Error()))
+func trySell(deps *std.Extern, _env std.Env, sellInfo *SellDomain) std.HandleResponse {
+	buyerCanonAddress, err := deps.EApi.CanonicalAddress(sellInfo.Buyer)
+	if err != nil {
+		return std.HandleResponse{
+			Messages: nil,
+			Logs:     []string{err.Error()},
+			Data:     nil,
+		}
 	}
-	if msg.Password != string(p) {
-		return nil,newErrResponse(std.Build_ErrResponse("Wrong password, check again"))
+
+	if err := deps.EStorage.Set([]byte(sellInfo.Domain), buyerCanonAddress); err != nil {
+		return std.HandleResponse{
+			Messages: nil,
+			Logs:     []string{err.Error()},
+			Data:     nil,
+		}
 	}
-	switch msg.Operation{
-	case "burn":
-		moneyInt ,e:= getMoneyLeft()
-		if e != nil{
-			return nil,newErrResponse(std.Build_ErrResponse(e.Error()))
-		}
-		if moneyInt == 0{
-			return nil,newErrResponse(std.Build_ErrResponse("Sorry, all money has burned~ try to save some money"))
-		}
-		if moneyInt < 10 && moneyInt > 0 {
-			moneyInt = 0
-		}else{
-			moneyInt -= 10
-		}
-		e = saveMoeny(moneyInt)
-		if e != nil{
-			return nil,newErrResponse(std.Build_ErrResponse(err.Error()))
-		}
-	case "save":
-		moneyInt ,e:= getMoneyLeft()
-		if e != nil{
-			return nil,newErrResponse(std.Build_ErrResponse(err.Error()))
-		}
-		moneyInt += 10
-		e = saveMoeny(moneyInt)
-		if e != nil{
-			return nil,newErrResponse(std.Build_ErrResponse(err.Error()))
-		}
-	default:
-		return nil,newErrResponse(std.Build_ErrResponse("Unsupport operation :" + msg.Operation))
-	}
-	return newOkResponse(std.Build_OkResponse("handle run success")),nil
+
+	return std.HandleResponse{}
 }
 
-func go_query(msg QueryMsg)(*OKResponse,*ERRResponse){
-	switch msg.QueryType {
-	case "balance":
-		moneyInt ,e:= getMoneyLeft()
-		if e != nil{
-			return nil,newErrResponse(std.Build_ErrResponse(e.Error()))
-		}
-		return newOkResponse(std.Build_QueryResponse("balance is : " + strconv.Itoa(moneyInt))),nil
-	case "user":
-		username,err := ezdb.ReadStorage([]byte("UserName"))
-		if err != nil {
-			return nil,newErrResponse(std.Build_ErrResponse("Read UserName failed: " + err.Error()))
-		}
-		return newOkResponse(std.Build_QueryResponse(string(username))),nil
-	default:
-		return nil,newErrResponse(std.Build_ErrResponse("required balance or user, found unsupport query type :" + msg.QueryType))
+func tryGetDomain(deps *std.Extern, queryInfo *GetOwner) std.Binary {
+	owner, err := deps.EStorage.Get([]byte(queryInfo.Domain))
+	if err != nil {
+		return std.Binary([]byte(err.Error()))
 	}
+
+	return std.Binary(owner)
 }
