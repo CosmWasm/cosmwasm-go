@@ -1,15 +1,13 @@
 package src
 
-import "github.com/cosmwasm/cosmwasm-go/poc/std"
-
 type HandleMsg struct {
 	Register *RegisterDomain `json:"register,omitempty"`
 	Sell     *SellDomain     `json:"sell,omitempty"`
 }
 
 type SellDomain struct {
-	Buyer  std.HumanAddr `json:"buyer"`
-	Domain string        `json:"domain"`
+	Buyer  string `json:"buyer"`
+	Domain string `json:"domain"`
 }
 
 type RegisterDomain struct {

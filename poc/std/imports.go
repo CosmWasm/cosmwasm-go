@@ -178,13 +178,11 @@ const (
 	HUMAN_ADDRESS_BUFFER_LENGTH     uint32 = 90
 )
 
-type HumanAddr string
-
 type CanonicalAddr []byte
 
 type Api interface {
-	CanonicalAddress(human HumanAddr) (CanonicalAddr, error)
-	HumanAddress(canonical CanonicalAddr) (HumanAddr, error)
+	CanonicalAddress(human string) (CanonicalAddr, error)
+	HumanAddress(canonical CanonicalAddr) (string, error)
 }
 
 // ensure Api interface compliance at compile time
@@ -194,7 +192,7 @@ var (
 
 type ExternalApi struct{}
 
-func (api ExternalApi) CanonicalAddress(human HumanAddr) (CanonicalAddr, error) {
+func (api ExternalApi) CanonicalAddress(human string) (CanonicalAddr, error) {
 	humanAddr := []byte(human)
 	humanPtr := C.malloc(C.ulong(len(humanAddr)))
 	regionHuman := TranslateToRegion(humanAddr, uintptr(humanPtr))
@@ -219,7 +217,7 @@ func (api ExternalApi) CanonicalAddress(human HumanAddr) (CanonicalAddr, error) 
 	return canoAddress, nil
 }
 
-func (api ExternalApi) HumanAddress(canonical CanonicalAddr) (HumanAddr, error) {
+func (api ExternalApi) HumanAddress(canonical CanonicalAddr) (string, error) {
 	canonPtr := C.malloc(C.ulong(len(canonical)))
 	regionCanon := TranslateToRegion(canonical, uintptr(canonPtr))
 
@@ -240,7 +238,7 @@ func (api ExternalApi) HumanAddress(canonical CanonicalAddr) (HumanAddr, error) 
 
 	humanAddress := TranslateToSlice(uintptr(regionHuman))
 
-	return HumanAddr(humanAddress), nil
+	return string(humanAddress), nil
 }
 
 // ====== Querier ======

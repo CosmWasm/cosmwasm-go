@@ -33,18 +33,18 @@ func Invoke(deps *std.Extern, _env std.Env, msg []byte) std.HandleResponse {
 	}
 }
 
-func Query(deps *std.Extern, msg []byte) std.Binary {
+func Query(deps *std.Extern, msg []byte) []byte {
 	var queryMsg QueryMsg
 	err := ezjson.Unmarshal(msg, &queryMsg)
 	if err != nil {
-		return std.Binary([]byte(err.Error()))
+		return []byte(err.Error())
 	}
 
 	if queryMsg.Get != nil {
 		return tryGetDomain(deps, queryMsg.Get)
 	}
 
-	return std.Binary([]byte("unknowns function called!"))
+	return []byte("unknowns function called!")
 }
 
 func tryRegister(deps *std.Extern, _env std.Env, registerInfo *RegisterDomain) std.HandleResponse {
@@ -80,11 +80,11 @@ func trySell(deps *std.Extern, _env std.Env, sellInfo *SellDomain) std.HandleRes
 	return std.HandleResponse{}
 }
 
-func tryGetDomain(deps *std.Extern, queryInfo *GetOwner) std.Binary {
+func tryGetDomain(deps *std.Extern, queryInfo *GetOwner) []byte {
 	owner, err := deps.EStorage.Get([]byte(queryInfo.Domain))
 	if err != nil {
-		return std.Binary([]byte(err.Error()))
+		return []byte(err.Error())
 	}
 
-	return std.Binary(owner)
+	return owner
 }
