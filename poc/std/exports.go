@@ -8,11 +8,11 @@ import (
 // =========== Extern --> context =======
 type Extern struct {
 	EStorage Storage
-	EApi Api
+	EApi     Api
 	EQuerier Querier
 }
 
-func (deps Extern) change_querier(transform func(Querier) Querier) Extern{
+func (deps Extern) change_querier(transform func(Querier) Querier) Extern {
 	return Extern{
 		EStorage: deps.EStorage,
 		EApi:     deps.EApi,
@@ -23,7 +23,7 @@ func (deps Extern) change_querier(transform func(Querier) Querier) Extern{
 func make_dependencies() Extern {
 	return Extern{
 		EStorage: ExternalStorage{},
-		EApi: ExternalApi{},
+		EApi:     ExternalApi{},
 		EQuerier: ExternalQuerier{},
 	}
 }
@@ -31,11 +31,11 @@ func make_dependencies() Extern {
 // ========== init ==============
 type InitResponse struct {
 	Messages []string `json:"messages"`
-	Logs []string `json:"log"`
-	Data []byte `json:"data"`
+	Logs     []string `json:"log"`
+	Data     []byte   `json:"data"`
 }
 
-func DoInit(initFn func(deps *Extern, _env Env, msg []byte) InitResponse, envPtr, msgPtr uint32) unsafe.Pointer{
+func DoInit(initFn func(deps *Extern, _env Env, msg []byte) InitResponse, envPtr, msgPtr uint32) unsafe.Pointer {
 	envData := Translate_range_custom(uintptr(envPtr))
 	msgData := Translate_range_custom(uintptr(msgPtr))
 
@@ -49,7 +49,7 @@ func DoInit(initFn func(deps *Extern, _env Env, msg []byte) InitResponse, envPtr
 	return Package_message(data)
 }
 
-func _do_init(initFn func(deps *Extern, _env Env, msg []byte) InitResponse, envData, msgData []byte) InitResponse{
+func _do_init(initFn func(deps *Extern, _env Env, msg []byte) InitResponse, envData, msgData []byte) InitResponse {
 	var env Env
 	ezjson.Unmarshal(envData, &env)
 
@@ -60,11 +60,11 @@ func _do_init(initFn func(deps *Extern, _env Env, msg []byte) InitResponse, envD
 // ========= handler ============
 type HandleResponse struct {
 	Messages []string `json:"messages"`
-	Logs []string `json:"log"`
-	Data []byte `json:"data"`
+	Logs     []string `json:"log"`
+	Data     []byte   `json:"data"`
 }
 
-func DoHandler(handlerFn func(deps *Extern, _env Env, msg []byte) HandleResponse, envPtr, msgPtr uint32) unsafe.Pointer{
+func DoHandler(handlerFn func(deps *Extern, _env Env, msg []byte) HandleResponse, envPtr, msgPtr uint32) unsafe.Pointer {
 	envData := Translate_range_custom(uintptr(envPtr))
 	msgData := Translate_range_custom(uintptr(msgPtr))
 
@@ -78,7 +78,7 @@ func DoHandler(handlerFn func(deps *Extern, _env Env, msg []byte) HandleResponse
 	return Package_message(data)
 }
 
-func _do_handler(handlerFn func(deps *Extern, _env Env, msg []byte) HandleResponse, envData, msgData []byte) HandleResponse{
+func _do_handler(handlerFn func(deps *Extern, _env Env, msg []byte) HandleResponse, envData, msgData []byte) HandleResponse {
 	var env Env
 	ezjson.Unmarshal(envData, &env)
 
@@ -87,9 +87,7 @@ func _do_handler(handlerFn func(deps *Extern, _env Env, msg []byte) HandleRespon
 }
 
 // =========== query ===================
-type Binary []byte
-
-func DoQuery(queryFn func(deps *Extern, msg []byte) Binary, msgPtr uint32) unsafe.Pointer{
+func DoQuery(queryFn func(deps *Extern, msg []byte) []byte, msgPtr uint32) unsafe.Pointer {
 	msgData := Translate_range_custom(uintptr(msgPtr))
 
 	result := _do_query(queryFn, msgData)
@@ -97,7 +95,7 @@ func DoQuery(queryFn func(deps *Extern, msg []byte) Binary, msgPtr uint32) unsaf
 	return Package_message(result)
 }
 
-func _do_query(handlerFn func(deps *Extern, msg []byte) Binary, msgData []byte) Binary {
+func _do_query(handlerFn func(deps *Extern, msg []byte) []byte, msgData []byte) []byte {
 	deps := make_dependencies()
 	return handlerFn(&deps, msgData)
 }
