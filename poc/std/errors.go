@@ -1,7 +1,6 @@
 package std
 
 import (
-	"fmt"
 	"reflect"
 )
 
@@ -62,7 +61,7 @@ type GenericErr struct {
 }
 
 func (e GenericErr) Error() string {
-	return fmt.Sprintf("generic: %s", e.Msg)
+	return `{"generic_err":{"msg":"` + e.Msg + `"}}`
 }
 
 type InvalidBase64 struct {
@@ -70,7 +69,7 @@ type InvalidBase64 struct {
 }
 
 func (e InvalidBase64) Error() string {
-	return fmt.Sprintf("invalid base64: %s", e.Msg)
+	return `{"invalid_base64":{"msg":"` + e.Msg +`"}}`
 }
 
 type InvalidUtf8 struct {
@@ -78,7 +77,7 @@ type InvalidUtf8 struct {
 }
 
 func (e InvalidUtf8) Error() string {
-	return fmt.Sprintf("invalid_utf8: %s", e.Msg)
+	return `{"invalid_utf8":{"msg":"` + e.Msg +`"}}`
 }
 
 type NotFound struct {
@@ -86,13 +85,13 @@ type NotFound struct {
 }
 
 func (e NotFound) Error() string {
-	return fmt.Sprintf("not found: %s", e.Kind)
+	return `{"not_found":{"kind":"` + e.Kind +`"}}`
 }
 
 type NullPointer struct{}
 
 func (e NullPointer) Error() string {
-	return "null pointer"
+	return `{"null_pointer": nil}`
 }
 
 type ParseErr struct {
@@ -101,7 +100,7 @@ type ParseErr struct {
 }
 
 func (e ParseErr) Error() string {
-	return fmt.Sprintf("parsing %s: %s", e.Target, e.Msg)
+	return `{"parse_err":{"target":"` + e.Target + `","msg":"` + e.Msg +`"}}`
 }
 
 type SerializeErr struct {
@@ -110,13 +109,13 @@ type SerializeErr struct {
 }
 
 func (e SerializeErr) Error() string {
-	return fmt.Sprintf("serializing %s: %s", e.Source, e.Msg)
+	return `{"serializing":{"source":"` + e.Source + `","msg":"` + e.Msg +`"}}`
 }
 
 type Unauthorized struct{}
 
 func (e Unauthorized) Error() string {
-	return "unauthorized"
+	return `{"unauthorized": nil}`
 }
 
 type Underflow struct {
@@ -125,7 +124,7 @@ type Underflow struct {
 }
 
 func (e Underflow) Error() string {
-	return fmt.Sprintf("underflow: %s - %s", e.Minuend, e.Subtrahend)
+	return `{"underflow":{"minuend":"` + e.Minuend + `","subtrahend":"` + e.Subtrahend +`"}}`
 }
 
 // ToStdError will convert the given error to an StdError.
@@ -240,7 +239,7 @@ type InvalidRequest struct {
 }
 
 func (e InvalidRequest) Error() string {
-	return fmt.Sprintf("invalid request: %s - original request: %s", e.Err, string(e.Request))
+	return `{"invalid_request":{"error":"` + e.Err + `","request":"` + string(e.Request) +`"}}`
 }
 
 type InvalidResponse struct {
@@ -249,7 +248,7 @@ type InvalidResponse struct {
 }
 
 func (e InvalidResponse) Error() string {
-	return fmt.Sprintf("invalid response: %s - original response: %s", e.Err, string(e.Response))
+	return `{"invalid_response":{"error":"` + e.Err + `","response":"` + string(e.Response) +`"}}`
 }
 
 type NoSuchContract struct {
@@ -257,13 +256,13 @@ type NoSuchContract struct {
 }
 
 func (e NoSuchContract) Error() string {
-	return fmt.Sprintf("no such contract: %s", e.Addr)
+	return `{"no_such_contract":{"addr":"` + e.Addr +`"}}`
 }
 
 type Unknown struct{}
 
 func (e Unknown) Error() string {
-	return "unknown system error"
+	return `{"unknow":nil}`
 }
 
 type UnsupportedRequest struct {
@@ -271,7 +270,7 @@ type UnsupportedRequest struct {
 }
 
 func (e UnsupportedRequest) Error() string {
-	return fmt.Sprintf("unsupported request: %s", e.Kind)
+	return `{"unsupported_request":{"kind":"` + e.Kind +`"}}`
 }
 
 // ToSystemError will try to convert the given error to an SystemError.

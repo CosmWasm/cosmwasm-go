@@ -18,14 +18,13 @@ import "C"
 
 import (
 	"errors"
-	"fmt"
 	"github.com/cosmwasm/cosmwasm-go/poc/std/ezjson"
 	"unsafe"
 )
 
 const (
 	// A kibi (kilo binary)
-	KI uint32= 1024
+	KI uint32 = 1024
 
 	// The number of bytes of the memory region we pre-allocate for the result data in ExternalIterator.next
 	DB_READ_KEY_BUFFER_LENGTH uint32 = 64 * KI
@@ -40,7 +39,7 @@ const (
 	CANONICAL_ADDRESS_BUFFER_LENGTH uint32 = 32
 
 	// An upper bound for typical human readable address formats (e.g. 42 for Ethereum hex addresses or 90 for bech32)
-	HUMAN_ADDRESS_BUFFER_LENGTH     uint32 = 90
+	HUMAN_ADDRESS_BUFFER_LENGTH uint32 = 90
 )
 
 // ====== DB ======
@@ -85,7 +84,7 @@ func (storage ExternalStorage) Get(key []byte) (value []byte, err error) {
 	} else if read == -1001001 {
 		return nil, errors.New("key not existed")
 	} else if read < 0 {
-		return nil, errors.New(fmt.Sprintf("Error reading from database. Error code: %d" ,int(read)))
+		return nil, errors.New("Error reading from database. Error code: " + string(int(read)))
 	}
 
 	b := TranslateToSlice(uintptr(regionValue))
@@ -104,7 +103,7 @@ func (storage ExternalStorage) Range(start, end []byte, order Order) (Iterator, 
 	C.free(ptrEnd)
 
 	if iterId < 0 {
-		return nil, errors.New(fmt.Sprintf("error creating iterator (via db_scan): %d", int(iterId)))
+		return nil, errors.New("error creating iterator (via db_scan): " + string(int(iterId)))
 	}
 
 	return ExternalIterator{uint32(iterId)}, nil
@@ -121,7 +120,7 @@ func (storage ExternalStorage) Set(key, value []byte) error {
 	C.free(ptrVal)
 
 	if ret < 0 {
-		return errors.New(fmt.Sprintf("Error writing to database. Error code: %d", int(ret)))
+		return errors.New("Error writing to database. Error code: " + string(int(ret)))
 	}
 
 	return nil
@@ -135,7 +134,7 @@ func (storage ExternalStorage) Remove(key []byte) error {
 	C.free(keyPtr)
 
 	if ret < 0 {
-		return errors.New(fmt.Sprintf("Error deleting from database. Error code: %d", int(ret)))
+		return errors.New("Error deleting from database. Error code: " + string(int(ret)))
 	}
 
 	return nil
@@ -160,7 +159,7 @@ func (iterator ExternalIterator) Next() (key, value []byte, err error) {
 	ret := C.db_next(C.uint(iterator.IteratorId), unsafe.Pointer(regionKey), unsafe.Pointer(regionNextValue))
 
 	if ret < 0 {
-		return nil, nil, errors.New(fmt.Sprintf("unknown error from db_next: %d", int(ret)))
+		return nil, nil, errors.New("unknown error from db_next: " + string(int(ret)))
 	}
 
 	key = TranslateToSlice(uintptr(regionKey))
@@ -318,28 +317,6 @@ type AllBalancesQuery struct {
 // AllBalancesResponse is the expected response to AllBalancesQuery
 type AllBalancesResponse struct {
 	Amount Coins `json:"amount"`
-}
-
-// RawMessage is a raw encoded JSON value.
-// It implements Marshaler and Unmarshaler and can
-// be used to delay JSON decoding or precompute a JSON encoding.
-type RawMessage []byte
-
-// MarshalJSON returns m as the JSON encoding of m.
-func (m RawMessage) MarshalJSON() ([]byte, error) {
-	if m == nil {
-		return []byte("null"), nil
-	}
-	return m, nil
-}
-
-// UnmarshalJSON sets *m to a copy of data.
-func (m *RawMessage) UnmarshalJSON(data []byte) error {
-	if m == nil {
-		return errors.New("json.RawMessage: UnmarshalJSON on nil pointer")
-	}
-	*m = append((*m)[0:0], data...)
-	return nil
 }
 
 type StakingQuery struct {

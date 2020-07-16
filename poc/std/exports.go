@@ -5,6 +5,14 @@ import (
 	"unsafe"
 )
 
+func Build_ErrResponse(msg string) string {
+	return `{"generic_err":{"msg":"` + msg + `","backtrace":null}}`
+}
+
+func StdErrResult(msg string) unsafe.Pointer {
+	return Package_message([]byte(`{"Err":` + Build_ErrResponse(msg) + `}`))
+}
+
 // =========== Extern --> context =======
 type Extern struct {
 	EStorage Storage
@@ -29,73 +37,81 @@ func make_dependencies() Extern {
 }
 
 // ========== init ==============
-type InitResponse struct {
-	Messages []string `json:"messages"`
-	Logs     []string `json:"log"`
-	Data     []byte   `json:"data"`
-}
-
-func DoInit(initFn func(deps *Extern, _env Env, msg []byte) InitResponse, envPtr, msgPtr uint32) unsafe.Pointer {
+func DoInit(initFn func(deps *Extern, _env Env, msg []byte) CosmosResponse, envPtr, msgPtr uint32) unsafe.Pointer {
 	envData := Translate_range_custom(uintptr(envPtr))
 	msgData := Translate_range_custom(uintptr(msgPtr))
 
 	result := _do_init(initFn, envData, msgData)
 
-	data, err := ezjson.Marshal(result)
+	// TODO: you should use json.Marshal, but it does't work now!
+	//data, err := ezjson.Marshal(result)
+	//if err != nil {
+	//	return StdErrResult("Failed to marshal init response to []byte: " + err.Error())
+	//}
+
+	data, err := result.MarshalJSON()
 	if err != nil {
-		return nil
+		return StdErrResult("Failed to marshal init response to []byte: " + err.Error())
 	}
 
 	return Package_message(data)
 }
 
-func _do_init(initFn func(deps *Extern, _env Env, msg []byte) InitResponse, envData, msgData []byte) InitResponse {
+func _do_init(initFn func(deps *Extern, _env Env, msg []byte) CosmosResponse, envData, msgData []byte) CosmosResponse {
 	var env Env
-	ezjson.Unmarshal(envData, &env)
+	err := ezjson.Unmarshal(envData, &env)
+	if err != nil {
+		return CosmosResponse{
+			Ok:  nil,
+			Err: ToStdError(GenericErr{err.Error()}),
+		}
+	}
 
 	deps := make_dependencies()
 	return initFn(&deps, env, msgData)
 }
 
 // ========= handler ============
-type HandleResponse struct {
-	Messages []string `json:"messages"`
-	Logs     []string `json:"log"`
-	Data     []byte   `json:"data"`
-}
-
-func DoHandler(handlerFn func(deps *Extern, _env Env, msg []byte) HandleResponse, envPtr, msgPtr uint32) unsafe.Pointer {
+func DoHandler(handlerFn func(deps *Extern, _env Env, msg []byte) CosmosResponse, envPtr, msgPtr uint32) unsafe.Pointer {
 	envData := Translate_range_custom(uintptr(envPtr))
 	msgData := Translate_range_custom(uintptr(msgPtr))
 
 	result := _do_handler(handlerFn, envData, msgData)
-
 	data, err := ezjson.Marshal(result)
 	if err != nil {
-		return nil
+		return StdErrResult("Failed to marshal handle response to []byte: " + err.Error())
 	}
 
 	return Package_message(data)
 }
 
-func _do_handler(handlerFn func(deps *Extern, _env Env, msg []byte) HandleResponse, envData, msgData []byte) HandleResponse {
+func _do_handler(handlerFn func(deps *Extern, _env Env, msg []byte) CosmosResponse, envData, msgData []byte) CosmosResponse {
 	var env Env
-	ezjson.Unmarshal(envData, &env)
+	if err := ezjson.Unmarshal(envData, &env); err != nil {
+		return CosmosResponse{
+			Ok:  nil,
+			Err: ToStdError(GenericErr{err.Error()}),
+		}
+	}
 
 	deps := make_dependencies()
 	return handlerFn(&deps, env, msgData)
 }
 
 // =========== query ===================
-func DoQuery(queryFn func(deps *Extern, msg []byte) []byte, msgPtr uint32) unsafe.Pointer {
+func DoQuery(queryFn func(deps *Extern, msg []byte) CosmosResponse, msgPtr uint32) unsafe.Pointer {
 	msgData := Translate_range_custom(uintptr(msgPtr))
 
 	result := _do_query(queryFn, msgData)
+	data, err := ezjson.Marshal(result)
+	if err != nil {
+		return StdErrResult("Failed to marshal query response to []byte: " + err.Error())
+	}
 
-	return Package_message(result)
+	return Package_message(data)
 }
 
-func _do_query(handlerFn func(deps *Extern, msg []byte) []byte, msgData []byte) []byte {
+func _do_query(handlerFn func(deps *Extern, msg []byte) CosmosResponse, msgData []byte) CosmosResponse {
 	deps := make_dependencies()
 	return handlerFn(&deps, msgData)
 }
