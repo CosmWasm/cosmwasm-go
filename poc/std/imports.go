@@ -5,20 +5,42 @@ package std
 extern int db_read(void* key, void* value);
 extern int db_write(void* key, void* value);
 extern int db_remove(void* key);
-extern int db_scan(void* start_ptr, void* end_ptr, void* order, void* iterator_id);
-extern int db_next(void* iterator_id, void* next_result);
-extern int canonicalize_address(void* source, void* destination, void* result);
-extern int humanize_address(void* source, void* destination, void* result);
+
+extern int db_scan(void* start_ptr, void* end_ptr, int order);
+extern int db_next(unsigned iterator_id, void* key, void* next_value);
+
+extern int canonicalize_address(void* human, void* canonical);
+extern int humanize_address(void* canonical, void* human);
+
 extern int query_chain(void* request, void* response);
 */
 import "C"
 
 import (
-	"bytes"
-	"encoding/binary"
 	"errors"
+	"fmt"
 	"github.com/cosmwasm/cosmwasm-go/poc/std/ezjson"
 	"unsafe"
+)
+
+const (
+	// A kibi (kilo binary)
+	KI uint32= 1024
+
+	// The number of bytes of the memory region we pre-allocate for the result data in ExternalIterator.next
+	DB_READ_KEY_BUFFER_LENGTH uint32 = 64 * KI
+
+	// The number of bytes of the memory region we pre-allocate for the result data in ExternalStorage.get and ExternalIterator.next
+	DB_READ_VALUE_BUFFER_LENGTH uint32 = 128 * KI
+
+	// The number of bytes of the memory region we pre-allocate for the result data in queries
+	QUERY_RESULT_BUFFER_LENGTH uint32 = 128 * KI
+
+	// An upper bound for typical canonical address lengths (e.g. 20 in Cosmos SDK/Ethereum or 32 in Nano/Substrate)
+	CANONICAL_ADDRESS_BUFFER_LENGTH uint32 = 32
+
+	// An upper bound for typical human readable address formats (e.g. 42 for Ethereum hex addresses or 90 for bech32)
+	HUMAN_ADDRESS_BUFFER_LENGTH     uint32 = 90
 )
 
 // ====== DB ======
@@ -52,16 +74,18 @@ type ExternalStorage struct{}
 func (storage ExternalStorage) Get(key []byte) (value []byte, err error) {
 	keyPtr := C.malloc(C.ulong(len(key)))
 	regionKey := TranslateToRegion(key, uintptr(keyPtr))
-	regionValue, _ := Build_region(1024, 0)
+	regionValue, _ := Build_region(DB_READ_VALUE_BUFFER_LENGTH, 0)
 
-	ret := C.db_read(unsafe.Pointer(regionKey), unsafe.Pointer(regionValue))
+	read := C.db_read(unsafe.Pointer(regionKey), unsafe.Pointer(regionValue))
 	C.free(keyPtr)
 
-	if ret != 0 {
-		if ret == -1001001 {
-			return nil, errors.New("key not existed")
-		}
-		return nil, errors.New("call success but reading failed")
+	if read == -1000001 {
+		return nil, errors.New("allocated memory too small to hold the database value for the given key. " +
+			"You can specify custom result buffer lengths by using ExternalStorage.get_with_result_length explicitily")
+	} else if read == -1001001 {
+		return nil, errors.New("key not existed")
+	} else if read < 0 {
+		return nil, errors.New(fmt.Sprintf("Error reading from database. Error code: %d" ,int(read)))
 	}
 
 	b := TranslateToSlice(uintptr(regionValue))
@@ -69,35 +93,21 @@ func (storage ExternalStorage) Get(key []byte) (value []byte, err error) {
 }
 
 func (storage ExternalStorage) Range(start, end []byte, order Order) (Iterator, error) {
-	orderByte := bytes.NewBuffer([]byte{})
-	binary.Write(orderByte, binary.BigEndian, &order)
-
 	ptrStart := C.malloc(C.ulong(len(start)))
 	regionStart := TranslateToRegion(start, uintptr(ptrStart))
 
 	ptrEnd := C.malloc(C.ulong(len(end)))
 	regionEnd := TranslateToRegion(end, uintptr(ptrEnd))
 
-	ptrOrder := C.malloc(C.ulong(len(orderByte.Bytes())))
-	regionOrder := TranslateToRegion(orderByte.Bytes(), uintptr(ptrOrder))
-
-	regionIteratorId, _ := Build_region(256, 0)
-
-	ret := C.db_scan(unsafe.Pointer(regionStart), unsafe.Pointer(regionEnd), unsafe.Pointer(&regionOrder), unsafe.Pointer(regionIteratorId))
+	iterId := C.db_scan(unsafe.Pointer(regionStart), unsafe.Pointer(regionEnd), C.int(order))
 	C.free(ptrStart)
 	C.free(ptrEnd)
-	C.free(ptrOrder)
 
-	if ret != 0 {
-		return nil, errors.New("some Error happens during scan storage")
+	if iterId < 0 {
+		return nil, errors.New(fmt.Sprintf("error creating iterator (via db_scan): %d", int(iterId)))
 	}
 
-	iterId := TranslateToUint32(uintptr(regionIteratorId))
-	if iterId == 0 {
-		return nil, errors.New("failed to convert iterator id")
-	}
-
-	return ExternalIterator{iterId}, nil
+	return ExternalIterator{uint32(iterId)}, nil
 }
 
 func (storage ExternalStorage) Set(key, value []byte) error {
@@ -110,8 +120,8 @@ func (storage ExternalStorage) Set(key, value []byte) error {
 	C.free(ptrKey)
 	C.free(ptrVal)
 
-	if ret != 0 {
-		return errors.New("some Error happens during Write storage")
+	if ret < 0 {
+		return errors.New(fmt.Sprintf("Error writing to database. Error code: %d", int(ret)))
 	}
 
 	return nil
@@ -124,8 +134,8 @@ func (storage ExternalStorage) Remove(key []byte) error {
 	ret := C.db_remove(unsafe.Pointer(regionKey))
 	C.free(keyPtr)
 
-	if ret != 0 {
-		return errors.New("some Error happens during modify storage")
+	if ret < 0 {
+		return errors.New(fmt.Sprintf("Error deleting from database. Error code: %d", int(ret)))
 	}
 
 	return nil
@@ -144,40 +154,26 @@ type ExternalIterator struct {
 }
 
 func (iterator ExternalIterator) Next() (key, value []byte, err error) {
-	iterIdByte := bytes.NewBuffer([]byte{})
-	binary.Write(iterIdByte, binary.BigEndian, &iterator.IteratorId)
+	regionKey, _ := Build_region(DB_READ_KEY_BUFFER_LENGTH, 0)
+	regionNextValue, _ := Build_region(DB_READ_VALUE_BUFFER_LENGTH, 0)
 
-	ptrIterId := C.malloc(C.ulong(len(iterIdByte.Bytes())))
-	regionIterId := TranslateToRegion(iterIdByte.Bytes(), uintptr(ptrIterId))
-	regionNextResult, _ := Build_region(1024, 0)
+	ret := C.db_next(C.uint(iterator.IteratorId), unsafe.Pointer(regionKey), unsafe.Pointer(regionNextValue))
 
-	ret := C.db_next(unsafe.Pointer(regionIterId), unsafe.Pointer(regionNextResult))
-	C.free(ptrIterId)
-
-	if ret != 0 {
-		return nil, nil, errors.New("failed to get db next value")
+	if ret < 0 {
+		return nil, nil, errors.New(fmt.Sprintf("unknown error from db_next: %d", int(ret)))
 	}
 
-	kv := TranslateToSlice(uintptr(regionNextResult))
+	key = TranslateToSlice(uintptr(regionKey))
+	value = TranslateToSlice(uintptr(regionNextValue))
 
-	bytesBuffer := bytes.NewBuffer(kv)
-	var keyLen uint32
-	err1 := binary.Read(bytesBuffer, binary.BigEndian, &keyLen)
-	if err1 != nil || keyLen == 0 {
-		return nil, nil, errors.New("failed to convert key len from db_next result")
+	if len(key) == 0 {
+		return nil, nil, errors.New("empty key get from db_next")
 	}
 
-	kv = kv[:len(kv)-4]
-
-	return kv[:len(kv)-int(keyLen)], kv[len(kv)-int(keyLen)+1:], nil
+	return key, value, nil
 }
 
 // ====== API ======
-const (
-	CANONICAL_ADDRESS_BUFFER_LENGTH uint32 = 32
-	HUMAN_ADDRESS_BUFFER_LENGTH     uint32 = 90
-)
-
 type CanonicalAddr []byte
 
 type Api interface {
@@ -198,18 +194,12 @@ func (api ExternalApi) CanonicalAddress(human string) (CanonicalAddr, error) {
 	regionHuman := TranslateToRegion(humanAddr, uintptr(humanPtr))
 
 	regionCanon, _ := Build_region(CANONICAL_ADDRESS_BUFFER_LENGTH, 0)
-	regionResult, _ := Build_region(256, 0)
 
-	ret := C.canonicalize_address(unsafe.Pointer(regionHuman), unsafe.Pointer(regionCanon), unsafe.Pointer(regionResult))
+	ret := C.canonicalize_address(unsafe.Pointer(regionHuman), unsafe.Pointer(regionCanon))
 	C.free(humanPtr)
 
-	if ret != 0 {
-		return nil, errors.New("fail to convert human address to canonicalize address")
-	}
-
-	result := TranslateToUint32(uintptr(regionResult))
-	if result != 0 {
-		return nil, errors.New("fail to convert human address to canonicalize address")
+	if ret < 0 {
+		return nil, errors.New("canonicalize_address returned error")
 	}
 
 	canoAddress := TranslateToSlice(uintptr(regionCanon))
@@ -222,18 +212,12 @@ func (api ExternalApi) HumanAddress(canonical CanonicalAddr) (string, error) {
 	regionCanon := TranslateToRegion(canonical, uintptr(canonPtr))
 
 	regionHuman, _ := Build_region(HUMAN_ADDRESS_BUFFER_LENGTH, 0)
-	regionResult, _ := Build_region(256, 0)
 
-	ret := C.canonicalize_address(unsafe.Pointer(regionCanon), unsafe.Pointer(regionHuman), unsafe.Pointer(regionResult))
+	ret := C.humanize_address(unsafe.Pointer(regionCanon), unsafe.Pointer(regionHuman))
 	C.free(canonPtr)
 
-	if ret != 0 {
-		return "", errors.New("fail to convert human address to canonicalize address")
-	}
-
-	result := TranslateToUint32(uintptr(regionResult))
-	if result != 0 {
-		return "", errors.New("fail to convert human address to canonicalize address")
+	if ret < 0 {
+		return "", errors.New("humanize_address returned error")
 	}
 
 	humanAddress := TranslateToSlice(uintptr(regionHuman))
@@ -251,22 +235,18 @@ var (
 	_ Querier = (*ExternalQuerier)(nil)
 )
 
-const (
-	QueryChainBufferSize uint32 = 20 * 1024 * 1024
-)
-
 type ExternalQuerier struct{}
 
 func (querier ExternalQuerier) RawQuery(request []byte) ([]byte, error) {
 	reqPtr := C.malloc(C.ulong(len(request)))
 	regionReq := TranslateToRegion(request, uintptr(reqPtr))
-	regionResponse, _ := Build_region(QueryChainBufferSize, 0)
+	regionResponse, _ := Build_region(QUERY_RESULT_BUFFER_LENGTH, 0)
 
 	ret := C.query_chain(unsafe.Pointer(regionReq), unsafe.Pointer(regionResponse))
 	C.free(reqPtr)
 
-	if ret != 0 {
-		return nil, errors.New("failed to query chain")
+	if ret < 0 {
+		return nil, errors.New("failed to query chain: unknown error")
 	}
 
 	response := TranslateToSlice(uintptr(regionResponse))

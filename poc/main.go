@@ -1,7 +1,7 @@
 package main
 
-import lib "./src"
+import _ "./src"
 
 func main(){
-	lib.DoNothing()
+	//lib.DoNothing()
 }
