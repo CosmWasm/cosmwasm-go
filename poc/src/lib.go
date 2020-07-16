@@ -7,7 +7,7 @@ import (
 )
 
 //export cosmwasm_vm_version_2
-func cosmwasm_vm_version_2() {}
+//func cosmwasm_vm_version_2() {}
 
 //export allocate
 func allocate(size uint32) unsafe.Pointer {
@@ -35,6 +35,6 @@ func query(msg_ptr uint32) unsafe.Pointer {
 	return std.DoQuery(Query, msg_ptr)
 }
 
-func DoNothing() {
-	return
-}
+//func DoNothing() {
+//	return
+//}
