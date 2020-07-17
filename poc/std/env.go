@@ -23,12 +23,12 @@ type BlockInfo struct {
 
 type MessageInfo struct {
 	// binary encoding of sdk.AccAddress executing the contract
-	Sender CanonicalAddr `json:"sender"`
+	Sender []byte `json:"sender"`
 	// amount of funds send to the contract along with this message
-	SentFunds Coins `json:"sent_funds"`
+	SentFunds []Coin `json:"sent_funds"`
 }
 
 type ContractInfo struct {
 	// binary encoding of sdk.AccAddress of the contract, to be used when sending messages
-	Address CanonicalAddr `json:"address"`
+	Address []byte `json:"address"`
 }
