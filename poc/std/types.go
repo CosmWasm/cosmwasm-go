@@ -54,22 +54,13 @@ type CosmosResponse struct {
 	Err *StdError `json:"Err,omitempty"`
 }
 
-// MarshalJSON returns m as the JSON encoding of m.
-func (m CosmosResponse) MarshalJSON() ([]byte, error) {
-	var str string
-	if m.Ok != nil {
-		str = `{"Ok":`+m.Ok.ToString()+"}"
-	}else{
-		str = `{"Err":`+m.Err.Error()+`}`
-	}
-
-	return []byte(str), nil
-}
-
 func CosmosResponseDefault() CosmosResponse {
-	result := ResultDefault()
 	return CosmosResponse{
-		Ok:  &result,
+		Ok:  &Result{
+			Messages: []CosmosMsg{},
+			Data:     "",
+			Log:      []LogAttribute{},
+		},
 		Err: nil,
 	}
 }
@@ -82,18 +73,6 @@ type Result struct {
 	Data string `json:"data"`
 	// log message to return over abci interface
 	Log []LogAttribute `json:"log"`
-}
-
-func (r Result) ToString() string {
-	return `{"messages":[], "data":"`+r.Data+`","log":[]}`
-}
-
-func ResultDefault() Result {
-	return Result{
-		Messages: []CosmosMsg{},
-		Data:     "",
-		Log:      []LogAttribute{},
-	}
 }
 
 // LogAttribute
