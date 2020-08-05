@@ -69,7 +69,7 @@ type InvalidBase64 struct {
 }
 
 func (e InvalidBase64) Error() string {
-	return `{"invalid_base64":{"msg":"` + e.Msg +`"}}`
+	return `{"invalid_base64":{"msg":"` + e.Msg + `"}}`
 }
 
 type InvalidUtf8 struct {
@@ -77,7 +77,7 @@ type InvalidUtf8 struct {
 }
 
 func (e InvalidUtf8) Error() string {
-	return `{"invalid_utf8":{"msg":"` + e.Msg +`"}}`
+	return `{"invalid_utf8":{"msg":"` + e.Msg + `"}}`
 }
 
 type NotFound struct {
@@ -85,7 +85,7 @@ type NotFound struct {
 }
 
 func (e NotFound) Error() string {
-	return `{"not_found":{"kind":"` + e.Kind +`"}}`
+	return `{"not_found":{"kind":"` + e.Kind + `"}}`
 }
 
 type NullPointer struct{}
@@ -100,7 +100,7 @@ type ParseErr struct {
 }
 
 func (e ParseErr) Error() string {
-	return `{"parse_err":{"target":"` + e.Target + `","msg":"` + e.Msg +`"}}`
+	return `{"parse_err":{"target":"` + e.Target + `","msg":"` + e.Msg + `"}}`
 }
 
 type SerializeErr struct {
@@ -109,7 +109,7 @@ type SerializeErr struct {
 }
 
 func (e SerializeErr) Error() string {
-	return `{"serializing":{"source":"` + e.Source + `","msg":"` + e.Msg +`"}}`
+	return `{"serializing":{"source":"` + e.Source + `","msg":"` + e.Msg + `"}}`
 }
 
 type Unauthorized struct{}
@@ -124,7 +124,7 @@ type Underflow struct {
 }
 
 func (e Underflow) Error() string {
-	return `{"underflow":{"minuend":"` + e.Minuend + `","subtrahend":"` + e.Subtrahend +`"}}`
+	return `{"underflow":{"minuend":"` + e.Minuend + `","subtrahend":"` + e.Subtrahend + `"}}`
 }
 
 // ToStdError will convert the given error to an StdError.
@@ -239,7 +239,7 @@ type InvalidRequest struct {
 }
 
 func (e InvalidRequest) Error() string {
-	return `{"invalid_request":{"error":"` + e.Err + `","request":"` + string(e.Request) +`"}}`
+	return `{"invalid_request":{"error":"` + e.Err + `","request":"` + string(e.Request) + `"}}`
 }
 
 type InvalidResponse struct {
@@ -248,7 +248,7 @@ type InvalidResponse struct {
 }
 
 func (e InvalidResponse) Error() string {
-	return `{"invalid_response":{"error":"` + e.Err + `","response":"` + string(e.Response) +`"}}`
+	return `{"invalid_response":{"error":"` + e.Err + `","response":"` + string(e.Response) + `"}}`
 }
 
 type NoSuchContract struct {
@@ -256,7 +256,7 @@ type NoSuchContract struct {
 }
 
 func (e NoSuchContract) Error() string {
-	return `{"no_such_contract":{"addr":"` + e.Addr +`"}}`
+	return `{"no_such_contract":{"addr":"` + e.Addr + `"}}`
 }
 
 type Unknown struct{}
@@ -270,7 +270,7 @@ type UnsupportedRequest struct {
 }
 
 func (e UnsupportedRequest) Error() string {
-	return `{"unsupported_request":{"kind":"` + e.Kind +`"}}`
+	return `{"unsupported_request":{"kind":"` + e.Kind + `"}}`
 }
 
 // ToSystemError will try to convert the given error to an SystemError.

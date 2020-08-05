@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="$PROJECT_DIR$/.." vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cosmwasm" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/ext/jsonparser" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/extern/jsonparser" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/extern/vjson" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/jsonparser" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/vjson" vcs="Git" />
+  </component>
+</project>

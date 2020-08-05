@@ -27,7 +27,6 @@ func (iterator ExternalIterator) Next() (key, value []byte, err error) {
 	return key, value, nil
 }
 
-
 var storage map[string][]byte
 
 type ReadonlyStorage interface {
@@ -55,7 +54,7 @@ func (storage ExternalStorage) Get(key []byte) (value []byte, err error) {
 }
 
 func (storage ExternalStorage) Range(start, end []byte, order Order) (Iterator, error) {
-	return nil,nil
+	return nil, nil
 }
 
 func (storage ExternalStorage) Set(key, value []byte) error {
@@ -67,7 +66,6 @@ func (storage ExternalStorage) Remove(key []byte) error {
 
 	return nil
 }
-
 
 type CanonicalAddr []byte
 
@@ -83,15 +81,12 @@ var (
 
 type ExternalApi struct{}
 
-
 func (api ExternalApi) CanonicalAddress(human string) (CanonicalAddr, error) {
-
 
 	return CanonicalAddr{}, nil
 }
 
 func (api ExternalApi) HumanAddress(canonical CanonicalAddr) (string, error) {
-
 
 	return string(""), nil
 }
