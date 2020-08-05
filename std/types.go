@@ -56,7 +56,7 @@ type CosmosResponse struct {
 
 func CosmosResponseDefault() CosmosResponse {
 	return CosmosResponse{
-		Ok:  &Result{
+		Ok: &Result{
 			Messages: []CosmosMsg{},
 			Data:     "",
 			Log:      []LogAttribute{},
