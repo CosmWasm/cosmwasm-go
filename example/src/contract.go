@@ -1,8 +1,8 @@
 package src
 
 import (
-	"github.com/cosmwasm/cosmwasm-go/poc/std"
-	"github.com/cosmwasm/cosmwasm-go/poc/std/ezjson"
+	"github.com/cosmwasm/cosmwasm-go/std"
+	"github.com/cosmwasm/cosmwasm-go/std/ezjson"
 )
 
 func Init(deps *std.Extern, _env std.Env, msg []byte) std.CosmosResponse {

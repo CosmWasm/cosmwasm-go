@@ -2,7 +2,7 @@ package src
 
 import "C"
 import (
-	"github.com/cosmwasm/cosmwasm-go/poc/std"
+	"github.com/cosmwasm/cosmwasm-go/std"
 	"unsafe"
 )
 
@@ -20,7 +20,7 @@ func deallocate(pointer unsafe.Pointer) {
 	std.Deallocate(pointer)
 }
 
-//export init
+//export initialize
 func initialize(env_ptr uint32, msg_ptr uint32) unsafe.Pointer {
 	return std.DoInit(Init, env_ptr, msg_ptr)
 }

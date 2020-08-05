@@ -1,3 +1,5 @@
+// +build cosmwasm
+
 package std
 
 /*
@@ -18,7 +20,7 @@ import "C"
 
 import (
 	"errors"
-	"github.com/cosmwasm/cosmwasm-go/poc/std/ezjson"
+	"github.com/cosmwasm/cosmwasm-go/std/ezjson"
 	"unsafe"
 )
 

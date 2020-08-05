@@ -1,9 +1,9 @@
 package std
 
 type MemRegion struct {
-	Offset 		uint32
-	Capacity 	uint32
-	Length		uint32
+	Offset   uint32
+	Capacity uint32
+	Length   uint32
 }
 
 const REGION_HEAD_SIZE uint32 = 12
@@ -19,4 +19,3 @@ type SliceHeader_Go struct {
 	Len  int
 	Cap  int
 }
-

@@ -6,7 +6,7 @@ package vjson
 import (
 	"bytes"
 	"errors"
-	"github.com/cosmwasm/cosmwasm-go/poc/ext/jsonparser"
+	"github.com/cosmwasm/cosmwasm-go/std/ezjson/ext/jsonparser"
 	"io"
 	"reflect"
 	"strconv"

@@ -1,7 +1,7 @@
 package std
 
 import (
-	"github.com/cosmwasm/cosmwasm-go/poc/std/ezjson"
+	"github.com/cosmwasm/cosmwasm-go/std/ezjson"
 	"unsafe"
 )
 

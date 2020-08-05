@@ -2,7 +2,7 @@ package std
 
 import (
 	"errors"
-	"github.com/cosmwasm/cosmwasm-go/poc/std/ezjson"
+	"github.com/cosmwasm/cosmwasm-go/std/ezjson"
 	"strconv"
 )
 
@@ -56,7 +56,7 @@ type CosmosResponse struct {
 
 func CosmosResponseDefault() CosmosResponse {
 	return CosmosResponse{
-		Ok:  &Result{
+		Ok: &Result{
 			Messages: []CosmosMsg{},
 			Data:     "",
 			Log:      []LogAttribute{},
