@@ -9,7 +9,7 @@ func TestExternalStorage(t *testing.T) {
 	var es ExternalStorage
 	key1, key2, key3, key4, key5 := []byte("aaaaa"), []byte("bbbbb"), []byte("ccccc"), []byte("ddddd"), []byte("eeeee")
 	value1, value2, value3, value4, value5 := []byte("11111"), []byte("22222"), []byte("33333"), []byte("44444"), []byte("55555")
-
+	inexistentKey := []byte("inexistent")
 	// setter && getter
 	bytes, err := es.Get(key1)
 	require.Nil(t, bytes)
@@ -35,6 +35,14 @@ func TestExternalStorage(t *testing.T) {
 	assertKV(t, iter, key3, value3, false)
 	assertKV(t, iter, key2, value2, false)
 	assertKV(t, iter, key1, value1, true)
+
+	// delete
+	require.NoError(t, es.Remove(inexistentKey))
+	require.NoError(t, es.Remove(key1))
+	bytes, err = es.Get(key1)
+	require.NoError(t, err)
+	require.Nil(t, bytes)
+
 }
 
 func assertKV(t *testing.T, iter Iterator, key, value []byte, isEnd bool) {
