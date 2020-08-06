@@ -73,3 +73,28 @@ func TestExternalApi_CanonicalAddress(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, expectedCanonAddr, canonAddr)
 }
+
+func TestExternalApi_HumanAddress(t *testing.T) {
+	var ea ExternalApi
+	expectedHumanAddr := "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+	expectedCanonAddr := CanonicalAddr(expectedHumanAddr)
+
+	humanAddr, err := ea.HumanAddress(expectedCanonAddr)
+	require.NoError(t, err)
+	require.Equal(t, expectedHumanAddr, humanAddr)
+
+	// error report
+	longCanonAddr := make(CanonicalAddr, canonicalLength)
+	copy(longCanonAddr, expectedCanonAddr)
+	longCanonAddr = append(longCanonAddr, 'a')
+	humanAddr, err = ea.HumanAddress(longCanonAddr)
+	require.Error(t, err)
+	require.Equal(t, "", humanAddr)
+
+	inputCanonAddr := make(CanonicalAddr, canonicalLength)
+	copy(inputCanonAddr, expectedCanonAddr)
+	inputCanonAddr[9] = 0
+	humanAddr, err = ea.HumanAddress(inputCanonAddr)
+	require.NoError(t, err)
+	require.Equal(t, "aaaaaaaaa", humanAddr)
+}
