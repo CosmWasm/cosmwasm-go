@@ -10,6 +10,7 @@ func TestExternalStorage(t *testing.T) {
 	key1, key2, key3, key4, key5 := []byte("aaaaa"), []byte("bbbbb"), []byte("ccccc"), []byte("ddddd"), []byte("eeeee")
 	value1, value2, value3, value4, value5 := []byte("11111"), []byte("22222"), []byte("33333"), []byte("44444"), []byte("55555")
 	inexistentKey := []byte("inexistent")
+
 	// setter && getter
 	bytes, err := es.Get(key1)
 	require.Nil(t, bytes)
@@ -56,4 +57,19 @@ func assertKV(t *testing.T, iter Iterator, key, value []byte, isEnd bool) {
 	require.NoError(t, err)
 	require.Equal(t, curKey, key)
 	require.Equal(t, curValue, value)
+}
+
+func TestExternalApi_CanonicalAddress(t *testing.T) {
+	var ea ExternalApi
+	humanAddr := "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+	longHumanAddr := humanAddr + "a"
+	expectedCanonAddr := CanonicalAddr(humanAddr)
+
+	canonAddr, err := ea.CanonicalAddress(longHumanAddr)
+	require.Error(t, err)
+	require.Nil(t, canonAddr)
+
+	canonAddr, err = ea.CanonicalAddress(humanAddr)
+	require.NoError(t, err)
+	require.Equal(t, expectedCanonAddr, canonAddr)
 }
