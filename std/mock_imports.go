@@ -93,7 +93,7 @@ func (es ExternalStorage) Remove(key []byte) error {
 
 type CanonicalAddr []byte
 
-const CanonicalLength = 32
+const canonicalLength = 32
 
 type Api interface {
 	CanonicalAddress(human string) (CanonicalAddr, error)
@@ -108,13 +108,27 @@ var (
 type ExternalApi struct{}
 
 func (api ExternalApi) CanonicalAddress(human string) (CanonicalAddr, error) {
+	if len(human) > canonicalLength {
+		return nil, errors.New("failed. human encoding too long")
+	}
 
-	return CanonicalAddr{}, nil
+	return []byte(human), nil
 }
 
 func (api ExternalApi) HumanAddress(canonical CanonicalAddr) (string, error) {
+	if len(canonical) != canonicalLength {
+		return "", errors.New("failed. wrong canonical address length")
+	}
 
-	return string(""), nil
+	cutIndex := canonicalLength
+	for i, v := range canonical {
+		if v == 0 {
+			cutIndex = i
+			break
+		}
+	}
+
+	return string(canonical[:cutIndex]), nil
 }
 
 // ====== Querier ======
