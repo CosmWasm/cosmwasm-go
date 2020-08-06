@@ -2,6 +2,11 @@
 
 package std
 
+import (
+	"errors"
+	dbm "github.com/tendermint/tm-db"
+)
+
 // ====== DB mock ======
 type Order uint32
 
@@ -19,15 +24,26 @@ var (
 )
 
 type ExternalIterator struct {
-	IteratorId uint32
+	Iter dbm.Iterator
 }
 
-func (iterator ExternalIterator) Next() (key, value []byte, err error) {
-
-	return key, value, nil
+func newExternalIterator(iter dbm.Iterator) ExternalIterator {
+	return ExternalIterator{
+		Iter: iter,
+	}
 }
 
-var storage map[string][]byte
+func (iter ExternalIterator) Next() (key, value []byte, err error) {
+	if !iter.Iter.Valid() {
+		iter.Iter.Close()
+		return key, value, errors.New("the end of iterator")
+	}
+	key, value = iter.Iter.Key(), iter.Iter.Value()
+	iter.Iter.Next()
+	return
+}
+
+var storage = dbm.NewMemDB()
 
 type ReadonlyStorage interface {
 	Get(key []byte) (value []byte, err error)
@@ -48,26 +64,36 @@ var (
 	_ Storage         = (*ExternalStorage)(nil)
 )
 
-func (storage ExternalStorage) Get(key []byte) (value []byte, err error) {
-
-	return nil, nil
+func (es ExternalStorage) Get(key []byte) ([]byte, error) {
+	return storage.Get(key)
 }
 
-func (storage ExternalStorage) Range(start, end []byte, order Order) (Iterator, error) {
-	return nil, nil
+func (es ExternalStorage) Range(start, end []byte, order Order) (iter Iterator, err error) {
+	var iterator dbm.Iterator
+	switch order {
+	case Ascending:
+		iterator, err = storage.Iterator(start, end)
+		iter = newExternalIterator(iterator)
+	case Descending:
+		iterator, err = storage.ReverseIterator(start, end)
+		iter = newExternalIterator(iterator)
+	default:
+		err = errors.New("failed. unexpected Order")
+	}
+	return
 }
 
-func (storage ExternalStorage) Set(key, value []byte) error {
-
-	return nil
+func (es ExternalStorage) Set(key, value []byte) error {
+	return storage.Set(key, value)
 }
 
-func (storage ExternalStorage) Remove(key []byte) error {
-
-	return nil
+func (es ExternalStorage) Remove(key []byte) error {
+	return storage.Delete(key)
 }
 
 type CanonicalAddr []byte
+
+const CanonicalLength = 32
 
 type Api interface {
 	CanonicalAddress(human string) (CanonicalAddr, error)
