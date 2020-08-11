@@ -42,7 +42,7 @@ func DoInit(initFn func(deps *Extern, _env Env, msg []byte) CosmosResponse, envP
 	msgData := Translate_range_custom(uintptr(msgPtr))
 
 	result := _do_init(initFn, envData, msgData)
-	data, err := ezjson.Marshal(result)
+	data, err := ezjson.MarshalEx(result)
 	if err != nil {
 		return StdErrResult("Failed to marshal init response to []byte: " + err.Error())
 	}

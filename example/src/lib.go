@@ -20,7 +20,7 @@ func deallocate(pointer unsafe.Pointer) {
 	std.Deallocate(pointer)
 }
 
-//export initialize
+//export init
 func initialize(env_ptr uint32, msg_ptr uint32) unsafe.Pointer {
 	return std.DoInit(Init, env_ptr, msg_ptr)
 }

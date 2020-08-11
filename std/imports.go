@@ -4,17 +4,17 @@ package std
 
 /*
 #include "stdlib.h"
-extern int db_read(void* key, void* value);
-extern int db_write(void* key, void* value);
+extern void* db_read(void* key);
+extern void db_write(void* key, void* value);
 extern int db_remove(void* key);
 
 extern int db_scan(void* start_ptr, void* end_ptr, int order);
-extern int db_next(unsigned iterator_id, void* key, void* next_value);
+extern void* db_next(unsigned iterator_id);
 
 extern int canonicalize_address(void* human, void* canonical);
 extern int humanize_address(void* canonical, void* human);
 
-extern int query_chain(void* request, void* response);
+extern void* query_chain(void* request);
 */
 import "C"
 
@@ -75,21 +75,16 @@ type ExternalStorage struct{}
 func (storage ExternalStorage) Get(key []byte) (value []byte, err error) {
 	keyPtr := C.malloc(C.ulong(len(key)))
 	regionKey := TranslateToRegion(key, uintptr(keyPtr))
-	regionValue, _ := Build_region(DB_READ_VALUE_BUFFER_LENGTH, 0)
 
-	read := C.db_read(unsafe.Pointer(regionKey), unsafe.Pointer(regionValue))
-	C.free(keyPtr)
+	read := C.db_read(unsafe.Pointer(regionKey))
+	C.free(unsafe.Pointer(keyPtr))
 
-	if read == -1000001 {
-		return nil, errors.New("allocated memory too small to hold the database value for the given key. " +
-			"You can specify custom result buffer lengths by using ExternalStorage.get_with_result_length explicitily")
-	} else if read == -1001001 {
+	if read == nil {
 		return nil, errors.New("key not existed")
-	} else if read < 0 {
-		return nil, errors.New("Error reading from database. Error code: " + string(int(read)))
 	}
 
-	b := TranslateToSlice(uintptr(regionValue))
+	b := TranslateToSlice(uintptr(read))
+	//maybe have memory leak
 	return b, nil
 }
 
@@ -117,13 +112,9 @@ func (storage ExternalStorage) Set(key, value []byte) error {
 	regionKey := TranslateToRegion(key, uintptr(ptrKey))
 	regionValue := TranslateToRegion(value, uintptr(ptrVal))
 
-	ret := C.db_write(unsafe.Pointer(regionKey), unsafe.Pointer(regionValue))
+	C.db_write(unsafe.Pointer(regionKey), unsafe.Pointer(regionValue))
 	C.free(ptrKey)
 	C.free(ptrVal)
-
-	if ret < 0 {
-		return errors.New("Error writing to database. Error code: " + string(int(ret)))
-	}
 
 	return nil
 }
@@ -158,10 +149,10 @@ func (iterator ExternalIterator) Next() (key, value []byte, err error) {
 	regionKey, _ := Build_region(DB_READ_KEY_BUFFER_LENGTH, 0)
 	regionNextValue, _ := Build_region(DB_READ_VALUE_BUFFER_LENGTH, 0)
 
-	ret := C.db_next(C.uint(iterator.IteratorId), unsafe.Pointer(regionKey), unsafe.Pointer(regionNextValue))
+	ret := C.db_next(C.uint(iterator.IteratorId))
 
-	if ret < 0 {
-		return nil, nil, errors.New("unknown error from db_next: " + string(int(ret)))
+	if ret == nil {
+		return nil, nil, errors.New("unknown error from db_next ")
 	}
 
 	key = TranslateToSlice(uintptr(regionKey))
@@ -241,16 +232,15 @@ type ExternalQuerier struct{}
 func (querier ExternalQuerier) RawQuery(request []byte) ([]byte, error) {
 	reqPtr := C.malloc(C.ulong(len(request)))
 	regionReq := TranslateToRegion(request, uintptr(reqPtr))
-	regionResponse, _ := Build_region(QUERY_RESULT_BUFFER_LENGTH, 0)
 
-	ret := C.query_chain(unsafe.Pointer(regionReq), unsafe.Pointer(regionResponse))
+	ret := C.query_chain(unsafe.Pointer(regionReq))
 	C.free(reqPtr)
 
-	if ret < 0 {
+	if ret == nil {
 		return nil, errors.New("failed to query chain: unknown error")
 	}
 
-	response := TranslateToSlice(uintptr(regionResponse))
+	response := TranslateToSlice(uintptr(ret))
 	return response, nil
 }
 
