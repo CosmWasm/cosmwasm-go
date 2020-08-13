@@ -28,3 +28,23 @@ func TestSafeSub(t *testing.T) {
 	require.Error(t, err)
 	require.Equal(t, res, uint64(0))
 }
+
+func TestSafeMul(t *testing.T) {
+	n := uint64(math.MaxUint64/5)
+	res, err := SafeMul(n, 5)
+	require.NoError(t, err)
+	require.Equal(t, res, uint64(math.MaxUint64))
+
+	res, err = SafeMul(0, n)
+	require.NoError(t, err)
+	require.Equal(t, res, uint64(0))
+
+	// overflow
+	res, err = SafeMul(n, 6)
+	require.Error(t, err)
+	require.Equal(t, res, uint64(0))
+
+
+
+
+}
