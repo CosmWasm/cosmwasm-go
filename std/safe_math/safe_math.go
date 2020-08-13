@@ -30,7 +30,7 @@ func SafeDiv(a, b uint64) (res uint64, err error) {
 		return res, errors.New("failed. invalid divisor")
 	}
 	res = a / b
-	if res == b*res+a%b {
+	if a == b*res+a%b {
 		return
 	}
 	return res, errors.New("failed. overflow in div")
