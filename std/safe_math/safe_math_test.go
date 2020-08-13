@@ -30,7 +30,7 @@ func TestSafeSub(t *testing.T) {
 }
 
 func TestSafeMul(t *testing.T) {
-	n := uint64(math.MaxUint64/5)
+	n := uint64(math.MaxUint64 / 5)
 	res, err := SafeMul(n, 5)
 	require.NoError(t, err)
 	require.Equal(t, res, uint64(math.MaxUint64))
@@ -43,8 +43,16 @@ func TestSafeMul(t *testing.T) {
 	res, err = SafeMul(n, 6)
 	require.Error(t, err)
 	require.Equal(t, res, uint64(0))
+}
 
+func TestSafeDiv(t *testing.T) {
+	n := uint64(math.MaxUint64 / 5)
+	res, err := SafeDiv(uint64(math.MaxUint64), 5)
+	require.NoError(t, err)
+	require.Equal(t, res, n)
 
-
-
+	// overflow
+	res, err = SafeDiv(uint64(math.MaxUint64), 0)
+	require.Error(t, err)
+	require.Equal(t, res, uint64(0))
 }
