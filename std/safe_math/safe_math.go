@@ -22,7 +22,7 @@ func SafeMul(a, b uint64) (res uint64, err error) {
 	if a == 0 || res/a == b {
 		return
 	}
-	return res, errors.New("failed. overflow in mul")
+	return 0, errors.New("failed. overflow in mul")
 }
 
 func SafeDiv(a, b uint64) (res uint64, err error) {
