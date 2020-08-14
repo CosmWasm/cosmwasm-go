@@ -7,15 +7,41 @@ import (
 )
 
 func TestSafeAdd(t *testing.T) {
-	n := uint64(math.MaxUint64 - 1)
-	res, err := SafeAdd(n, 1)
-	require.NoError(t, err)
-	require.Equal(t, res, uint64(math.MaxUint64))
+	specs := map[string]struct {
+		a      uint64
+		b      uint64
+		expRes uint64
+		expErr bool
+	}{
+		"pass": {
+			uint64(math.MaxUint64 - 1),
+			1,
+			uint64(math.MaxUint64),
+			false,
+		},
+	}
 
-	// overflow
-	res, err = SafeAdd(n, 2)
-	require.Error(t, err)
-	require.Equal(t, res, uint64(0))
+	for msg, spec := range specs {
+		t.Run(msg, func(t *testing.T) {
+			res, err := SafeAdd(spec.a, spec.b)
+			if spec.expErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+			require.Equal(t, spec.expRes, res)
+		})
+	}
+
+	//n := uint64(math.MaxUint64 - 1)
+	//res, err := SafeAdd(n, 1)
+	//require.NoError(t, err)
+	//require.Equal(t, res, uint64(math.MaxUint64))
+	//
+	//// overflow
+	//res, err = SafeAdd(n, 2)
+	//require.Error(t, err)
+	//require.Equal(t, res, uint64(0))
 }
 
 func TestSafeSub(t *testing.T) {
