@@ -13,11 +13,29 @@ func TestSafeAdd(t *testing.T) {
 		expRes uint64
 		expErr bool
 	}{
-		"pass": {
+		"pass_1": {
 			uint64(math.MaxUint64 - 1),
 			1,
 			uint64(math.MaxUint64),
 			false,
+		},
+		"pass_2": {
+			1,
+			uint64(math.MaxUint64 - 1),
+			uint64(math.MaxUint64),
+			false,
+		},
+		"overflow_1": {
+			uint64(math.MaxUint64 - 1),
+			2,
+			0,
+			true,
+		},
+		"overflow_2": {
+			2,
+			uint64(math.MaxUint64 - 1),
+			0,
+			true,
 		},
 	}
 
@@ -32,16 +50,6 @@ func TestSafeAdd(t *testing.T) {
 			require.Equal(t, spec.expRes, res)
 		})
 	}
-
-	//n := uint64(math.MaxUint64 - 1)
-	//res, err := SafeAdd(n, 1)
-	//require.NoError(t, err)
-	//require.Equal(t, res, uint64(math.MaxUint64))
-	//
-	//// overflow
-	//res, err = SafeAdd(n, 2)
-	//require.Error(t, err)
-	//require.Equal(t, res, uint64(0))
 }
 
 func TestSafeSub(t *testing.T) {
