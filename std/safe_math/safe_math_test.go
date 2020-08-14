@@ -14,26 +14,26 @@ func TestSafeAdd(t *testing.T) {
 		expErr bool
 	}{
 		"pass_1": {
-			uint64(math.MaxUint64 - 1),
+			math.MaxUint64 - 1,
 			1,
-			uint64(math.MaxUint64),
+			math.MaxUint64,
 			false,
 		},
 		"pass_2": {
 			1,
-			uint64(math.MaxUint64 - 1),
-			uint64(math.MaxUint64),
+			math.MaxUint64 - 1,
+			math.MaxUint64,
 			false,
 		},
 		"overflow_1": {
-			uint64(math.MaxUint64 - 1),
+			math.MaxUint64 - 1,
 			2,
 			0,
 			true,
 		},
 		"overflow_2": {
 			2,
-			uint64(math.MaxUint64 - 1),
+			math.MaxUint64 - 1,
 			0,
 			true,
 		},
@@ -116,7 +116,7 @@ func TestSafeMul(t *testing.T) {
 		"pass_1": {
 			multiplicand,
 			5,
-			uint64(math.MaxUint64),
+			math.MaxUint64,
 			false,
 		},
 		"pass_2": {
@@ -159,13 +159,61 @@ func TestSafeMul(t *testing.T) {
 }
 
 func TestSafeDiv(t *testing.T) {
-	n := uint64(math.MaxUint64 / 5)
-	res, err := SafeDiv(uint64(math.MaxUint64), 5)
-	require.NoError(t, err)
-	require.Equal(t, res, n)
+	// note: quotient = math.MaxUint64 / 5
+	const quotient = 3689348814741910323
+	specs := map[string]struct {
+		a      uint64
+		b      uint64
+		expRes uint64
+		expErr bool
+	}{
+		"pass_1": {
+			math.MaxUint64,
+			5,
+			quotient,
+			false,
+		},
+		"pass_2": {
+			0,
+			math.MaxUint64,
+			0,
+			false,
+		},
+		"pass_3": {
+			3,
+			3,
+			1,
+			false,
+		},
+		"pass_4": {
+			4,
+			3,
+			1,
+			false,
+		},
+		"pass_5": {
+			5,
+			3,
+			1,
+			false,
+		},
+		"overflow": {
+			math.MaxUint64,
+			0,
+			0,
+			true,
+		},
+	}
 
-	// overflow
-	res, err = SafeDiv(uint64(math.MaxUint64), 0)
-	require.Error(t, err)
-	require.Equal(t, res, uint64(0))
+	for msg, spec := range specs {
+		t.Run(msg, func(t *testing.T) {
+			res, err := SafeDiv(spec.a, spec.b)
+			if spec.expErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+			require.Equal(t, spec.expRes, res)
+		})
+	}
 }
