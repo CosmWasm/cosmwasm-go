@@ -53,14 +53,49 @@ func TestSafeAdd(t *testing.T) {
 }
 
 func TestSafeSub(t *testing.T) {
-	res, err := SafeSub(2048, 1024)
-	require.NoError(t, err)
-	require.Equal(t, res, uint64(1024))
+	specs := map[string]struct {
+		a      uint64
+		b      uint64
+		expRes uint64
+		expErr bool
+	}{
+		"pass_1": {
+			2,
+			1,
+			1,
+			false,
+		},
+		"pass_2": {
+			1,
+			0,
+			1,
+			false,
+		},
+		"pass_3": {
+			1,
+			1,
+			0,
+			false,
+		},
+		"overflow": {
+			0,
+			1,
+			0,
+			true,
+		},
+	}
 
-	// overflow
-	res, err = SafeSub(1024, 2048)
-	require.Error(t, err)
-	require.Equal(t, res, uint64(0))
+	for msg, spec := range specs {
+		t.Run(msg, func(t *testing.T) {
+			res, err := SafeSub(spec.a, spec.b)
+			if spec.expErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+			require.Equal(t, spec.expRes, res)
+		})
+	}
 }
 
 func TestSafeMul(t *testing.T) {
