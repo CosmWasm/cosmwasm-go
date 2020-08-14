@@ -77,6 +77,12 @@ func TestSafeSub(t *testing.T) {
 			0,
 			false,
 		},
+		"pass_4": {
+			0,
+			0,
+			0,
+			false,
+		},
 		"overflow": {
 			0,
 			1,
