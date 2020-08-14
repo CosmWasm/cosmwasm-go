@@ -105,19 +105,57 @@ func TestSafeSub(t *testing.T) {
 }
 
 func TestSafeMul(t *testing.T) {
-	n := uint64(math.MaxUint64 / 5)
-	res, err := SafeMul(n, 5)
-	require.NoError(t, err)
-	require.Equal(t, res, uint64(math.MaxUint64))
+	// note: multiplicand = math.MaxUint64 / 5
+	const multiplicand = 3689348814741910323
+	specs := map[string]struct {
+		a      uint64
+		b      uint64
+		expRes uint64
+		expErr bool
+	}{
+		"pass_1": {
+			multiplicand,
+			5,
+			uint64(math.MaxUint64),
+			false,
+		},
+		"pass_2": {
+			multiplicand,
+			0,
+			0,
+			false,
+		},
+		"pass_3": {
+			0,
+			multiplicand,
+			0,
+			false,
+		},
+		"pass_4": {
+			0,
+			0,
+			0,
+			false,
+		},
+		"overflow": {
+			multiplicand,
+			6,
+			0,
+			true,
+		},
+	}
 
-	res, err = SafeMul(0, n)
-	require.NoError(t, err)
-	require.Equal(t, res, uint64(0))
-
-	// overflow
-	res, err = SafeMul(n, 6)
-	require.Error(t, err)
-	require.Equal(t, res, uint64(0))
+	for msg, spec := range specs {
+		t.Run(msg, func(t *testing.T) {
+			res, err := SafeMul(spec.a, spec.b)
+			if spec.expErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+			require.Equal(t, spec.expRes, res)
+		})
+	}
 }
 
 func TestSafeDiv(t *testing.T) {
