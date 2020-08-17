@@ -1,0 +1,16 @@
+//
+// Created by kami on 2020/7/22.
+//
+
+#ifndef CW_COMPILER_ERROR_H
+#define CW_COMPILER_ERROR_H
+
+
+
+#define ERROR_CODE_FAILED_GET_FILE_SIZE     -1
+#define ERROR_CODE_FAILED_OPEN_FILE         -2
+#define ERROR_CODE_UNRECOGNIZE_IMPORT       -3
+#define ERROR_CODE_UNRECOGNIZE_FEATURE      -4
+
+
+#endif //CW_COMPILER_ERROR_H
