@@ -4,22 +4,68 @@ import (
 	"reflect"
 )
 
+type ErrorType uintptr
+
+const (
+	Success ErrorType = iota
+	GenericError
+	InvalidBase64Error
+	InvalidUtf8Error
+	NotFoundError
+	NullPointerError
+	ParseError
+	SerializeError
+	UnauthorizedError
+	UnderflowError
+)
+
+func package_StdError(err string) CosmosResponseError {
+	return CosmosResponseError(`{"Err":` + err + `}`)
+}
+
+func GenerateError(errType ErrorType, msg string, msg_plus string) CosmosResponseError {
+	var errorMsg string
+	switch errType {
+	case GenericError:
+		errorMsg = GenericErr{Msg: msg}.Error()
+	case InvalidBase64Error:
+		errorMsg = InvalidBase64{Msg: msg}.Error()
+	case InvalidUtf8Error:
+		errorMsg = InvalidUtf8{Msg: msg}.Error()
+	case NotFoundError:
+		errorMsg = NotFound{Kind: msg}.Error()
+	case NullPointerError:
+		errorMsg = NullPointer{Msg: msg}.Error()
+	case ParseError:
+		errorMsg = ParseErr{Msg: msg}.Error()
+	case SerializeError:
+		errorMsg = SerializeErr{Msg: msg}.Error()
+	case UnauthorizedError:
+		errorMsg = Unauthorized{Msg: msg}.Error()
+	case UnderflowError:
+		errorMsg = Underflow{Minuend: msg, Subtrahend: msg_plus}.Error()
+	default:
+		errorMsg = GenericErr{Msg: msg + "Success ???"}.Error()
+	}
+	return package_StdError(errorMsg)
+}
+
 // StdError captures all errors returned from the Rust code as StdError.
 // Exactly one of the fields should be set.
 type StdError struct {
-	GenericErr    *GenericErr    `json:"generic_err,omitempty"`
-	InvalidBase64 *InvalidBase64 `json:"invalid_base64,omitempty"`
-	InvalidUtf8   *InvalidUtf8   `json:"invalid_utf8,omitempty"`
-	NotFound      *NotFound      `json:"not_found,omitempty"`
-	NullPointer   *NullPointer   `json:"null_pointer,omitempty"`
-	ParseErr      *ParseErr      `json:"parse_err,omitempty"`
-	SerializeErr  *SerializeErr  `json:"serialize_err,omitempty"`
-	Unauthorized  *Unauthorized  `json:"unauthorized,omitempty"`
-	Underflow     *Underflow     `json:"underflow,omitempty"`
+	SuccessRet    SuccessResult `json:"success_result"`
+	GenericErr    GenericErr    `json:"generic_err,omitempty"`
+	InvalidBase64 InvalidBase64 `json:"invalid_base64,omitempty"`
+	InvalidUtf8   InvalidUtf8   `json:"invalid_utf8,omitempty"`
+	NotFound      NotFound      `json:"not_found,omitempty"`
+	NullPointer   NullPointer   `json:"null_pointer,omitempty"`
+	ParseErr      ParseErr      `json:"parse_err,omitempty"`
+	SerializeErr  SerializeErr  `json:"serialize_err,omitempty"`
+	Unauthorized  Unauthorized  `json:"unauthorized,omitempty"`
+	Underflow     Underflow     `json:"underflow,omitempty"`
 }
 
 var (
-	_ error = StdError{}
 	_ error = GenericErr{}
 	_ error = InvalidBase64{}
 	_ error = InvalidUtf8{}
@@ -30,31 +76,6 @@ var (
 	_ error = Unauthorized{}
 	_ error = Underflow{}
 )
-
-func (a StdError) Error() string {
-	switch {
-	case a.GenericErr != nil:
-		return a.GenericErr.Error()
-	case a.InvalidBase64 != nil:
-		return a.InvalidBase64.Error()
-	case a.InvalidUtf8 != nil:
-		return a.InvalidUtf8.Error()
-	case a.NotFound != nil:
-		return a.NotFound.Error()
-	case a.NullPointer != nil:
-		return a.NullPointer.Error()
-	case a.ParseErr != nil:
-		return a.ParseErr.Error()
-	case a.SerializeErr != nil:
-		return a.SerializeErr.Error()
-	case a.Unauthorized != nil:
-		return a.Unauthorized.Error()
-	case a.Underflow != nil:
-		return a.Underflow.Error()
-	default:
-		panic("unknown error variant")
-	}
-}
 
 type GenericErr struct {
 	Msg string `json:"msg,omitempty"`
@@ -88,7 +109,9 @@ func (e NotFound) Error() string {
 	return `{"not_found":{"kind":"` + e.Kind + `"}}`
 }
 
-type NullPointer struct{}
+type NullPointer struct {
+	Msg string `json:"msg"`
+}
 
 func (e NullPointer) Error() string {
 	return `{"null_pointer": nil}`
@@ -112,7 +135,9 @@ func (e SerializeErr) Error() string {
 	return `{"serializing":{"source":"` + e.Source + `","msg":"` + e.Msg + `"}}`
 }
 
-type Unauthorized struct{}
+type Unauthorized struct {
+	Msg string `json:"msg"`
+}
 
 func (e Unauthorized) Error() string {
 	return `{"unauthorized": nil}`
@@ -125,63 +150,6 @@ type Underflow struct {
 
 func (e Underflow) Error() string {
 	return `{"underflow":{"minuend":"` + e.Minuend + `","subtrahend":"` + e.Subtrahend + `"}}`
-}
-
-// ToStdError will convert the given error to an StdError.
-// This is important to returning any Go error back to Rust.
-//
-// If it is already StdError, return self.
-// If it is an error, which could be a sub-field of StdError, embed it.
-// If it is anything else, convert it to a GenericErr.
-func ToStdError(err error) *StdError {
-	if isNil(err) {
-		return nil
-	}
-	switch t := err.(type) {
-	case StdError:
-		return &t
-	case *StdError:
-		return t
-	case GenericErr:
-		return &StdError{GenericErr: &t}
-	case *GenericErr:
-		return &StdError{GenericErr: t}
-	case InvalidBase64:
-		return &StdError{InvalidBase64: &t}
-	case *InvalidBase64:
-		return &StdError{InvalidBase64: t}
-	case InvalidUtf8:
-		return &StdError{InvalidUtf8: &t}
-	case *InvalidUtf8:
-		return &StdError{InvalidUtf8: t}
-	case NotFound:
-		return &StdError{NotFound: &t}
-	case *NotFound:
-		return &StdError{NotFound: t}
-	case NullPointer:
-		return &StdError{NullPointer: &t}
-	case *NullPointer:
-		return &StdError{NullPointer: t}
-	case ParseErr:
-		return &StdError{ParseErr: &t}
-	case *ParseErr:
-		return &StdError{ParseErr: t}
-	case SerializeErr:
-		return &StdError{SerializeErr: &t}
-	case *SerializeErr:
-		return &StdError{SerializeErr: t}
-	case Unauthorized:
-		return &StdError{Unauthorized: &t}
-	case *Unauthorized:
-		return &StdError{Unauthorized: t}
-	case Underflow:
-		return &StdError{Underflow: &t}
-	case *Underflow:
-		return &StdError{Underflow: t}
-	default:
-		g := GenericErr{Msg: err.Error()}
-		return &StdError{GenericErr: &g}
-	}
 }
 
 // check if an interface is nil (even if it has type info)
@@ -200,15 +168,15 @@ func isNil(i interface{}) bool {
 // SystemError captures all errors returned from the Rust code as SystemError.
 // Exactly one of the fields should be set.
 type SystemError struct {
-	InvalidRequest     *InvalidRequest     `json:"invalid_request,omitempty"`
-	InvalidResponse    *InvalidResponse    `json:"invalid_response,omitempty"`
-	NoSuchContract     *NoSuchContract     `json:"no_such_contract,omitempty"`
-	Unknown            *Unknown            `json:"unknown,omitempty"`
-	UnsupportedRequest *UnsupportedRequest `json:"unsupported_request,omitempty"`
+	SuccessRet         SuccessResult      `json:"success_result"`
+	InvalidRequest     InvalidRequest     `json:"invalid_request,omitempty"`
+	InvalidResponse    InvalidResponse    `json:"invalid_response,omitempty"`
+	NoSuchContract     NoSuchContract     `json:"no_such_contract,omitempty"`
+	Unknown            Unknown            `json:"unknown,omitempty"`
+	UnsupportedRequest UnsupportedRequest `json:"unsupported_request,omitempty"`
 }
 
 var (
-	_ error = SystemError{}
 	_ error = InvalidRequest{}
 	_ error = InvalidResponse{}
 	_ error = NoSuchContract{}
@@ -216,21 +184,12 @@ var (
 	_ error = UnsupportedRequest{}
 )
 
-func (a SystemError) Error() string {
-	switch {
-	case a.InvalidRequest != nil:
-		return a.InvalidRequest.Error()
-	case a.InvalidResponse != nil:
-		return a.InvalidResponse.Error()
-	case a.NoSuchContract != nil:
-		return a.NoSuchContract.Error()
-	case a.Unknown != nil:
-		return a.Unknown.Error()
-	case a.UnsupportedRequest != nil:
-		return a.UnsupportedRequest.Error()
-	default:
-		panic("unknown error variant")
-	}
+type SuccessResult struct {
+	Msg string
+}
+
+func (e SuccessResult) Error() string {
+	return "success"
 }
 
 type InvalidRequest struct {
@@ -259,7 +218,9 @@ func (e NoSuchContract) Error() string {
 	return `{"no_such_contract":{"addr":"` + e.Addr + `"}}`
 }
 
-type Unknown struct{}
+type Unknown struct {
+	Msg string `json:"msg"`
+}
 
 func (e Unknown) Error() string {
 	return `{"unknow":nil}`
@@ -282,36 +243,32 @@ func (e UnsupportedRequest) Error() string {
 //
 // This may return nil on an unknown error, whereas ToStdError will always create
 // a valid error type.
-func ToSystemError(err error) *SystemError {
+func ToSystemError(err error) SystemError {
 	if isNil(err) {
-		return nil
+		return SystemError{SuccessRet: SuccessResult{Msg: "success"}}
 	}
 	switch t := err.(type) {
-	case SystemError:
-		return &t
-	case *SystemError:
-		return t
 	case InvalidRequest:
-		return &SystemError{InvalidRequest: &t}
+		return SystemError{InvalidRequest: t}
 	case *InvalidRequest:
-		return &SystemError{InvalidRequest: t}
+		return SystemError{InvalidRequest: *t}
 	case InvalidResponse:
-		return &SystemError{InvalidResponse: &t}
+		return SystemError{InvalidResponse: t}
 	case *InvalidResponse:
-		return &SystemError{InvalidResponse: t}
+		return SystemError{InvalidResponse: *t}
 	case NoSuchContract:
-		return &SystemError{NoSuchContract: &t}
+		return SystemError{NoSuchContract: t}
 	case *NoSuchContract:
-		return &SystemError{NoSuchContract: t}
+		return SystemError{NoSuchContract: *t}
 	case Unknown:
-		return &SystemError{Unknown: &t}
+		return SystemError{Unknown: t}
 	case *Unknown:
-		return &SystemError{Unknown: t}
+		return SystemError{Unknown: *t}
 	case UnsupportedRequest:
-		return &SystemError{UnsupportedRequest: &t}
+		return SystemError{UnsupportedRequest: t}
 	case *UnsupportedRequest:
-		return &SystemError{UnsupportedRequest: t}
+		return SystemError{UnsupportedRequest: *t}
 	default:
-		return nil
+		return SystemError{Unknown: Unknown{Msg: "Unknow System Error"}}
 	}
 }

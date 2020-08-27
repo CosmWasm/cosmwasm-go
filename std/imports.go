@@ -15,6 +15,8 @@ extern int canonicalize_address(void* human, void* canonical);
 extern int humanize_address(void* canonical, void* human);
 
 extern void* query_chain(void* request);
+
+extern int display_message(void* str);
 */
 import "C"
 
@@ -43,6 +45,17 @@ const (
 	// An upper bound for typical human readable address formats (e.g. 42 for Ethereum hex addresses or 90 for bech32)
 	HUMAN_ADDRESS_BUFFER_LENGTH uint32 = 90
 )
+
+// log print
+
+func DisplayMessage(data []byte) int {
+	msg := C.malloc(C.ulong(len(data)))
+	regionMsg := TranslateToRegion(data, uintptr(msg))
+
+	C.display_message(unsafe.Pointer(regionMsg))
+	C.free(unsafe.Pointer(msg))
+	return 0
+}
 
 // ====== DB ======
 
@@ -246,35 +259,32 @@ func (querier ExternalQuerier) RawQuery(request []byte) ([]byte, error) {
 
 // ------- query detail types ---------
 type QueryResponse struct {
-	Ok  []byte    `json:"Ok,omitempty"`
-	Err *StdError `json:"Err,omitempty"`
+	Ok  []byte   `json:"Ok,omitempty"`
+	Err StdError `json:"Err,omitempty"`
 }
 
 // This is a 2-level result
 type QuerierResult struct {
-	Ok  *QueryResponse `json:"Ok,omitempty"`
-	Err *SystemError   `json:"Err,omitempty"`
+	Ok  QueryResponse `json:"Ok,omitempty"`
+	Err SystemError   `json:"Err,omitempty"`
 }
 
 func ToQuerierResult(response []byte, err error) QuerierResult {
 	if err == nil {
 		return QuerierResult{
-			Ok: &QueryResponse{
+			Ok: QueryResponse{
 				Ok: response,
 			},
 		}
 	}
 	syserr := ToSystemError(err)
-	if syserr != nil {
+	if syserr.SuccessRet.Msg != "success" {
 		return QuerierResult{
 			Err: syserr,
 		}
 	}
-	stderr := ToStdError(err)
 	return QuerierResult{
-		Ok: &QueryResponse{
-			Err: stderr,
-		},
+		Ok: QueryResponse{},
 	}
 }
 
@@ -312,10 +322,10 @@ type AllBalancesResponse struct {
 }
 
 type StakingQuery struct {
-	Validators     *ValidatorsQuery     `json:"validators,omitempty"`
-	AllDelegations *AllDelegationsQuery `json:"all_delegations,omitempty"`
-	Delegation     *DelegationQuery     `json:"delegation,omitempty"`
-	BondedDenom    *struct{}            `json:"bonded_denom,omitempty"`
+	Validators     ValidatorsQuery     `json:"validators,omitempty"`
+	AllDelegations AllDelegationsQuery `json:"all_delegations,omitempty"`
+	Delegation     DelegationQuery     `json:"delegation,omitempty"`
+	BondedDenom    struct{}            `json:"bonded_denom,omitempty"`
 }
 
 type ValidatorsQuery struct{}

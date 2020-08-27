@@ -1,34 +1,34 @@
 package vjson
 
 import (
+	"fmt"
+	"io/ioutil"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"testing"
-	"log"
 	"regexp"
 	"strings"
-	"fmt"
-	"io/ioutil"
+	"testing"
 )
 
 func TestGo(t *testing.T) {
 
 	tcaseList := []struct {
-		name string
-		in string 
+		name    string
+		in      string
 		matches []string
-	} {
-		{name:   "simple_map",in: `{"testkey":"testval"}`, matches: []string{`{"testkey":"testval"}`}},
-		{name:   "simple_map_number",in: `{"teststr":"str1","testnum":15}`, matches: []string{`"teststr":"str1"`,`"testnum":15`}},
-		{name:   "simple_map_bool",in: `{"testbool1":false,"testbool2":true}`, matches: []string{`"testbool1":false`,`"testbool2":true`}},
-		{name:   "string_esc",in: `{"testkey":"test\"val"}`, matches: []string{`[{]"testkey":"test\\"val"[}]`}},
-		{name:   "string_esc2",in: `{"testkey":"test\"val\""}`, matches: []string{`[{]"testkey":"test\\"val\\""[}]`}},
-		{name:   "string_esc3",in: `{"testkey":"te\\st\"val\""}`, matches: []string{`[{]"testkey":"te\\\\st\\"val\\""[}]`}},
-		{name:   "null1",in: `{"null1":null}`, matches: []string{`"null1":null`}},
-		{name:   "array1",in: `{"array1":["s1","s2"]}`, matches: []string{`"array1":\["s1","s2"\]`}},
-		{name:   "array2",in: `{"array2":[]}`, matches: []string{`"array2":\[\]`}},
-		{name:   "array_of_obj1",in: `{"array1":[{},{"k1":"v1"}]}`, matches: []string{`"array1":...,."k1":"v1".`}},
+	}{
+		{name: "simple_map", in: `{"testkey":"testval"}`, matches: []string{`{"testkey":"testval"}`}},
+		{name: "simple_map_number", in: `{"teststr":"str1","testnum":15}`, matches: []string{`"teststr":"str1"`, `"testnum":15`}},
+		{name: "simple_map_bool", in: `{"testbool1":false,"testbool2":true}`, matches: []string{`"testbool1":false`, `"testbool2":true`}},
+		{name: "string_esc", in: `{"testkey":"test\"val"}`, matches: []string{`[{]"testkey":"test\\"val"[}]`}},
+		{name: "string_esc2", in: `{"testkey":"test\"val\""}`, matches: []string{`[{]"testkey":"test\\"val\\""[}]`}},
+		{name: "string_esc3", in: `{"testkey":"te\\st\"val\""}`, matches: []string{`[{]"testkey":"te\\\\st\\"val\\""[}]`}},
+		{name: "null1", in: `{"null1":null}`, matches: []string{`"null1":null`}},
+		{name: "array1", in: `{"array1":["s1","s2"]}`, matches: []string{`"array1":\["s1","s2"\]`}},
+		{name: "array2", in: `{"array2":[]}`, matches: []string{`"array2":\[\]`}},
+		{name: "array_of_obj1", in: `{"array1":[{},{"k1":"v1"}]}`, matches: []string{`"array1":...,."k1":"v1".`}},
 	}
 
 	for _, tcase := range tcaseList {
@@ -73,27 +73,27 @@ func TestTinygo(t *testing.T) {
 	// now execute it inside a container for each input (since it will be built for that target, not necessarily for the host)
 
 	tcaseList := []struct {
-		name string
-		in string 
+		name    string
+		in      string
 		matches []string
-	} {
-		{name:   "simple_map",in: `{"testkey":"testval"}`, matches: []string{`{"testkey":"testval"}`}},
-		{name:   "simple_map_number",in: `{"teststr":"str1","testnum":15}`, matches: []string{`"teststr":"str1"`,`"testnum":15`}},
-		{name:   "simple_map_bool",in: `{"testbool1":false,"testbool2":true}`, matches: []string{`"testbool1":false`,`"testbool2":true`}},
-		{name:   "string_esc",in: `{"testkey":"test\"val"}`, matches: []string{`[{]"testkey":"test\\"val"[}]`}},
-		{name:   "string_esc2",in: `{"testkey":"test\"val\""}`, matches: []string{`[{]"testkey":"test\\"val\\""[}]`}},
-		{name:   "string_esc3",in: `{"testkey":"te\\st\"val\""}`, matches: []string{`[{]"testkey":"te\\\\st\\"val\\""[}]`}},
-		{name:   "null1",in: `{"null1":null}`, matches: []string{`"null1":null`}},
-		{name:   "array1",in: `{"array1":["s1","s2"]}`, matches: []string{`"array1":\["s1","s2"\]`}},
-		{name:   "array2",in: `{"array2":[]}`, matches: []string{`"array2":\[\]`}},
-		{name:   "array_of_obj1",in: `{"array1":[{},{"k1":"v1"}]}`, matches: []string{`"array1":...,."k1":"v1".`}},
+	}{
+		{name: "simple_map", in: `{"testkey":"testval"}`, matches: []string{`{"testkey":"testval"}`}},
+		{name: "simple_map_number", in: `{"teststr":"str1","testnum":15}`, matches: []string{`"teststr":"str1"`, `"testnum":15`}},
+		{name: "simple_map_bool", in: `{"testbool1":false,"testbool2":true}`, matches: []string{`"testbool1":false`, `"testbool2":true`}},
+		{name: "string_esc", in: `{"testkey":"test\"val"}`, matches: []string{`[{]"testkey":"test\\"val"[}]`}},
+		{name: "string_esc2", in: `{"testkey":"test\"val\""}`, matches: []string{`[{]"testkey":"test\\"val\\""[}]`}},
+		{name: "string_esc3", in: `{"testkey":"te\\st\"val\""}`, matches: []string{`[{]"testkey":"te\\\\st\\"val\\""[}]`}},
+		{name: "null1", in: `{"null1":null}`, matches: []string{`"null1":null`}},
+		{name: "array1", in: `{"array1":["s1","s2"]}`, matches: []string{`"array1":\["s1","s2"\]`}},
+		{name: "array2", in: `{"array2":[]}`, matches: []string{`"array2":\[\]`}},
+		{name: "array_of_obj1", in: `{"array1":[{},{"k1":"v1"}]}`, matches: []string{`"array1":...,."k1":"v1".`}},
 	}
 
 	for _, tcase := range tcaseList {
 		tcase := tcase
 		t.Run(tcase.name, func(t *testing.T) {
 
-			pgmText := strings.Replace(testPgmTemplate, `__JSON_IN__`, fmt.Sprintf("%q", tcase.in), 1) 
+			pgmText := strings.Replace(testPgmTemplate, `__JSON_IN__`, fmt.Sprintf("%q", tcase.in), 1)
 			err := ioutil.WriteFile("vjson_test_pgm.go", []byte(pgmText), 0644)
 			if err != nil {
 				t.Fatal(err)
@@ -101,10 +101,10 @@ func TestTinygo(t *testing.T) {
 
 			// build test program with test case stuff hard coded into it (os.Stdin doesn't seem to work, no args, no env)
 			cmd := exec.Command(
-				"docker", "run", 
+				"docker", "run",
 				"--rm",
-				"-t", 
-				// "-a","STDERR","-a","STDOUT", 
+				"-t",
+				// "-a","STDERR","-a","STDOUT",
 				"-eGOPATH=/root/go",
 				"-v"+pwd+":/root/go/src/github.com/vugu/vjson",
 				dockerImage,
@@ -117,16 +117,16 @@ func TestTinygo(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-		
+
 			// run it
 			cmd = exec.Command(
-				"docker", "run", 
-				"--rm", 
+				"docker", "run",
+				"--rm",
 				"-t",
-				// "-a","STDERR","-a","STDOUT", 
+				// "-a","STDERR","-a","STDOUT",
 				"-eGOPATH=/root/go",
 				"-v"+pwd+":/root/go/src/github.com/vugu/vjson",
-				dockerImage, 
+				dockerImage,
 				"/root/go/src/github.com/vugu/vjson/vjson_test_pgm.out",
 			)
 			// cmd.Stdin = bytes.NewReader([]byte(tcase.in))
