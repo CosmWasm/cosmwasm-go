@@ -5,97 +5,34 @@ import (
 	"github.com/cosmwasm/cosmwasm-go/std/ezjson"
 )
 
-func Init(deps *std.Extern, _env std.Env, msg []byte) std.CosmosResponse {
-	return std.CosmosResponseDefault()
+func Init(deps *std.Extern, _env std.Env, msg []byte) (*std.CosmosResponseOk, std.CosmosResponseError) {
+	return &std.CosmosResponseOk{
+		Ok: std.Result{
+			Messages: nil,
+			Log: []std.LogAttribute{
+				{Key: "Key1", Value: "Value1"},
+				{Key: "Key2", Value: "Value2"},
+			},
+		},
+	}, ""
 }
 
-func Invoke(deps *std.Extern, _env std.Env, msg []byte) std.CosmosResponse {
+func Invoke(deps *std.Extern, _env std.Env, msg []byte) (*std.CosmosResponseOk, std.CosmosResponseError) {
 	var handlerMsg HandleMsg
 	err := ezjson.Unmarshal(msg, &handlerMsg)
 	if err != nil {
-		return std.CosmosResponse{
-			Ok:  nil,
-			Err: std.ToStdError(std.GenericErr{Msg: err.Error()}),
-		}
+		return nil, std.GenerateError(std.GenericError, "Testing generic error result", "")
 	}
 
-	if handlerMsg.Register != nil {
-		return tryRegister(deps, _env, handlerMsg.Register)
-	} else if handlerMsg.Sell != nil {
-		return trySell(deps, _env, handlerMsg.Sell)
-	}
-
-	return std.CosmosResponse{
-		Ok:  nil,
-		Err: std.ToStdError(std.GenericErr{Msg: "unknowns function called!"}),
-	}
+	return nil, std.GenerateError(std.GenericError, "Testing generic error result", "")
 }
 
-func Query(deps *std.Extern, msg []byte) std.CosmosResponse {
+func Query(deps *std.Extern, msg []byte) (*std.CosmosResponseOk, std.CosmosResponseError) {
 	var queryMsg QueryMsg
 	err := ezjson.Unmarshal(msg, &queryMsg)
 	if err != nil {
-		return std.CosmosResponse{
-			Ok:  nil,
-			Err: std.ToStdError(std.GenericErr{Msg: err.Error()}),
-		}
+		return nil, std.GenerateError(std.GenericError, "Testing generic error result", "")
 	}
 
-	if queryMsg.Get != nil {
-		return tryGetDomain(deps, queryMsg.Get)
-	}
-
-	return std.CosmosResponse{
-		Ok:  nil,
-		Err: std.ToStdError(std.GenericErr{Msg: "unknowns function called!"}),
-	}
-}
-
-func tryRegister(deps *std.Extern, _env std.Env, registerInfo *RegisterDomain) std.CosmosResponse {
-	if err := deps.EStorage.Set([]byte(registerInfo.Domain), _env.Message.Sender); err != nil {
-		return std.CosmosResponse{
-			Ok:  nil,
-			Err: std.ToStdError(std.GenericErr{Msg: err.Error()}),
-		}
-	}
-
-	return std.CosmosResponseDefault()
-}
-
-func trySell(deps *std.Extern, _env std.Env, sellInfo *SellDomain) std.CosmosResponse {
-	buyerCanonAddress, err := deps.EApi.CanonicalAddress(sellInfo.Buyer)
-	if err != nil {
-		return std.CosmosResponse{
-			Ok:  nil,
-			Err: std.ToStdError(std.GenericErr{Msg: err.Error()}),
-		}
-	}
-
-	if err := deps.EStorage.Set([]byte(sellInfo.Domain), buyerCanonAddress); err != nil {
-		return std.CosmosResponse{
-			Ok:  nil,
-			Err: std.ToStdError(std.GenericErr{Msg: err.Error()}),
-		}
-	}
-
-	return std.CosmosResponseDefault()
-}
-
-func tryGetDomain(deps *std.Extern, queryInfo *GetOwner) std.CosmosResponse {
-	owner, err := deps.EStorage.Get([]byte(queryInfo.Domain))
-	if err != nil {
-		return std.CosmosResponse{
-			Ok:  nil,
-			Err: std.ToStdError(std.GenericErr{Msg: err.Error()}),
-		}
-	}
-
-	return std.CosmosResponse{
-		Ok: &std.Result{
-			Messages: []std.CosmosMsg{},
-			Data:     string(owner),
-			Log:      []std.LogAttribute{},
-		},
-		Err: nil,
-	}
+	return nil, std.GenerateError(std.GenericError, "Testing generic error result", "")
 }

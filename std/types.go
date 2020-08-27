@@ -8,8 +8,8 @@ import (
 
 // Coin is a string representation of the sdk.Coin type (more portable than sdk.Int)
 type Coin struct {
-	Denom  string `json:"denom"`  // type, eg. "ATOM"
-	Amount string `json:"amount"` // string encoing of decimal value, eg. "12.3456"
+	Denom  string `denom`  // type, eg. "ATOM"
+	Amount string `amount` // string encoing of decimal value, eg. "12.3456"
 }
 
 func NewCoin(amount uint64, denom string) Coin {
@@ -49,57 +49,54 @@ func (c *Coins) UnmarshalJSON(data []byte) error {
 //------- Results / Msgs -------------
 
 // CosmosResponse is the raw response from the init / handle calls
-type CosmosResponse struct {
-	Ok  *Result   `json:"Ok,omitempty"`
-	Err *StdError `json:"Err,omitempty"`
+type CosmosResponseOk struct {
+	Ok Result
 }
 
-func CosmosResponseDefault() CosmosResponse {
-	return CosmosResponse{
-		Ok: &Result{
+type CosmosResponseError string
+
+func CosmosResponseOkDefault() CosmosResponseOk {
+	return CosmosResponseOk{
+		Ok: Result{
 			Messages: []CosmosMsg{},
-			Data:     "",
 			Log:      []LogAttribute{},
 		},
-		Err: nil,
 	}
 }
 
 // Result defines the return value on a successful
 type Result struct {
 	// Messages comes directly from the contract and is it's request for action
-	Messages []CosmosMsg `json:"messages"`
-	// base64-encoded bytes to return as ABCI.Data field
-	Data string `json:"data"`
+	Messages []CosmosMsg `messages`
 	// log message to return over abci interface
-	Log []LogAttribute `json:"log"`
+	Log []LogAttribute `log`
 }
 
 // LogAttribute
 type LogAttribute struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
+	Key   string `key`
+	Value string `value`
 }
 
 // CosmosMsg is an rust enum and only (exactly) one of the fields should be set
 // Should we do a cleaner approach in Go? (type/data?)
 type CosmosMsg struct {
-	Bank    *BankMsg    `json:"bank,omitempty"`
-	Custom  RawMessage  `json:"custom,omitempty"`
-	Staking *StakingMsg `json:"staking,omitempty"`
-	Wasm    *WasmMsg    `json:"wasm,omitempty"`
+	Bank    BankMsg    `bank`
+	Custom  RawMessage `custom`
+	Staking StakingMsg `staking`
+	Wasm    WasmMsg    `wasm`
 }
 
 type BankMsg struct {
-	Send *SendMsg `json:"send,omitempty"`
+	Send SendMsg `send`
 }
 
 // SendMsg contains instructions for a Cosmos-SDK/SendMsg
 // It has a fixed interface here and should be converted into the proper SDK format before dispatching
 type SendMsg struct {
-	FromAddress string `json:"from_address"`
-	ToAddress   string `json:"to_address"`
-	Amount      Coins  `json:"amount"`
+	FromAddress string `from_address`
+	ToAddress   string `to_address`
+	Amount      Coins  `amount`
 }
 
 // RawMessage is a raw encoded JSON value.
@@ -125,10 +122,10 @@ func (m *RawMessage) UnmarshalJSON(data []byte) error {
 }
 
 type StakingMsg struct {
-	Delegate   *DelegateMsg   `json:"delegate,omitempty"`
-	Undelegate *UndelegateMsg `json:"undelegate,omitempty"`
-	Redelegate *RedelegateMsg `json:"redelegate,omitempty"`
-	Withdraw   *WithdrawMsg   `json:"withdraw,omitempty"`
+	Delegate   DelegateMsg   `json:"delegate,omitempty"`
+	Undelegate UndelegateMsg `json:"undelegate,omitempty"`
+	Redelegate RedelegateMsg `json:"redelegate,omitempty"`
+	Withdraw   WithdrawMsg   `json:"withdraw,omitempty"`
 }
 
 type DelegateMsg struct {
@@ -154,8 +151,8 @@ type WithdrawMsg struct {
 }
 
 type WasmMsg struct {
-	Execute     *ExecuteMsg     `json:"execute,omitempty"`
-	Instantiate *InstantiateMsg `json:"instantiate,omitempty"`
+	Execute     ExecuteMsg     `json:"execute,omitempty"`
+	Instantiate InstantiateMsg `json:"instantiate,omitempty"`
 }
 
 // ExecuteMsg is used to call another defined contract on this chain.
