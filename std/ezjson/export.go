@@ -9,11 +9,11 @@ func Log(msg string) int {
 	return 0
 }
 
-func MarshalA(in interface{}) ([]byte, error) {
+func Marshal(in interface{}) ([]byte, error) {
 	return encode2json(in)
 }
 
-func UnmarshalA(jsonstr []byte, out interface{}) error {
+func Unmarshal(jsonstr []byte, out interface{}) error {
 	return decodeJson(jsonstr, out)
 }
 

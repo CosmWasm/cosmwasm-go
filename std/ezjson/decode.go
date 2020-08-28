@@ -5,7 +5,6 @@ package ezjson
 
 import (
 	"errors"
-	"fmt"
 	"github.com/buger/jsonparser"
 	"reflect"
 )
@@ -57,7 +56,6 @@ func queryRealValue(in []byte, dataType jsonparser.ValueType) interface{} {
 
 func decoding(jsonstr []byte, opts []BaseOpt) error {
 	jsonparser.ObjectEach(jsonstr, func(key []byte, value []byte, dataType jsonparser.ValueType, offset int) error {
-		fmt.Printf("Key: '%s'\n Value: '%s'\n Type: %s\n", string(key), string(value), dataType)
 		if opts != nil {
 			idx := lookup(string(key), opts)
 			if idx >= 0 {

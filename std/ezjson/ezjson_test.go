@@ -21,11 +21,11 @@ func TestMarshal(t *testing.T) {
 		Key:   "123456",
 	}
 	recv := TestSt{}
-	b, e := MarshalEx(v)
+	b, e := Marshal(v)
 	if e == nil {
 		str := string(b)
 		require.NotNil(t, str)
-		e = UnmarshalEx(b, &recv)
+		e = Unmarshal(b, &recv)
 		require.Nil(t, e)
 	}
 }
@@ -74,13 +74,13 @@ func TestMarshalA(t *testing.T) {
 		},
 	}
 
-	b, e := MarshalA(v)
+	b, e := Marshal(v)
 	require.NotNil(t, b)
 	require.Nil(t, e)
 	fmt.Println(string(b))
 
 	var obj TestB
-	e = UnmarshalA(b, &obj)
+	e = Unmarshal(b, &obj)
 
 	require.Nil(t, e)
 

@@ -47,7 +47,7 @@ func DoInit(initFn func(deps *Extern, _env Env, msg []byte) (*CosmosResponseOk, 
 
 	if ok != nil {
 		DisplayMessage([]byte("Return OK"))
-		data, err = ezjson.MarshalA(*ok)
+		data, err = ezjson.Marshal(*ok)
 	} else {
 		DisplayMessage([]byte("Return Error" + string(ers)))
 		DisplayMessage([]byte("MarshalAed Error" + string(data)))
@@ -81,7 +81,7 @@ func DoHandler(handlerFn func(deps *Extern, _env Env, msg []byte) (*CosmosRespon
 	msgData := Translate_range_custom(uintptr(msgPtr))
 
 	_, result := _do_handler(handlerFn, envData, msgData)
-	data, err := ezjson.MarshalEx(result)
+	data, err := ezjson.Marshal(result)
 	if err != nil {
 		return StdErrResult("Failed to marshal handle response to []byte: " + err.Error())
 	}
@@ -91,7 +91,7 @@ func DoHandler(handlerFn func(deps *Extern, _env Env, msg []byte) (*CosmosRespon
 
 func _do_handler(handlerFn func(deps *Extern, _env Env, msg []byte) (*CosmosResponseOk, CosmosResponseError), envData, msgData []byte) (*CosmosResponseOk, CosmosResponseError) {
 	var env Env
-	if err := ezjson.UnmarshalEx(envData, &env); err != nil {
+	if err := ezjson.Unmarshal(envData, &env); err != nil {
 		return nil, GenerateError(GenericError, "Testing generic error result", "")
 	}
 
@@ -104,7 +104,7 @@ func DoQuery(queryFn func(deps *Extern, msg []byte) (*CosmosResponseOk, CosmosRe
 	msgData := Translate_range_custom(uintptr(msgPtr))
 
 	_, result := _do_query(queryFn, msgData)
-	data, err := ezjson.MarshalEx(result)
+	data, err := ezjson.Marshal(result)
 	if err != nil {
 		return StdErrResult("Failed to marshal query response to []byte: " + err.Error())
 	}
