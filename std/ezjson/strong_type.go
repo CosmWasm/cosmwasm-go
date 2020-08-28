@@ -20,6 +20,32 @@ type BaseOpt interface {
 
 	//getting type
 	Type() reflect.Kind
+
+	//getting tag
+	Tag() string
+
+	//setting values
+	Set(value interface{}) error
+}
+
+type BaseName struct {
+	tag      string
+	realName string
+}
+
+func (b BaseName) Name() string {
+	return b.realName
+}
+
+func (b BaseName) Tag() string {
+	return b.tag
+}
+
+func (b BaseName) GetJsonName() string {
+	if len(b.tag) > 0 {
+		return b.tag
+	}
+	return b.realName
 }
 
 func quote(data string) string {
@@ -27,17 +53,13 @@ func quote(data string) string {
 }
 
 type BoolOpt struct {
+	BaseName
 	realValue bool
-	realName  string
 }
 
 func (b BoolOpt) IsEmpty() bool {
 	//boolean always return false
 	return false
-}
-
-func (b BoolOpt) Name() string {
-	return b.realName
 }
 
 func (b BoolOpt) Value() interface{} {
@@ -53,14 +75,14 @@ func (b BoolOpt) Encode(isBrace bool) string {
 	if isBrace == true {
 		result += "{"
 	}
-	if len(b.realName) > 0 {
-		result += quote(b.realName)
+	if len(b.GetJsonName()) > 0 {
+		result += quote(b.GetJsonName())
 		result += ":"
 	}
 	if b.realValue == true {
-		result += "1"
+		result += `"true"`
 	} else {
-		result += "0"
+		result += `"false"`
 	}
 	if isBrace == true {
 		result += "}"
@@ -68,10 +90,15 @@ func (b BoolOpt) Encode(isBrace bool) string {
 	return result
 }
 
+func (b *BoolOpt) Set(value interface{}) error {
+	b.realValue = value.(bool)
+	return nil
+}
+
 ///int int16 int32 int64 support
 type IntOpt struct {
+	BaseName
 	realValue int64
-	realName  string
 }
 
 func (i IntOpt) IsEmpty() bool {
@@ -79,16 +106,12 @@ func (i IntOpt) IsEmpty() bool {
 	return false
 }
 
-func (i IntOpt) Name() string {
-	return i.realName
-}
-
 func (i IntOpt) Value() interface{} {
 	return i.realValue
 }
 
 func (i IntOpt) Type() reflect.Kind {
-	return reflect.Bool
+	return reflect.Int
 }
 
 func (i IntOpt) Encode(isBrace bool) string {
@@ -96,8 +119,8 @@ func (i IntOpt) Encode(isBrace bool) string {
 	if isBrace == true {
 		result += "{"
 	}
-	if len(i.realName) > 0 {
-		result += quote(i.realName)
+	if len(i.GetJsonName()) > 0 {
+		result += quote(i.GetJsonName())
 		result += ":"
 	}
 	result += strconv.FormatInt(i.realValue, 10)
@@ -107,10 +130,15 @@ func (i IntOpt) Encode(isBrace bool) string {
 	return result
 }
 
+func (i *IntOpt) Set(value interface{}) error {
+	i.realValue = value.(int64)
+	return nil
+}
+
 ///int uint16 uint32 uint64 uintptr support
 type UintOpt struct {
+	BaseName
 	realValue uint64
-	realName  string
 }
 
 func (u UintOpt) IsEmpty() bool {
@@ -118,16 +146,12 @@ func (u UintOpt) IsEmpty() bool {
 	return false
 }
 
-func (u UintOpt) Name() string {
-	return u.realName
-}
-
 func (u UintOpt) Value() interface{} {
 	return u.realValue
 }
 
 func (u UintOpt) Type() reflect.Kind {
-	return reflect.Bool
+	return reflect.Uint
 }
 
 func (u UintOpt) Encode(isBrace bool) string {
@@ -135,8 +159,8 @@ func (u UintOpt) Encode(isBrace bool) string {
 	if isBrace == true {
 		result += "{"
 	}
-	if len(u.realName) > 0 {
-		result += quote(u.realName)
+	if len(u.GetJsonName()) > 0 {
+		result += quote(u.GetJsonName())
 		result += ":"
 	}
 	result += strconv.FormatUint(u.realValue, 10)
@@ -146,19 +170,20 @@ func (u UintOpt) Encode(isBrace bool) string {
 	return result
 }
 
+func (u *UintOpt) Set(value interface{}) error {
+	u.realValue = value.(uint64)
+	return nil
+}
+
 ///string support
 type StringOpt struct {
+	BaseName
 	realValue string
-	realName  string
 }
 
 func (s StringOpt) IsEmpty() bool {
 	//boolean always return false
 	return false
-}
-
-func (s StringOpt) Name() string {
-	return s.realName
 }
 
 func (s StringOpt) Value() interface{} {
@@ -174,8 +199,8 @@ func (s StringOpt) Encode(isBrace bool) string {
 	if isBrace == true {
 		result += "{"
 	}
-	if len(s.realName) > 0 {
-		result += quote(s.realName)
+	if len(s.GetJsonName()) > 0 {
+		result += quote(s.GetJsonName())
 		result += ":"
 	}
 	//todo need much strong conversion, add some check item, such as unrecognized symbols
@@ -186,22 +211,23 @@ func (s StringOpt) Encode(isBrace bool) string {
 	return result
 }
 
+func (s *StringOpt) Set(value interface{}) error {
+	s.realValue = value.(string)
+	return nil
+}
+
 //map support
 type MapOpt struct {
 }
 
 //slice support
 type SliceOpt struct {
+	BaseName
 	realValue []BaseOpt
-	realName  string
 }
 
 func (s SliceOpt) IsEmpty() bool {
 	return false
-}
-
-func (s SliceOpt) Name() string {
-	return s.realName
 }
 
 func (s SliceOpt) Value() interface{} {
@@ -217,8 +243,8 @@ func (s SliceOpt) Encode(isBrace bool) string {
 	if isBrace == true {
 		result += "{"
 	}
-	if len(s.realName) > 0 {
-		result += quote(s.realName)
+	if len(s.GetJsonName()) > 0 {
+		result += quote(s.GetJsonName())
 		result += ":"
 	}
 	jsonstr := "["
@@ -240,18 +266,19 @@ func (s SliceOpt) Encode(isBrace bool) string {
 	return result
 }
 
+func (s *SliceOpt) Set(value interface{}) error {
+	s.realValue = decodeSlice(s.realName, s.tag, []byte(value.(string))).Value().([]BaseOpt)
+	return nil
+}
+
 //struct support
 type StructOpt struct {
+	BaseName
 	realValue []BaseOpt
-	realName  string
 }
 
 func (s StructOpt) IsEmpty() bool {
 	return false
-}
-
-func (s StructOpt) Name() string {
-	return s.realName
 }
 
 func (s StructOpt) Value() interface{} {
@@ -267,8 +294,8 @@ func (s StructOpt) Encode(isBrace bool) string {
 	if isBrace == true {
 		result += "{"
 	}
-	if len(s.realName) > 0 {
-		result += quote(s.realName)
+	if len(s.GetJsonName()) > 0 {
+		result += quote(s.GetJsonName())
 		result += ":"
 	}
 	jsonstr := "{"
@@ -290,37 +317,42 @@ func (s StructOpt) Encode(isBrace bool) string {
 	return result
 }
 
+func (s *StructOpt) Set(value interface{}) error {
+	s.realValue = decodeStruct(s.tag, s.realName, []byte(value.(string))).Value().([]BaseOpt)
+	return nil
+}
+
 //unsupport tyoe
 type unsupportedOpt struct {
-	realName     string
+	BaseName
 	realTypeName string
 }
 
 func (u unsupportedOpt) Init(data interface{}, name string) {
 }
 
-func (s unsupportedOpt) IsEmpty() bool {
+func (u unsupportedOpt) IsEmpty() bool {
 	return false
 }
 
-func (s unsupportedOpt) Name() string {
-	return s.realName
-}
-
-func (s unsupportedOpt) Value() interface{} {
+func (u unsupportedOpt) Value() interface{} {
 	return ""
 }
 
-func (s unsupportedOpt) Type() reflect.Kind {
+func (u unsupportedOpt) Type() reflect.Kind {
 	return reflect.Invalid
 }
 
-func (s unsupportedOpt) Encode(isBrace bool) string {
-	return s.realTypeName
+func (u unsupportedOpt) Encode(isBrace bool) string {
+	return u.realTypeName
+}
+
+func (u unsupportedOpt) Set(value interface{}) error {
+	return nil
 }
 
 //interface
-func Generate(name string, in interface{}) BaseOpt {
+func Generate(name, tag string, in interface{}) BaseOpt {
 	ref := in
 	if IsPtr(in) {
 		//under go, it works well, in tinyGo, Typeof(ref).Kind will return Invalid
@@ -331,51 +363,75 @@ func Generate(name string, in interface{}) BaseOpt {
 	kind := TypeOf(ref).Kind()
 	switch kind {
 	case reflect.Bool:
-		return BoolOpt{
+		return &BoolOpt{
+			BaseName: BaseName{
+				realName: name,
+				tag:      tag,
+			},
 			realValue: ValueOf(ref).Bool(),
-			realName:  name,
 		}
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return IntOpt{
+		return &IntOpt{
+			BaseName: BaseName{
+				realName: name,
+				tag:      tag,
+			},
 			realValue: ValueOf(ref).Int(),
-			realName:  name,
 		}
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-		return UintOpt{
+		return &UintOpt{
+			BaseName: BaseName{
+				realName: name,
+				tag:      tag,
+			},
 			realValue: ValueOf(ref).Uint(),
-			realName:  name,
 		}
 	case reflect.String:
-		return StringOpt{
+		return &StringOpt{
+			BaseName: BaseName{
+				realName: name,
+				tag:      tag,
+			},
 			realValue: ValueOf(ref).String(),
-			realName:  name,
 		}
 	case reflect.Struct:
 		p, e := prepare(ref)
 		if e == nil {
-			return StructOpt{
+			return &StructOpt{
+				BaseName: BaseName{
+					realName: name,
+					tag:      tag,
+				},
 				realValue: p,
-				realName:  name,
 			}
 		}
 		return unsupportedOpt{}
 	case reflect.Slice, reflect.Array:
 		p, e := prepare(ref)
 		if e == nil {
-			return SliceOpt{
+			return &SliceOpt{
+				BaseName: BaseName{
+					realName: name,
+					tag:      tag,
+				},
 				realValue: p,
-				realName:  name,
 			}
 		}
 		return unsupportedOpt{}
 	case reflect.Float32, reflect.Float64:
 		return unsupportedOpt{
-			realName:     name,
+			BaseName: BaseName{
+				realName: name,
+				tag:      tag,
+			},
 			realTypeName: tinygo_typeof[kind],
 		}
 	default:
 		return unsupportedOpt{
-			realName:     name,
+			BaseName: BaseName{
+				realName: name,
+				tag:      tag,
+			},
 			realTypeName: tinygo_typeof[kind],
 		}
 	}

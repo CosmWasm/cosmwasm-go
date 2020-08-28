@@ -3,6 +3,7 @@ module github.com/cosmwasm/cosmwasm-go
 go 1.12
 
 require (
+	github.com/buger/jsonparser v1.0.0
 	github.com/stretchr/testify v1.6.1
 	github.com/tendermint/tm-db v0.5.1
 	golang.org/x/lint v0.0.0-20190313153728-d0100b6bd8b3 // indirect
