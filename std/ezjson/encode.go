@@ -50,12 +50,10 @@ func prepare(in interface{}) ([]BaseOpt, error) {
 		for i := 0; i < t.NumField(); i++ {
 			field := vals.Field(i)
 			if field.CanInterface() {
-				name := string(t.Field(i).Tag)
-				if name == "" {
-					name = t.Field(i).Name
-				}
+				tag := string(t.Field(i).Tag)
+				name := t.Field(i).Name
 				vi := field.Interface()
-				opt := Generate(name, vi)
+				opt := Generate(name, tag, vi)
 				if opt.Type() == reflect.Invalid {
 					return nil, errors.New("Error : Invalid conversion type :[" + t.Field(i).Name + "] -- [" + opt.Encode(false) + "]")
 				}
@@ -72,7 +70,7 @@ func prepare(in interface{}) ([]BaseOpt, error) {
 		}
 		var opt BaseOpt
 		for i := 0; i < vals.Len(); i++ {
-			opt = Generate("", vals.Index(i).Interface())
+			opt = Generate("", "", vals.Index(i).Interface())
 			if opt.Type() == reflect.Invalid {
 				return nil, errors.New("Error : Invalid conversion slice type")
 			}

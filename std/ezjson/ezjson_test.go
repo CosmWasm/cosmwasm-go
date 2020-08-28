@@ -33,8 +33,8 @@ func TestMarshal(t *testing.T) {
 func TestMarshalA(t *testing.T) {
 
 	type Coin struct {
-		Denom  string `json:"denom"`  // type, eg. "ATOM"
-		Amount string `json:"amount"` // string encoing of decimal value, eg. "12.3456"
+		Denom  string `denom`  // type, eg. "ATOM"
+		Amount string `amount` // string encoing of decimal value, eg. "12.3456"
 	}
 
 	type TestC struct {
@@ -52,7 +52,7 @@ func TestMarshalA(t *testing.T) {
 		Point2 int
 		Key    string
 		Test1  TestSt
-		Cn     *Coin
+		Cn     Coin
 	}
 
 	v := TestB{
@@ -68,37 +68,20 @@ func TestMarshalA(t *testing.T) {
 				Data2:  []byte("1234567890"),
 			},
 		},
-		Cn: &Coin{
+		Cn: Coin{
 			Denom:  "OOO",
 			Amount: "10000202",
 		},
 	}
-
-	var c []Coin
-	c = append(c, Coin{
-		Denom:  "OKB",
-		Amount: "1000000",
-	})
-	c = append(c, Coin{
-		Denom:  "BTC",
-		Amount: "1000000",
-	})
-	c = append(c, Coin{
-		Denom:  "ETH",
-		Amount: "1000000",
-	})
-
-	var cp *[]Coin
-	cp = &c
 
 	b, e := MarshalA(v)
 	require.NotNil(t, b)
 	require.Nil(t, e)
 	fmt.Println(string(b))
 
-	bc, e := MarshalA(cp)
-	require.NotNil(t, bc)
+	var obj TestB
+	e = UnmarshalA(b, &obj)
+
 	require.Nil(t, e)
-	fmt.Println(string(bc))
 
 }
