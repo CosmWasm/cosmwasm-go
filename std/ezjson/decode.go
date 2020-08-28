@@ -190,9 +190,9 @@ func doAssign(opts []BaseOpt, vals reflect.Value, tps reflect.Type) error {
 			case reflect.String:
 				stringSlice = append(stringSlice, opt.Value().(string))
 			case reflect.Struct:
-			//	doAssign(opt.Value().([]BaseOpt), val, tps.Field(i).Type)
+				doAssign(opt.Value().([]BaseOpt), vals, tps.Elem())
 			case reflect.Slice, reflect.Array:
-			//	doAssign(opt.Value().([]BaseOpt), val, tps.Field(i).Type)
+				doAssign(opt.Value().([]BaseOpt), vals, tps.Elem())
 			default:
 				continue
 			}
@@ -224,10 +224,6 @@ func doAssign(opts []BaseOpt, vals reflect.Value, tps reflect.Type) error {
 			vals.Set(ValueOf(uintptrSlice))
 		case reflect.String:
 			vals.Set(ValueOf(stringSlice))
-		case reflect.Struct:
-		//	doAssign(opt.Value().([]BaseOpt), val, tps.Field(i).Type)
-		case reflect.Slice, reflect.Array:
-			//	doAssign(opt.Value().([]BaseOpt), val, tps.Field(i).Type)
 		}
 
 		return nil
