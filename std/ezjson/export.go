@@ -1,6 +1,6 @@
 package ezjson
 
-var logging func([]byte) int
+var logging func([]byte) int = nil
 
 func Log(msg string) int {
 	if logging != nil {

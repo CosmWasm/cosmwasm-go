@@ -102,7 +102,7 @@ type IntOpt struct {
 }
 
 func (i IntOpt) IsEmpty() bool {
-	//boolean always return false
+	//int always return false
 	return false
 }
 
@@ -142,7 +142,7 @@ type UintOpt struct {
 }
 
 func (u UintOpt) IsEmpty() bool {
-	//boolean always return false
+	//uint always return false
 	return false
 }
 
@@ -182,8 +182,7 @@ type StringOpt struct {
 }
 
 func (s StringOpt) IsEmpty() bool {
-	//boolean always return false
-	return false
+	return len(s.realValue) == 0
 }
 
 func (s StringOpt) Value() interface{} {
@@ -227,7 +226,7 @@ type SliceOpt struct {
 }
 
 func (s SliceOpt) IsEmpty() bool {
-	return false
+	return len(s.realValue) == 0
 }
 
 func (s SliceOpt) Value() interface{} {
@@ -278,7 +277,7 @@ type StructOpt struct {
 }
 
 func (s StructOpt) IsEmpty() bool {
-	return false
+	return len(s.realValue) == 0
 }
 
 func (s StructOpt) Value() interface{} {
@@ -384,7 +383,7 @@ func Generate(name, tag string, in interface{}) BaseOpt {
 				realName: name,
 				tag:      tag,
 			},
-			realValue: ValueOf(ref).Uint(),
+			realValue: uint64(ValueOf(ref).Uint()),
 		}
 	case reflect.String:
 		return &StringOpt{

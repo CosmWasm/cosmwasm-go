@@ -143,7 +143,11 @@ func decodeSlice(name, tag string, jsonstr []byte) BaseOpt {
 
 func doAssign(opts []BaseOpt, vals reflect.Value, tps reflect.Type) error {
 	if tps.Kind() == reflect.Slice || tps.Kind() == reflect.Array {
-
+		Log("Process Slice")
+		if len(opts) <= 0 {
+			//if none, skip it
+			return nil
+		}
 		//must equal with original type
 		var boolSlice []bool
 		var intSlice []int
@@ -174,27 +178,47 @@ func doAssign(opts []BaseOpt, vals reflect.Value, tps reflect.Type) error {
 			case reflect.Int64:
 				int64Slice = append(int64Slice, opt.Value().(int64))
 			case reflect.Uint:
-				uintSlice = append(uintSlice, uint(opt.Value().(int64)))
+				uintSlice = append(uintSlice, uint(opt.Value().(uint64)))
 			case reflect.Uint8:
-				uint8Slice = append(uint8Slice, uint8(opt.Value().(int64)))
+				uint8Slice = append(uint8Slice, uint8(opt.Value().(uint64)))
 			case reflect.Uint16:
-				uint16Slice = append(uint16Slice, uint16(opt.Value().(int64)))
+				uint16Slice = append(uint16Slice, uint16(opt.Value().(uint64)))
 			case reflect.Uint32:
-				uint32Slice = append(uint32Slice, uint32(opt.Value().(int64)))
+				uint32Slice = append(uint32Slice, uint32(opt.Value().(uint64)))
 			case reflect.Uint64:
-				uint64Slice = append(uint64Slice, uint64(opt.Value().(int64)))
+				uint64Slice = append(uint64Slice, opt.Value().(uint64))
 			case reflect.Uintptr:
-				uintptrSlice = append(uintptrSlice, uintptr(opt.Value().(int64)))
+				uintptrSlice = append(uintptrSlice, uintptr(opt.Value().(uint64)))
 			case reflect.String:
 				stringSlice = append(stringSlice, opt.Value().(string))
 			case reflect.Struct:
 				doAssign(opt.Value().([]BaseOpt), vals, tps.Elem())
 			case reflect.Slice, reflect.Array:
-				doAssign(opt.Value().([]BaseOpt), vals, tps.Elem())
+				if opt.Type() != reflect.Slice && opt.Type() != reflect.Array {
+					if opt.IsEmpty() {
+						//if value is empty, we skip it
+						continue
+					}
+					if opt.Type() == reflect.String {
+						//if tart value is string, we can try to translate it, otherwise, return error
+						trv := []byte(opt.Value().(string))
+						trvopt := Generate(opt.Name(), opt.Tag(), trv)
+						if trvopt.Type() == reflect.Invalid {
+							return errors.New("decode failed, wrong param passed, found" + tinygo_typeof[opt.Type()] + " excepted Slice or Array")
+						}
+						doAssign(trvopt.Value().([]BaseOpt), vals, tps.Elem()) //make it to slice
+					} else {
+						continue
+						//	return errors.New("decode failed, wrong param passed, found" + tinygo_typeof[opt.Type()] + " excepted Slice or Array")
+					}
+				} else {
+					doAssign(opt.Value().([]BaseOpt), vals, tps.Elem())
+				}
 			default:
 				continue
 			}
 		}
+
 		switch tps.Elem().Kind() {
 		case reflect.Bool:
 			vals.Set(ValueOf(boolSlice))
@@ -226,9 +250,10 @@ func doAssign(opts []BaseOpt, vals reflect.Value, tps reflect.Type) error {
 
 		return nil
 	}
-	for i := 0; i < vals.NumField(); i++ {
-		tp := tps.Field(i).Type.Kind()
-		realName := string(tps.Field(i).Tag)
+	FieldLen := vals.NumField()
+	for i := 0; i < FieldLen; i++ {
+		tp := tps.Field(i)
+		realName := string(tp.Tag)
 		if len(realName) <= 0 {
 			realName = tps.Field(i).Name
 		}
@@ -236,25 +261,53 @@ func doAssign(opts []BaseOpt, vals reflect.Value, tps reflect.Type) error {
 		if idx >= 0 {
 			opt := opts[idx]
 			val := vals.Field(i)
-			switch tp {
+			switch tp.Type.Kind() {
 			case reflect.Bool:
 				val.SetBool(opt.Value().(bool))
 			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 				val.SetInt(opt.Value().(int64))
 			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-				val.SetUint(uint64(opt.Value().(int64))) //in decoding, only int type
+				var value uint64
+				if opt.Type() == reflect.Int ||
+					opt.Type() == reflect.Int8 ||
+					opt.Type() == reflect.Int16 ||
+					opt.Type() == reflect.Int32 ||
+					opt.Type() == reflect.Int64 {
+					value = uint64(opt.Value().(int64)) //in decoding, only int type
+				} else {
+					value = opt.Value().(uint64) //in decoding, only int type
+				}
+				val.SetUint(value)
 			case reflect.String:
 				val.SetString(opt.Value().(string))
 			case reflect.Struct:
 				doAssign(opt.Value().([]BaseOpt), val, tps.Field(i).Type)
 			case reflect.Slice, reflect.Array:
-				doAssign(opt.Value().([]BaseOpt), val, tps.Field(i).Type)
+				if opt.Type() != reflect.Slice && opt.Type() != reflect.Array {
+					if opt.IsEmpty() {
+						//if value is empty, we skip it
+						continue
+					}
+					if opt.Type() == reflect.String {
+						//if tart value is string, we can try to translate it, otherwise, return error
+						trv := []byte(opt.Value().(string))
+						trvopt := Generate(opt.Name(), opt.Tag(), trv)
+						if trvopt.Type() == reflect.Invalid {
+							continue
+							//	return errors.New("decode failed, wrong param passed, found" + tinygo_typeof[opt.Type()] + " excepted Slice or Array")
+						}
+						doAssign(trvopt.Value().([]BaseOpt), val, tps.Field(i).Type) //make it to slice
+					} else {
+						return errors.New("decode failed, wrong param passed, found" + tinygo_typeof[opt.Type()] + " excepted Slice or Array")
+					}
+				} else {
+					doAssign(opt.Value().([]BaseOpt), val, tps.Field(i).Type)
+				}
 			default:
 				continue
 			}
 		}
 	}
-
 	return nil
 }
 
