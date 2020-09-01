@@ -5,7 +5,7 @@ package ezjson
 
 import (
 	"errors"
-	"github.com/buger/jsonparser"
+	"github.com/cosmwasm/jsonparser"
 	"reflect"
 )
 
