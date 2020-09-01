@@ -40,13 +40,14 @@ func encode2json(in interface{}) ([]byte, error) {
 }
 
 func prepare(in interface{}) ([]BaseOpt, error) {
-	var opts []BaseOpt
+	opts := make([]BaseOpt, 0)
 	t := reflect.TypeOf(in)
 	if t.Kind() == reflect.Ptr {
 		t = t.Elem()
 	}
 	if t.Kind() == reflect.Struct {
 		vals := reflect.ValueOf(in)
+
 		for i := 0; i < t.NumField(); i++ {
 			field := vals.Field(i)
 			if field.CanInterface() {

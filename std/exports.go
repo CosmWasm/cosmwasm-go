@@ -42,15 +42,11 @@ func DoInit(initFn func(deps *Extern, _env Env, msg []byte) (*CosmosResponseOk, 
 	var err error
 	envData := TranslateToSlice(uintptr(envPtr))
 	msgData := Translate_range_custom(uintptr(msgPtr))
-	ezjson.SetDisplay(DisplayMessage)
 	ok, ers := _do_init(initFn, envData, msgData)
-
 	if ok != nil {
-		DisplayMessage([]byte("Return OK"))
 		data, err = ezjson.Marshal(*ok)
 	} else {
-		DisplayMessage([]byte("Return Error" + string(ers)))
-		DisplayMessage([]byte("MarshalAed Error" + string(data)))
+		return Package_message([]byte(string(ers)))
 	}
 	if err != nil {
 		return Package_message([]byte(string(GenerateError(GenericError, "Failed to marshal init response to []byte: "+err.Error(), ""))))
@@ -61,16 +57,11 @@ func DoInit(initFn func(deps *Extern, _env Env, msg []byte) (*CosmosResponseOk, 
 
 func _do_init(initFn func(deps *Extern, _env Env, msg []byte) (*CosmosResponseOk, CosmosResponseError), envData, msgData []byte) (*CosmosResponseOk, CosmosResponseError) {
 	var env Env
-	DisplayMessage([]byte("Calling UnmarshalEx"))
+	err := ezjson.Unmarshal(envData, &env)
+	if err != nil {
+		return nil, GenerateError(GenericError, "Testing generic error result", "")
+	}
 
-	//	err := ezjson.UnmarshalEx(envData, &env) // unsupport Nested structure now, will always return error
-	DisplayMessage([]byte("After Calling UnmarshalEx"))
-
-	/*	if err != nil {
-			DisplayMessage([]byte("ezjson.UnmarshalEx Failed error " + err.Error()))
-			return nil, GenerateError(GenericError, "Testing generic error result", "")
-		}
-	*/
 	deps := make_dependencies()
 	return initFn(&deps, env, msgData)
 }

@@ -78,10 +78,43 @@ func TestMarshalA(t *testing.T) {
 	require.NotNil(t, b)
 	require.Nil(t, e)
 	fmt.Println(string(b))
+}
 
-	var obj TestB
-	e = Unmarshal(b, &obj)
+func TestUnmarshal(t *testing.T) {
+
+	// Coin is a string representation of the sdk.Coin type (more portable than sdk.Int)
+	type Coin struct {
+		Denom  string `denom`  // type, eg. "ATOM"
+		Amount string `amount` // string encoing of decimal value, eg. "12.3456"
+	}
+	type BlockInfo struct {
+		// block height this transaction is executed
+		Height uint64 `height`
+		// time in seconds since unix epoch - since cosmwasm 0.3
+		Time    uint64 `time`
+		ChainID string `chain_id`
+	}
+
+	type MessageInfo struct {
+		// binary encoding of sdk.AccAddress executing the contract
+		Sender []byte `sender`
+		// amount of funds send to the contract along with this message
+		SentFunds []Coin `sent_funds`
+	}
+
+	type ContractInfo struct {
+		// binary encoding of sdk.AccAddress of the contract, to be used when sending messages
+		Address []byte `address`
+	}
+	type Env struct {
+		Block    BlockInfo    `block`
+		Message  MessageInfo  `message`
+		Contract ContractInfo `contract`
+	}
+
+	str := "{\"block\":{\"height\":12345,\"time\":1571797419,\"chain_id\":\"cosmos-testnet-14002\"},\"message\":{\"sender\":\"original_owner_addr\",\"sent_funds\":[]},\"contract\":{\"address\":\"cosmos2contract\"}}"
+	var obj Env
+	e := Unmarshal([]byte(str), &obj)
 
 	require.Nil(t, e)
-
 }
