@@ -1,6 +1,7 @@
 package ezjson
 
 import (
+	"fmt"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
@@ -20,11 +21,100 @@ func TestMarshal(t *testing.T) {
 		Key:   "123456",
 	}
 	recv := TestSt{}
-	b, e := MarshalEx(v)
+	b, e := Marshal(v)
 	if e == nil {
 		str := string(b)
 		require.NotNil(t, str)
-		e = UnmarshalEx(b, &recv)
+		e = Unmarshal(b, &recv)
 		require.Nil(t, e)
 	}
+}
+
+func TestMarshalA(t *testing.T) {
+
+	type Coin struct {
+		Denom  string `denom`  // type, eg. "ATOM"
+		Amount string `amount` // string encoing of decimal value, eg. "12.3456"
+	}
+
+	type TestC struct {
+		Point3 int
+		Key    string
+		Data   byte
+		Data2  []byte
+	}
+	type TestSt struct {
+		Point int
+		Key   string
+		Test3 TestC
+	}
+	type TestB struct {
+		Point2 int
+		Key    string
+		Test1  TestSt
+		Cn     Coin
+	}
+
+	v := TestB{
+		Point2: 100,
+		Key:    "123456",
+		Test1: TestSt{
+			Point: 100,
+			Key:   "0020202",
+			Test3: TestC{
+				Point3: 333,
+				Key:    "003030303",
+				Data:   '1',
+				Data2:  []byte("1234567890"),
+			},
+		},
+		Cn: Coin{
+			Denom:  "OOO",
+			Amount: "10000202",
+		},
+	}
+
+	b, e := Marshal(v)
+	require.NotNil(t, b)
+	require.Nil(t, e)
+	fmt.Println(string(b))
+}
+
+func TestUnmarshal(t *testing.T) {
+
+	// Coin is a string representation of the sdk.Coin type (more portable than sdk.Int)
+	type Coin struct {
+		Denom  string `denom`  // type, eg. "ATOM"
+		Amount string `amount` // string encoing of decimal value, eg. "12.3456"
+	}
+	type BlockInfo struct {
+		// block height this transaction is executed
+		Height uint64 `height`
+		// time in seconds since unix epoch - since cosmwasm 0.3
+		Time    uint64 `time`
+		ChainID string `chain_id`
+	}
+
+	type MessageInfo struct {
+		// binary encoding of sdk.AccAddress executing the contract
+		Sender []byte `sender`
+		// amount of funds send to the contract along with this message
+		SentFunds []Coin `sent_funds`
+	}
+
+	type ContractInfo struct {
+		// binary encoding of sdk.AccAddress of the contract, to be used when sending messages
+		Address []byte `address`
+	}
+	type Env struct {
+		Block    BlockInfo    `block`
+		Message  MessageInfo  `message`
+		Contract ContractInfo `contract`
+	}
+
+	str := "{\"block\":{\"height\":12345,\"time\":1571797419,\"chain_id\":\"cosmos-testnet-14002\"},\"message\":{\"sender\":\"original_owner_addr\",\"sent_funds\":[]},\"contract\":{\"address\":\"cosmos2contract\"}}"
+	var obj Env
+	e := Unmarshal([]byte(str), &obj)
+
+	require.Nil(t, e)
 }

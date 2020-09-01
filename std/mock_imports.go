@@ -4,6 +4,7 @@ package std
 
 import (
 	"errors"
+	"fmt"
 	dbm "github.com/tendermint/tm-db"
 )
 
@@ -146,4 +147,9 @@ type ExternalQuerier struct{}
 func (querier ExternalQuerier) RawQuery(request []byte) ([]byte, error) {
 
 	return []byte(""), nil
+}
+
+func DisplayMessage(msg []byte) int {
+	fmt.Println("Logging" + string(msg))
+	return 0
 }
