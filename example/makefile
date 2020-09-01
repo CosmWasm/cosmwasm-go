@@ -20,11 +20,11 @@ build-custom:
 
 # build-cosmwasm uses our custom build, and custom flags
 build-cosmwasm:
-	docker run --rm -v $(shell pwd):/code -v $(shell pwd):/go/src/github.com/cosmwasm/cosmwasm-go/example -v $(GOPATH)/src/github.com/cosmwasm/cosmwasm-go/std:/go/src/github.com/cosmwasm/cosmwasm-go/std -v $(GOPATH)/src/github.com/buger/jsonparser:/go/src/github.com/buger/jsonparser $(DOCKER_CUSTOM) tinygo build -tags cosmwasm -o /code/contract.wasm -target wasm /code/main.go
+	docker run --rm -v $(shell pwd):/code -v $(shell pwd):/go/src/github.com/cosmwasm/cosmwasm-go/example -v $(GOPATH)/src/github.com/cosmwasm/cosmwasm-go/std:/go/src/github.com/cosmwasm/cosmwasm-go/std -v $(GOPATH)/src/github.com/cosmwasm/jsonparser:/go/src/github.com/cosmwasm/jsonparser $(DOCKER_CUSTOM) tinygo build -tags cosmwasm -o /code/contract.wasm -target wasm /code/main.go
 
 # build-cosmwasm-trim is like build-cosmwasm but trims out debug code for small byte size
 build-cosmwasm-trim:
-	docker run --rm -v $(shell pwd):/code -v $(shell pwd):/go/src/github.com/cosmwasm/cosmwasm-go/example -v $(GOPATH)/src/github.com/cosmwasm/cosmwasm-go/std:/go/src/github.com/cosmwasm/cosmwasm-go/std -v $(GOPATH)/src/github.com/buger/jsonparser:/go/src/github.com/buger/jsonparser  $(DOCKER_CUSTOM) tinygo build -tags cosmwasm -no-debug -o /code/contract.wasm -target wasm /code/main.go
+	docker run --rm -v $(shell pwd):/code -v $(shell pwd):/go/src/github.com/cosmwasm/cosmwasm-go/example -v $(GOPATH)/src/github.com/cosmwasm/cosmwasm-go/std:/go/src/github.com/cosmwasm/cosmwasm-go/std -v $(GOPATH)/src/github.com/cosmwasm/jsonparser:/go/src/github.com/cosmwasm/jsonparser  $(DOCKER_CUSTOM) tinygo build -tags cosmwasm -no-debug -o /code/contract.wasm -target wasm /code/main.go
 
 view:
 	@ wasm-nm $(WASM_FILE)
