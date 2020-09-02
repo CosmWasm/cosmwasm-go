@@ -24,3 +24,42 @@ func bytesToString(buf []byte) string {
 func bytesToBoolean(buf []byte) bool {
 	return true
 }
+
+//support flag:
+//json:"xxx"
+//json:"omitempty"
+//json:"xxx,omitempty"
+//return name and isOmitEmpty
+func getTag(orgTags string) (string, bool) {
+	if len(orgTags) < 6 {
+		return orgTags, false
+	}
+
+	prefix := orgTags[0:6]
+	if prefix != "json:\"" {
+		return orgTags, false
+	}
+	begin := 6
+	name := ""
+	omit := false
+	for i, c := range orgTags[6:] {
+		if c == 34 { //"
+			str := orgTags[begin : i+6]
+			if str == "omitempty" {
+				omit = true
+			} else if len(name) <= 0 {
+				name = str
+			}
+			break
+		}
+		if c == 44 { //,
+			if orgTags[begin:begin+i] == "omitempty" {
+				omit = true
+			} else {
+				name = orgTags[begin : begin+i]
+			}
+			begin += i + 1 //skip `,`
+		}
+	}
+	return name, omit
+}
