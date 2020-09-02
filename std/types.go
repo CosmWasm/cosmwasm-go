@@ -8,8 +8,8 @@ import (
 
 // Coin is a string representation of the sdk.Coin type (more portable than sdk.Int)
 type Coin struct {
-	Denom  string `denom`  // type, eg. "ATOM"
-	Amount string `amount` // string encoing of decimal value, eg. "12.3456"
+	Denom  string `json:"denom"`  // type, eg. "ATOM"
+	Amount string `json:"amount"` // string encoing of decimal value, eg. "12.3456"
 }
 
 func NewCoin(amount uint64, denom string) Coin {
@@ -67,36 +67,36 @@ func CosmosResponseOkDefault() CosmosResponseOk {
 // Result defines the return value on a successful
 type Result struct {
 	// Messages comes directly from the contract and is it's request for action
-	Messages []CosmosMsg `messages`
+	Messages []CosmosMsg `json:"messages"`
 	// log message to return over abci interface
-	Log []LogAttribute `log`
+	Log []LogAttribute `json:"log"`
 }
 
 // LogAttribute
 type LogAttribute struct {
-	Key   string `key`
-	Value string `value`
+	Key   string `json:"key"`
+	Value string `json:"value"`
 }
 
 // CosmosMsg is an rust enum and only (exactly) one of the fields should be set
 // Should we do a cleaner approach in Go? (type/data?)
 type CosmosMsg struct {
-	Bank    BankMsg    `bank`
-	Custom  RawMessage `custom`
-	Staking StakingMsg `staking`
-	Wasm    WasmMsg    `wasm`
+	Bank    BankMsg    `json:"bank"`
+	Custom  RawMessage `json:"custom"`
+	Staking StakingMsg `json:"staking"`
+	Wasm    WasmMsg    `json:"wasm"`
 }
 
 type BankMsg struct {
-	Send SendMsg `send`
+	Send SendMsg `json:"send"`
 }
 
 // SendMsg contains instructions for a Cosmos-SDK/SendMsg
 // It has a fixed interface here and should be converted into the proper SDK format before dispatching
 type SendMsg struct {
-	FromAddress string `from_address`
-	ToAddress   string `to_address`
-	Amount      Coins  `amount`
+	FromAddress string `json:"from_address"`
+	ToAddress   string `json:"to_address"`
+	Amount      Coins  `json:"amount"`
 }
 
 // RawMessage is a raw encoded JSON value.
