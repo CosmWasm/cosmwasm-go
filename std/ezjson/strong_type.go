@@ -277,7 +277,15 @@ type StructOpt struct {
 }
 
 func (s StructOpt) IsEmpty() bool {
-	return len(s.realValue) == 0
+	if len(s.realValue) == 0 {
+		return true
+	}
+	for _, r := range s.realValue {
+		if !r.IsEmpty() {
+			return false //even only one of field was not empty, the structure was not empty too
+		}
+	}
+	return true //return empty
 }
 
 func (s StructOpt) Value() interface{} {

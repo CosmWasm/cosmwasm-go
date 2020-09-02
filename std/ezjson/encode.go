@@ -51,12 +51,15 @@ func prepare(in interface{}) ([]BaseOpt, error) {
 		for i := 0; i < t.NumField(); i++ {
 			field := vals.Field(i)
 			if field.CanInterface() {
-				tag := string(t.Field(i).Tag)
+				tag, isOmit := getTag(string(t.Field(i).Tag))
 				name := t.Field(i).Name
 				vi := field.Interface()
 				opt := Generate(name, tag, vi)
 				if opt.Type() == reflect.Invalid {
 					return nil, errors.New("Error : Invalid conversion type :[" + t.Field(i).Name + "] -- [" + opt.Encode(false) + "]")
+				}
+				if isOmit && opt.IsEmpty() {
+					continue //skip by omitempty key word if target value is empty
 				}
 				opts = append(opts, opt)
 			} else {
