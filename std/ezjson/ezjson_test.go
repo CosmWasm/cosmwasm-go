@@ -89,32 +89,50 @@ func TestUnmarshal(t *testing.T) {
 	}
 	type BlockInfo struct {
 		// block height this transaction is executed
-		Height uint64 `height`
+		Height uint64 `json:"height"`
 		// time in seconds since unix epoch - since cosmwasm 0.3
-		Time    uint64 `time`
-		ChainID string `chain_id`
+		Time    uint64 `json:"time"`
+		ChainID string `json:"chain_id"`
 	}
 
 	type MessageInfo struct {
 		// binary encoding of sdk.AccAddress executing the contract
-		Sender []byte `sender`
+		Sender []byte `json:"sender"`
 		// amount of funds send to the contract along with this message
-		SentFunds []Coin `sent_funds`
+		SentFunds []Coin `json:"sent_funds,omitempty"`
 	}
 
 	type ContractInfo struct {
 		// binary encoding of sdk.AccAddress of the contract, to be used when sending messages
-		Address []byte `address`
+		Address []byte `json:"address"`
 	}
 	type Env struct {
-		Block    BlockInfo    `block`
-		Message  MessageInfo  `message`
-		Contract ContractInfo `contract`
+		Block    BlockInfo    `json:"block"`
+		Message  MessageInfo  `json:"message"`
+		Contract ContractInfo `json:"contract,omitempty"`
 	}
 
 	str := "{\"block\":{\"height\":12345,\"time\":1571797419,\"chain_id\":\"cosmos-testnet-14002\"},\"message\":{\"sender\":\"original_owner_addr\",\"sent_funds\":[]},\"contract\":{\"address\":\"cosmos2contract\"}}"
 	var obj Env
 	e := Unmarshal([]byte(str), &obj)
-
 	require.Nil(t, e)
+	obj.Contract.Address = nil //set to nil
+	b, e := Marshal(obj)
+	require.Nil(t, e)
+	fmt.Println(string(b))
+}
+
+func TestMarshal_Tag(t *testing.T) {
+	name, b := getTag("json:\"time\"")
+	require.Equal(t, "time", name)
+	require.Equal(t, b, false)
+
+	name, b = getTag("json:\"opt,omitempty\"")
+	require.Equal(t, "opt", name)
+	require.Equal(t, b, true)
+
+	name, b = getTag("json:\"omitempty\"")
+	require.Equal(t, "", name)
+	require.Equal(t, b, true)
+
 }
