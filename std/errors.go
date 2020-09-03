@@ -7,8 +7,7 @@ import (
 type ErrorType uintptr
 
 const (
-	Success ErrorType = iota
-	GenericError
+	GenericError ErrorType = iota
 	InvalidBase64Error
 	InvalidUtf8Error
 	NotFoundError
@@ -53,7 +52,6 @@ func GenerateError(errType ErrorType, msg string, msg_plus string) CosmosRespons
 // StdError captures all errors returned from the Rust code as StdError.
 // Exactly one of the fields should be set.
 type StdError struct {
-	SuccessRet    SuccessResult `json:"success_result"`
 	GenericErr    GenericErr    `json:"generic_err,omitempty"`
 	InvalidBase64 InvalidBase64 `json:"invalid_base64,omitempty"`
 	InvalidUtf8   InvalidUtf8   `json:"invalid_utf8,omitempty"`
@@ -168,7 +166,6 @@ func isNil(i interface{}) bool {
 // SystemError captures all errors returned from the Rust code as SystemError.
 // Exactly one of the fields should be set.
 type SystemError struct {
-	SuccessRet         SuccessResult      `json:"success_result"`
 	InvalidRequest     InvalidRequest     `json:"invalid_request,omitempty"`
 	InvalidResponse    InvalidResponse    `json:"invalid_response,omitempty"`
 	NoSuchContract     NoSuchContract     `json:"no_such_contract,omitempty"`
@@ -183,14 +180,6 @@ var (
 	_ error = Unknown{}
 	_ error = UnsupportedRequest{}
 )
-
-type SuccessResult struct {
-	Msg string
-}
-
-func (e SuccessResult) Error() string {
-	return "success"
-}
 
 type InvalidRequest struct {
 	Err     string `json:"error"`
@@ -244,9 +233,6 @@ func (e UnsupportedRequest) Error() string {
 // This may return nil on an unknown error, whereas ToStdError will always create
 // a valid error type.
 func ToSystemError(err error) SystemError {
-	if isNil(err) {
-		return SystemError{SuccessRet: SuccessResult{Msg: "success"}}
-	}
 	switch t := err.(type) {
 	case InvalidRequest:
 		return SystemError{InvalidRequest: t}

@@ -6,6 +6,13 @@ import (
 )
 
 func Init(deps *std.Extern, _env std.Env, msg []byte) (*std.CosmosResponseOk, std.CosmosResponseError) {
+	tester := Tester{deps: deps}
+	e := tester.DoTest()
+	if e == nil {
+		std.DisplayMessage([]byte("test success"))
+	} else {
+		std.DisplayMessage([]byte("Test failed + " + e.Error()))
+	}
 	return &std.CosmosResponseOk{
 		Ok: std.Result{
 			Messages: nil,
