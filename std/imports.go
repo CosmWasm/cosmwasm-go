@@ -6,7 +6,7 @@ package std
 #include "stdlib.h"
 extern void* db_read(void* key);
 extern void db_write(void* key, void* value);
-extern int db_remove(void* key);
+extern void db_remove(void* key);
 
 extern int db_scan(void* start_ptr, void* end_ptr, int order);
 extern void* db_next(unsigned iterator_id);
@@ -136,12 +136,8 @@ func (storage ExternalStorage) Remove(key []byte) error {
 	keyPtr := C.malloc(C.ulong(len(key)))
 	regionKey := TranslateToRegion(key, uintptr(keyPtr))
 
-	ret := C.db_remove(unsafe.Pointer(regionKey))
+	C.db_remove(unsafe.Pointer(regionKey))
 	C.free(keyPtr)
-
-	if ret < 0 {
-		return errors.New("Error deleting from database. Error code: " + string(int(ret)))
-	}
 
 	return nil
 }
@@ -278,10 +274,8 @@ func ToQuerierResult(response []byte, err error) QuerierResult {
 		}
 	}
 	syserr := ToSystemError(err)
-	if syserr.SuccessRet.Msg != "success" {
-		return QuerierResult{
-			Err: syserr,
-		}
+	return QuerierResult{
+		Err: syserr,
 	}
 	return QuerierResult{
 		Ok: QueryResponse{},
