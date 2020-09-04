@@ -37,7 +37,7 @@ func make_dependencies() Extern {
 }
 
 // ========== init ==============
-func DoInit(initFn func(deps *Extern, _env Env, msg []byte) (*CosmosResponseOk, CosmosResponseError), envPtr, msgPtr uint32) unsafe.Pointer {
+func DoInit(initFn func(deps *Extern, _env Env, msg []byte) (*CosmosResponseOk, *CosmosResponseError), envPtr, msgPtr uint32) unsafe.Pointer {
 	var data []byte
 	var err error
 	envData := TranslateToSlice(uintptr(envPtr))
@@ -46,16 +46,20 @@ func DoInit(initFn func(deps *Extern, _env Env, msg []byte) (*CosmosResponseOk, 
 	if ok != nil {
 		data, err = ezjson.Marshal(*ok)
 	} else {
-		return Package_message([]byte(string(ers)))
+		b, e := ezjson.Marshal(ers)
+		if e != nil {
+			return StdErrResult("Marshal error failed : " + e.Error())
+		}
+		return Package_message(b)
 	}
 	if err != nil {
-		return Package_message([]byte(string(GenerateError(GenericError, "Failed to marshal init response to []byte: "+err.Error(), ""))))
+		return StdErrResult("Failed to marshal init response to []byte: " + err.Error())
 	}
 
 	return Package_message(data)
 }
 
-func _do_init(initFn func(deps *Extern, _env Env, msg []byte) (*CosmosResponseOk, CosmosResponseError), envData, msgData []byte) (*CosmosResponseOk, CosmosResponseError) {
+func _do_init(initFn func(deps *Extern, _env Env, msg []byte) (*CosmosResponseOk, *CosmosResponseError), envData, msgData []byte) (*CosmosResponseOk, *CosmosResponseError) {
 	var env Env
 	err := ezjson.Unmarshal(envData, &env)
 	if err != nil {
@@ -67,7 +71,7 @@ func _do_init(initFn func(deps *Extern, _env Env, msg []byte) (*CosmosResponseOk
 }
 
 // ========= handler ============
-func DoHandler(handlerFn func(deps *Extern, _env Env, msg []byte) (*CosmosResponseOk, CosmosResponseError), envPtr, msgPtr uint32) unsafe.Pointer {
+func DoHandler(handlerFn func(deps *Extern, _env Env, msg []byte) (*CosmosResponseOk, *CosmosResponseError), envPtr, msgPtr uint32) unsafe.Pointer {
 	envData := TranslateToSlice(uintptr(envPtr))
 	msgData := Translate_range_custom(uintptr(msgPtr))
 
@@ -80,7 +84,7 @@ func DoHandler(handlerFn func(deps *Extern, _env Env, msg []byte) (*CosmosRespon
 	return Package_message(data)
 }
 
-func _do_handler(handlerFn func(deps *Extern, _env Env, msg []byte) (*CosmosResponseOk, CosmosResponseError), envData, msgData []byte) (*CosmosResponseOk, CosmosResponseError) {
+func _do_handler(handlerFn func(deps *Extern, _env Env, msg []byte) (*CosmosResponseOk, *CosmosResponseError), envData, msgData []byte) (*CosmosResponseOk, *CosmosResponseError) {
 	var env Env
 	if err := ezjson.Unmarshal(envData, &env); err != nil {
 		return nil, GenerateError(GenericError, "Testing generic error result", "")
@@ -91,7 +95,7 @@ func _do_handler(handlerFn func(deps *Extern, _env Env, msg []byte) (*CosmosResp
 }
 
 // =========== query ===================
-func DoQuery(queryFn func(deps *Extern, msg []byte) (*CosmosResponseOk, CosmosResponseError), msgPtr uint32) unsafe.Pointer {
+func DoQuery(queryFn func(deps *Extern, msg []byte) (*CosmosResponseOk, *CosmosResponseError), msgPtr uint32) unsafe.Pointer {
 	msgData := Translate_range_custom(uintptr(msgPtr))
 
 	_, result := _do_query(queryFn, msgData)
@@ -103,7 +107,7 @@ func DoQuery(queryFn func(deps *Extern, msg []byte) (*CosmosResponseOk, CosmosRe
 	return Package_message(data)
 }
 
-func _do_query(handlerFn func(deps *Extern, msg []byte) (*CosmosResponseOk, CosmosResponseError), msgData []byte) (*CosmosResponseOk, CosmosResponseError) {
+func _do_query(handlerFn func(deps *Extern, msg []byte) (*CosmosResponseOk, *CosmosResponseError), msgData []byte) (*CosmosResponseOk, *CosmosResponseError) {
 	deps := make_dependencies()
 	return handlerFn(&deps, msgData)
 }

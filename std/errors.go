@@ -18,35 +18,31 @@ const (
 	UnderflowError
 )
 
-func package_StdError(err string) CosmosResponseError {
-	return CosmosResponseError(`{"Err":` + err + `}`)
-}
-
-func GenerateError(errType ErrorType, msg string, msg_plus string) CosmosResponseError {
-	var errorMsg string
+func GenerateError(errType ErrorType, msg string, msg_plus string) *CosmosResponseError {
+	err := CosmosResponseError{}
 	switch errType {
 	case GenericError:
-		errorMsg = GenericErr{Msg: msg}.Error()
+		err.Err.GenericErr = GenericErr{Msg: msg}
 	case InvalidBase64Error:
-		errorMsg = InvalidBase64{Msg: msg}.Error()
+		err.Err.InvalidBase64 = InvalidBase64{Msg: msg}
 	case InvalidUtf8Error:
-		errorMsg = InvalidUtf8{Msg: msg}.Error()
+		err.Err.InvalidUtf8 = InvalidUtf8{Msg: msg}
 	case NotFoundError:
-		errorMsg = NotFound{Kind: msg}.Error()
+		err.Err.NotFound = NotFound{Kind: msg}
 	case NullPointerError:
-		errorMsg = NullPointer{Msg: msg}.Error()
+		err.Err.NullPointer = NullPointer{Msg: msg}
 	case ParseError:
-		errorMsg = ParseErr{Msg: msg}.Error()
+		err.Err.ParseErr = ParseErr{Msg: msg}
 	case SerializeError:
-		errorMsg = SerializeErr{Msg: msg}.Error()
+		err.Err.SerializeErr = SerializeErr{Msg: msg}
 	case UnauthorizedError:
-		errorMsg = Unauthorized{Msg: msg}.Error()
+		err.Err.Unauthorized = Unauthorized{Msg: msg}
 	case UnderflowError:
-		errorMsg = Underflow{Minuend: msg, Subtrahend: msg_plus}.Error()
+		err.Err.Underflow = Underflow{Minuend: msg, Subtrahend: msg_plus}
 	default:
-		errorMsg = GenericErr{Msg: msg + "Success ???"}.Error()
+		err.Err.GenericErr = GenericErr{Msg: msg}
 	}
-	return package_StdError(errorMsg)
+	return &err
 }
 
 // StdError captures all errors returned from the Rust code as StdError.
