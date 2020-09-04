@@ -53,7 +53,9 @@ type CosmosResponseOk struct {
 	Ok Result
 }
 
-type CosmosResponseError string
+type CosmosResponseError struct {
+	Err StdError
+}
 
 func CosmosResponseOkDefault() CosmosResponseOk {
 	return CosmosResponseOk{

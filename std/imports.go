@@ -284,9 +284,6 @@ func ToQuerierResult(response []byte, err error) QuerierResult {
 	return QuerierResult{
 		Err: syserr,
 	}
-	return QuerierResult{
-		Ok: QueryResponse{},
-	}
 }
 
 // QueryRequest is an rust enum and only (exactly) one of the fields should be set
