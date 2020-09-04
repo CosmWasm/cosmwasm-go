@@ -6,7 +6,7 @@ package std
 #include "stdlib.h"
 extern void* db_read(void* key);
 extern void db_write(void* key, void* value);
-extern int db_remove(void* key);
+extern void db_remove(void* key);
 
 extern int db_scan(void* start_ptr, void* end_ptr, int order);
 extern void* db_next(unsigned iterator_id);
@@ -102,21 +102,24 @@ func (storage ExternalStorage) Get(key []byte) (value []byte, err error) {
 }
 
 func (storage ExternalStorage) Range(start, end []byte, order Order) (Iterator, error) {
-	ptrStart := C.malloc(C.ulong(len(start)))
-	regionStart := TranslateToRegion(start, uintptr(ptrStart))
+	/*
+		ptrStart := C.malloc(C.ulong(len(start)))
+		regionStart := TranslateToRegion(start, uintptr(ptrStart))
 
-	ptrEnd := C.malloc(C.ulong(len(end)))
-	regionEnd := TranslateToRegion(end, uintptr(ptrEnd))
+		ptrEnd := C.malloc(C.ulong(len(end)))
+		regionEnd := TranslateToRegion(end, uintptr(ptrEnd))
 
-	iterId := C.db_scan(unsafe.Pointer(regionStart), unsafe.Pointer(regionEnd), C.int(order))
-	C.free(ptrStart)
-	C.free(ptrEnd)
+		iterId := C.db_scan(unsafe.Pointer(regionStart), unsafe.Pointer(regionEnd), C.int(order))
+		C.free(ptrStart)
+		C.free(ptrEnd)
 
-	if iterId < 0 {
-		return nil, errors.New("error creating iterator (via db_scan): " + string(int(iterId)))
-	}
+		if iterId < 0 {
+			return nil, errors.New("error creating iterator (via db_scan): " + string(int(iterId)))
+		}
 
-	return ExternalIterator{uint32(iterId)}, nil
+		return ExternalIterator{uint32(iterId)}, nil
+	*/
+	return nil, nil
 }
 
 func (storage ExternalStorage) Set(key, value []byte) error {
@@ -136,12 +139,8 @@ func (storage ExternalStorage) Remove(key []byte) error {
 	keyPtr := C.malloc(C.ulong(len(key)))
 	regionKey := TranslateToRegion(key, uintptr(keyPtr))
 
-	ret := C.db_remove(unsafe.Pointer(regionKey))
+	C.db_remove(unsafe.Pointer(regionKey))
 	C.free(keyPtr)
-
-	if ret < 0 {
-		return errors.New("Error deleting from database. Error code: " + string(int(ret)))
-	}
 
 	return nil
 }
@@ -159,23 +158,27 @@ type ExternalIterator struct {
 }
 
 func (iterator ExternalIterator) Next() (key, value []byte, err error) {
-	regionKey, _ := Build_region(DB_READ_KEY_BUFFER_LENGTH, 0)
-	regionNextValue, _ := Build_region(DB_READ_VALUE_BUFFER_LENGTH, 0)
+	/*
+		regionKey, _ := Build_region(DB_READ_KEY_BUFFER_LENGTH, 0)
+		regionNextValue, _ := Build_region(DB_READ_VALUE_BUFFER_LENGTH, 0)
 
-	ret := C.db_next(C.uint(iterator.IteratorId))
+		ret := nil //C.db_next(C.uint(iterator.IteratorId))
 
-	if ret == nil {
-		return nil, nil, errors.New("unknown error from db_next ")
-	}
+		if ret == nil {
+			return nil, nil, errors.New("unknown error from db_next ")
+		}
 
-	key = TranslateToSlice(uintptr(regionKey))
-	value = TranslateToSlice(uintptr(regionNextValue))
+		key = TranslateToSlice(uintptr(regionKey))
+		value = TranslateToSlice(uintptr(regionNextValue))
 
-	if len(key) == 0 {
-		return nil, nil, errors.New("empty key get from db_next")
-	}
+		if len(key) == 0 {
+			return nil, nil, errors.New("empty key get from db_next")
+		}
 
-	return key, value, nil
+		return key, value, nil
+
+	*/
+	return nil, nil, errors.New("unsupported for now")
 }
 
 // ====== API ======
@@ -278,10 +281,8 @@ func ToQuerierResult(response []byte, err error) QuerierResult {
 		}
 	}
 	syserr := ToSystemError(err)
-	if syserr.SuccessRet.Msg != "success" {
-		return QuerierResult{
-			Err: syserr,
-		}
+	return QuerierResult{
+		Err: syserr,
 	}
 	return QuerierResult{
 		Ok: QueryResponse{},
