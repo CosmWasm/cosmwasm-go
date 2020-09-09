@@ -111,3 +111,17 @@ func _do_query(handlerFn func(deps *Extern, msg []byte) (*CosmosResponseOk, *Cos
 	deps := make_dependencies()
 	return handlerFn(&deps, msgData)
 }
+
+//export cosmwasm_vm_version_2
+func cosmwasm_vm_version_2() {}
+
+//export allocate
+func allocate(size uint32) unsafe.Pointer {
+	ptr, _ := Build_region(size, 0)
+	return ptr
+}
+
+//export deallocate
+func deallocate(pointer unsafe.Pointer) {
+	Deallocate(pointer)
+}
