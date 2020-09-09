@@ -49,11 +49,15 @@ const (
 // log print
 
 func DisplayMessage(data []byte) int {
-	msg := C.malloc(C.ulong(len(data)))
-	regionMsg := TranslateToRegion(data, uintptr(msg))
+	//cause that cosmwasm-vm does not support display_message, we denied it in publish version for now.
+	//if you want using display_message to build and test your contract, try using cosmwasm-simulate tool to load and test
+	//download it from :https://github.com/CosmWasm/cosmwasm-simulate
 
-	C.display_message(unsafe.Pointer(regionMsg))
-	C.free(unsafe.Pointer(msg))
+	//msg := C.malloc(C.ulong(len(data)))
+	//regionMsg := TranslateToRegion(data, uintptr(msg))
+	//
+	//C.display_message(unsafe.Pointer(regionMsg))
+	//C.free(unsafe.Pointer(msg))
 	return 0
 }
 

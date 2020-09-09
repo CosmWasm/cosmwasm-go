@@ -49,6 +49,11 @@ func (c *Coins) UnmarshalJSON(data []byte) error {
 //------- Results / Msgs -------------
 
 // CosmosResponse is the raw response from the init / handle calls
+type CosmosResponse struct {
+	Ok  Result
+	Err StdError
+}
+
 type CosmosResponseOk struct {
 	Ok Result
 }
@@ -83,10 +88,10 @@ type LogAttribute struct {
 // CosmosMsg is an rust enum and only (exactly) one of the fields should be set
 // Should we do a cleaner approach in Go? (type/data?)
 type CosmosMsg struct {
-	Bank    BankMsg    `json:"bank"`
-	Custom  RawMessage `json:"custom"`
-	Staking StakingMsg `json:"staking"`
-	Wasm    WasmMsg    `json:"wasm"`
+	Bank    BankMsg    `json:"bank,omitempty"`
+	Custom  RawMessage `json:"custom,omitempty"`
+	Staking StakingMsg `json:"staking,omitempty"`
+	Wasm    WasmMsg    `json:"wasm,omitempty"`
 }
 
 type BankMsg struct {
