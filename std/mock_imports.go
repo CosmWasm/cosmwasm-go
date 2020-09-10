@@ -133,6 +133,17 @@ func (api ExternalApi) HumanAddress(canonical CanonicalAddr) (string, error) {
 }
 
 // ====== Querier ======
+
+// ------- query detail types ---------
+type QueryResponseOk struct {
+	Ok []byte `json:"Ok,omitempty"`
+}
+
+// This is a 2-level result
+type QuerierResult struct {
+	Ok QueryResponseOk `json:"Ok,omitempty"`
+}
+
 type Querier interface {
 	RawQuery(request []byte) ([]byte, error)
 }

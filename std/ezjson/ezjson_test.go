@@ -116,7 +116,7 @@ func TestUnmarshal(t *testing.T) {
 	var obj Env
 	e := Unmarshal([]byte(str), &obj)
 	require.Nil(t, e)
-	obj.Contract.Address = nil //set to nil
+	obj.Contract.Address = nil //set to nil, test omitempty keyword
 	b, e := Marshal(obj)
 	require.Nil(t, e)
 	fmt.Println(string(b))
