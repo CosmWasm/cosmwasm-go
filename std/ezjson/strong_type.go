@@ -359,7 +359,7 @@ func (u unsupportedOpt) Set(value interface{}) error {
 }
 
 //interface
-func Generate(name, tag string, in interface{}) BaseOpt {
+func Generate(name, tag string, in interface{}, isDecoding bool) BaseOpt {
 	ref := in
 	if IsPtr(in) {
 		//under go, it works well, in tinyGo, Typeof(ref).Kind will return Invalid
@@ -402,7 +402,7 @@ func Generate(name, tag string, in interface{}) BaseOpt {
 			realValue: ValueOf(ref).String(),
 		}
 	case reflect.Struct:
-		p, e := prepare(ref)
+		p, e := prepare(ref, isDecoding)
 		if e == nil {
 			return &StructOpt{
 				BaseName: BaseName{
@@ -414,7 +414,7 @@ func Generate(name, tag string, in interface{}) BaseOpt {
 		}
 		return unsupportedOpt{}
 	case reflect.Slice, reflect.Array:
-		p, e := prepare(ref)
+		p, e := prepare(ref, isDecoding)
 		if e == nil {
 			return &SliceOpt{
 				BaseName: BaseName{

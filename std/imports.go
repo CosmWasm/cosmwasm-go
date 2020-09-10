@@ -53,11 +53,10 @@ func DisplayMessage(data []byte) int {
 	//if you want using display_message to build and test your contract, try using cosmwasm-simulate tool to load and test
 	//download it from :https://github.com/CosmWasm/cosmwasm-simulate
 
-	//msg := C.malloc(C.ulong(len(data)))
-	//regionMsg := TranslateToRegion(data, uintptr(msg))
-	//
-	//C.display_message(unsafe.Pointer(regionMsg))
-	//C.free(unsafe.Pointer(msg))
+	msg := C.malloc(C.ulong(len(data)))
+	regionMsg := TranslateToRegion(data, uintptr(msg))
+	C.display_message(unsafe.Pointer(regionMsg))
+	C.free(unsafe.Pointer(msg))
 	return 0
 }
 
@@ -265,28 +264,20 @@ func (querier ExternalQuerier) RawQuery(request []byte) ([]byte, error) {
 }
 
 // ------- query detail types ---------
-type QueryResponse struct {
-	Ok  []byte   `json:"Ok,omitempty"`
-	Err StdError `json:"Err,omitempty"`
+type QueryResponseOk struct {
+	Ok []byte `json:"Ok,omitempty"`
 }
 
 // This is a 2-level result
 type QuerierResult struct {
-	Ok  QueryResponse `json:"Ok,omitempty"`
-	Err SystemError   `json:"Err,omitempty"`
+	Ok QueryResponseOk `json:"Ok,omitempty"`
 }
 
 func ToQuerierResult(response []byte, err error) QuerierResult {
-	if err == nil {
-		return QuerierResult{
-			Ok: QueryResponse{
-				Ok: response,
-			},
-		}
-	}
-	syserr := ToSystemError(err)
 	return QuerierResult{
-		Err: syserr,
+		Ok: QueryResponseOk{
+			Ok: response,
+		},
 	}
 }
 

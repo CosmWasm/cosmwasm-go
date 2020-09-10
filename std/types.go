@@ -48,33 +48,67 @@ func (c *Coins) UnmarshalJSON(data []byte) error {
 // ============= MSG ===========
 //------- Results / Msgs -------------
 
-// CosmosResponse is the raw response from the init / handle calls
-type CosmosResponse struct {
-	Ok  Result
-	Err StdError
+// InitResponse defines the return value on a successful handle
+type InitResponse struct {
+	// Messages comes directly from the contract and is it's request for action
+	Messages []CosmosMsg `json:"messages"`
+	// log message to return over abci interface
+	Log []LogAttribute `json:"log"`
 }
 
-type CosmosResponseOk struct {
-	Ok Result
+type InitResultOk struct {
+	Ok InitResponse
 }
 
-type CosmosResponseError struct {
-	Err StdError
-}
-
-func CosmosResponseOkDefault() CosmosResponseOk {
-	return CosmosResponseOk{
-		Ok: Result{
+func InitResultOkOkDefault() *InitResultOk {
+	return &InitResultOk{
+		Ok: InitResponse{
 			Messages: []CosmosMsg{},
 			Log:      []LogAttribute{},
 		},
 	}
 }
 
-// Result defines the return value on a successful
-type Result struct {
+type CosmosResponseError struct {
+	Err StdError
+}
+
+// HandleResponse defines the return value on a successful handle
+type HandleResponse struct {
 	// Messages comes directly from the contract and is it's request for action
 	Messages []CosmosMsg `json:"messages"`
+	// base64-encoded bytes to return as ABCI.Data field
+	Data []byte `json:"data"`
+	// log message to return over abci interface
+	Log []LogAttribute `json:"log"`
+}
+
+type HandleResultOk struct {
+	Ok HandleResponse
+}
+
+func HandleResultOkDefault() *HandleResultOk {
+	return &HandleResultOk{
+		Ok: HandleResponse{
+			Messages: []CosmosMsg{},
+			Log:      []LogAttribute{},
+			Data:     nil,
+		},
+	}
+}
+
+// MigrateResult is the raw response from the handle call
+type MigrateResult struct {
+	Ok  MigrateResponse `json:"Ok,omitempty"`
+	Err StdError        `json:"Err,omitempty"`
+}
+
+// MigrateResponse defines the return value on a successful handle
+type MigrateResponse struct {
+	// Messages comes directly from the contract and is it's request for action
+	Messages []CosmosMsg `json:"messages"`
+	// base64-encoded bytes to return as ABCI.Data field
+	Data []byte `json:"data"`
 	// log message to return over abci interface
 	Log []LogAttribute `json:"log"`
 }
