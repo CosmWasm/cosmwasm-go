@@ -265,7 +265,7 @@ func doAssign(opts []BaseOpt, vals reflect.Value, tps reflect.Type) error {
 	FieldLen := vals.NumField()
 	for i := 0; i < FieldLen; i++ {
 		tp := tps.Field(i)
-		realName, _ := getTag(string(tp.Tag))
+		realName, _, _ := getTag(string(tp.Tag))
 		if len(realName) <= 0 {
 			realName = tps.Field(i).Name
 		}

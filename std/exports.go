@@ -73,13 +73,22 @@ func _do_init(initFn func(deps *Extern, _env Env, msg []byte) (*InitResultOk, *C
 func DoHandler(handlerFn func(deps *Extern, _env Env, msg []byte) (*HandleResultOk, *CosmosResponseError), envPtr, msgPtr uint32) unsafe.Pointer {
 	envData := TranslateToSlice(uintptr(envPtr))
 	msgData := Translate_range_custom(uintptr(msgPtr))
-
-	_, result := _do_handler(handlerFn, envData, msgData)
-	data, err := ezjson.Marshal(result)
-	if err != nil {
-		return StdErrResult("Failed to marshal handle response to []byte: " + err.Error())
+	var data []byte
+	var err error
+	Ok, Err := _do_handler(handlerFn, envData, msgData)
+	if Ok != nil {
+		data, err = ezjson.Marshal(*Ok)
+		if err != nil {
+			return StdErrResult("Failed to marshal handle Ok response to []byte: " + err.Error())
+		}
+	} else if Err != nil {
+		data, err = ezjson.Marshal(*Err)
+		if err != nil {
+			return StdErrResult("Failed to marshal handle Err response to []byte: " + err.Error())
+		}
+	} else {
+		return StdErrResult("Both Ok and Err are nil")
 	}
-
 	return Package_message(data)
 }
 
@@ -96,13 +105,22 @@ func _do_handler(handlerFn func(deps *Extern, _env Env, msg []byte) (*HandleResu
 // =========== query ===================
 func DoQuery(queryFn func(deps *Extern, msg []byte) (*QueryResponseOk, *CosmosResponseError), msgPtr uint32) unsafe.Pointer {
 	msgData := Translate_range_custom(uintptr(msgPtr))
-
-	_, result := _do_query(queryFn, msgData)
-	data, err := ezjson.Marshal(result)
-	if err != nil {
-		return StdErrResult("Failed to marshal query response to []byte: " + err.Error())
+	var data []byte
+	var err error
+	Ok, Err := _do_query(queryFn, msgData)
+	if Ok != nil {
+		data, err = ezjson.Marshal(*Ok)
+		if err != nil {
+			return StdErrResult("Failed to marshal handle Ok response to []byte: " + err.Error())
+		}
+	} else if Err != nil {
+		data, err = ezjson.Marshal(*Err)
+		if err != nil {
+			return StdErrResult("Failed to marshal handle Err response to []byte: " + err.Error())
+		}
+	} else {
+		return StdErrResult("Both Ok and Err are nil")
 	}
-
 	return Package_message(data)
 }
 

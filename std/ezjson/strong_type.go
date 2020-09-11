@@ -26,11 +26,16 @@ type BaseOpt interface {
 
 	//setting values
 	Set(value interface{}) error
+
+	//setting attribute
+	Attribute(key string, value bool)
 }
 
 type BaseName struct {
-	tag      string
-	realName string
+	tag         string
+	realName    string
+	omitempty   bool
+	rust_option bool
 }
 
 func (b BaseName) Name() string {
@@ -39,6 +44,22 @@ func (b BaseName) Name() string {
 
 func (b BaseName) Tag() string {
 	return b.tag
+}
+
+func (b *BaseName) Attribute(key string, value bool) {
+	if key == OmitEmpty {
+		b.omitempty = value
+	} else if key == RustOption {
+		b.rust_option = value
+	}
+}
+
+func (b BaseName) IsOmitEmpty() bool {
+	return b.omitempty
+}
+
+func (b BaseName) IsRustOption() bool {
+	return b.rust_option
 }
 
 func (b BaseName) GetJsonName() string {
@@ -202,8 +223,12 @@ func (s StringOpt) Encode(isBrace bool) string {
 		result += quote(s.GetJsonName())
 		result += ":"
 	}
-	//todo need much strong conversion, add some check item, such as unrecognized symbols
-	result += quote(s.realValue)
+	if s.IsRustOption() && len(s.realValue) == 0 {
+		result += "null"
+	} else {
+		//todo need much strong conversion, add some check item, such as unrecognized symbols
+		result += quote(s.realValue)
+	}
 	if isBrace == true {
 		result += "}"
 	}
@@ -246,19 +271,24 @@ func (s SliceOpt) Encode(isBrace bool) string {
 		result += quote(s.GetJsonName())
 		result += ":"
 	}
-	jsonstr := "["
-	first := true
-	for _, opt := range s.realValue {
-		if first == false {
-			jsonstr += ","
+	if s.IsRustOption() && len(s.realValue) == 0 {
+		result += "null"
+	} else {
+		jsonstr := "["
+		first := true
+		for _, opt := range s.realValue {
+			if first == false {
+				jsonstr += ","
+			}
+			jsonstr += opt.Encode(false)
+			if first == true {
+				first = false
+			}
 		}
-		jsonstr += opt.Encode(false)
-		if first == true {
-			first = false
-		}
+		jsonstr += "]"
+		result += jsonstr
 	}
-	jsonstr += "]"
-	result += jsonstr
+
 	if isBrace == true {
 		result += "}"
 	}
@@ -372,32 +402,40 @@ func Generate(name, tag string, in interface{}, isDecoding bool) BaseOpt {
 	case reflect.Bool:
 		return &BoolOpt{
 			BaseName: BaseName{
-				realName: name,
-				tag:      tag,
+				realName:    name,
+				tag:         tag,
+				omitempty:   false,
+				rust_option: false,
 			},
 			realValue: ValueOf(ref).Bool(),
 		}
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return &IntOpt{
 			BaseName: BaseName{
-				realName: name,
-				tag:      tag,
+				realName:    name,
+				tag:         tag,
+				omitempty:   false,
+				rust_option: false,
 			},
 			realValue: ValueOf(ref).Int(),
 		}
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
 		return &UintOpt{
 			BaseName: BaseName{
-				realName: name,
-				tag:      tag,
+				realName:    name,
+				tag:         tag,
+				omitempty:   false,
+				rust_option: false,
 			},
 			realValue: uint64(ValueOf(ref).Uint()),
 		}
 	case reflect.String:
 		return &StringOpt{
 			BaseName: BaseName{
-				realName: name,
-				tag:      tag,
+				realName:    name,
+				tag:         tag,
+				omitempty:   false,
+				rust_option: false,
 			},
 			realValue: ValueOf(ref).String(),
 		}
@@ -406,38 +444,46 @@ func Generate(name, tag string, in interface{}, isDecoding bool) BaseOpt {
 		if e == nil {
 			return &StructOpt{
 				BaseName: BaseName{
-					realName: name,
-					tag:      tag,
+					realName:    name,
+					tag:         tag,
+					omitempty:   false,
+					rust_option: false,
 				},
 				realValue: p,
 			}
 		}
-		return unsupportedOpt{}
+		return &unsupportedOpt{}
 	case reflect.Slice, reflect.Array:
 		p, e := prepare(ref, isDecoding)
 		if e == nil {
 			return &SliceOpt{
 				BaseName: BaseName{
-					realName: name,
-					tag:      tag,
+					realName:    name,
+					tag:         tag,
+					omitempty:   false,
+					rust_option: false,
 				},
 				realValue: p,
 			}
 		}
-		return unsupportedOpt{}
+		return &unsupportedOpt{}
 	case reflect.Float32, reflect.Float64:
-		return unsupportedOpt{
+		return &unsupportedOpt{
 			BaseName: BaseName{
-				realName: name,
-				tag:      tag,
+				realName:    name,
+				tag:         tag,
+				omitempty:   false,
+				rust_option: false,
 			},
 			realTypeName: tinygo_typeof[kind],
 		}
 	default:
-		return unsupportedOpt{
+		return &unsupportedOpt{
 			BaseName: BaseName{
-				realName: name,
-				tag:      tag,
+				realName:    name,
+				tag:         tag,
+				omitempty:   false,
+				rust_option: false,
 			},
 			realTypeName: tinygo_typeof[kind],
 		}

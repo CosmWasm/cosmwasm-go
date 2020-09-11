@@ -73,12 +73,17 @@ type CosmosResponseError struct {
 	Err StdError
 }
 
+type OptionBinary struct {
+	None string `json:"omitempty"`
+	Some []byte `json:"omitempty"`
+}
+
 // HandleResponse defines the return value on a successful handle
 type HandleResponse struct {
 	// Messages comes directly from the contract and is it's request for action
 	Messages []CosmosMsg `json:"messages"`
 	// base64-encoded bytes to return as ABCI.Data field
-	Data []byte `json:"data"`
+	Data string `json:"data,rust_option"`
 	// log message to return over abci interface
 	Log []LogAttribute `json:"log"`
 }
@@ -92,7 +97,7 @@ func HandleResultOkDefault() *HandleResultOk {
 		Ok: HandleResponse{
 			Messages: []CosmosMsg{},
 			Log:      []LogAttribute{},
-			Data:     nil,
+			Data:     "",
 		},
 	}
 }

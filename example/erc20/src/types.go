@@ -39,3 +39,15 @@ type Handler struct {
 	TransferOwner         TransferOwner          `json:"transfer_owner,omitempty"`
 	AcceptedTransferOwner AcceptTransferredOwner `json:"accept_transfer_owner,omitempty"`
 }
+
+type Balance struct {
+	Address []byte `json:"address"`
+}
+
+type BalanceResponse struct {
+	Value uint64 `json:"value"`
+}
+
+type Querier struct {
+	Balance Balance `json:"balance"`
+}

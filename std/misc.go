@@ -1,5 +1,7 @@
 package std
 
+import "encoding/base64"
+
 func BytesToUint64(b []byte) uint64 {
 	return uint64(b[7]) | uint64(b[6])<<8 | uint64(b[5])<<16 | uint64(b[4])<<24 |
 		uint64(b[3])<<32 | uint64(b[2])<<40 | uint64(b[1])<<48 | uint64(b[0])<<56
@@ -25,4 +27,9 @@ func Uint64toBytes(v uint64) []byte {
 	b[6] = byte(v >> 8)
 	b[7] = byte(v)
 	return b
+}
+
+func BuildBase64Message(msg string) string {
+	encoding := base64.StdEncoding.EncodeToString([]byte(msg))
+	return encoding
 }
