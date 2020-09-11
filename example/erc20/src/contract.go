@@ -22,6 +22,7 @@ func Init(deps *std.Extern, env std.Env, msg []byte) (*std.InitResultOk, *std.Co
 
 	ownerShip.Owned(env.Message.Sender)
 
+	erc20Protocol.Assign(env.Message.Sender, 10000)
 	//saving state and owner info
 	erc20Protocol.SaveState()
 	ownerShip.SaveOwner()
@@ -33,5 +34,5 @@ func Invoke(deps *std.Extern, env std.Env, msg []byte) (*std.HandleResultOk, *st
 }
 
 func Query(deps *std.Extern, msg []byte) (*std.QueryResponseOk, *std.CosmosResponseError) {
-	return nil, std.GenerateError(std.GenericError, "unimplemented", "")
+	return handleQuery(deps, msg)
 }

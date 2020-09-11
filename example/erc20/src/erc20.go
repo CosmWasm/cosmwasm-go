@@ -43,6 +43,7 @@ type Erc20 interface {
 	Approve(spender []byte, value uint64) bool
 	EventOfTransfer(from, to []byte, value uint64)
 	EventOfApproval(owner, spender []byte, value uint64)
+	Assign(addr []byte, value uint64)
 	//Management of contract meta data
 	SaveState() bool
 }
@@ -174,6 +175,10 @@ func (i implErc20) setApproval(addr []byte, value uint64) bool {
 	return true
 }
 
+func (i implErc20) Assign(addr []byte, value uint64) {
+	i.apis.EStorage.Set(amountPrefix(addr), std.Uint64toBytes(value))
+}
+
 func (i implErc20) transfer(from, to []byte, value uint64) bool {
 	m := i.BalanceOf(from)
 	if m < value {
@@ -188,6 +193,8 @@ func (i implErc20) transfer(from, to []byte, value uint64) bool {
 
 	es = i.apis.EStorage.Set(amountPrefix(from), std.Uint64toBytes(sender_money))
 	er = i.apis.EStorage.Set(amountPrefix(to), std.Uint64toBytes(reciver_money))
+
+	m = i.BalanceOf(to)
 	if es != nil || er != nil {
 		return false
 	}

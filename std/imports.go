@@ -21,6 +21,7 @@ extern int display_message(void* str);
 import "C"
 
 import (
+	"encoding/base64"
 	"errors"
 	"github.com/cosmwasm/cosmwasm-go/std/ezjson"
 	"unsafe"
@@ -265,7 +266,7 @@ func (querier ExternalQuerier) RawQuery(request []byte) ([]byte, error) {
 
 // ------- query detail types ---------
 type QueryResponseOk struct {
-	Ok []byte `json:"Ok,omitempty"`
+	Ok string `json:"Ok,omitempty,rust_option"`
 }
 
 // This is a 2-level result
@@ -273,12 +274,9 @@ type QuerierResult struct {
 	Ok QueryResponseOk `json:"Ok,omitempty"`
 }
 
-func ToQuerierResult(response []byte, err error) QuerierResult {
-	return QuerierResult{
-		Ok: QueryResponseOk{
-			Ok: response,
-		},
-	}
+func BuildQueryResponse(msg string) *QueryResponseOk {
+	encoding := base64.StdEncoding.EncodeToString([]byte(msg))
+	return &QueryResponseOk{Ok: encoding}
 }
 
 // QueryRequest is an rust enum and only (exactly) one of the fields should be set

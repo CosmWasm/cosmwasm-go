@@ -91,3 +91,42 @@ func handleTransferOwnerAccepted(env *std.Env, atf AcceptTransferredOwner, owner
 	}
 	return nil, std.GenerateError(std.GenericError, "Transfer ownership execute success", "")
 }
+
+//query handler
+
+func getNotEmptyQueryElem(q Querier) interface{} {
+	if len(q.Balance.Address) > 0 {
+		return q.Balance
+	}
+
+	return nil
+}
+
+func handleQuery(deps *std.Extern, msg []byte) (*std.QueryResponseOk, *std.CosmosResponseError) {
+	querier := Querier{}
+	e := ezjson.Unmarshal(msg, &querier)
+	if e != nil {
+		return nil, std.GenerateError(std.GenericError, "Unamrshal handle error : "+e.Error(), "")
+	}
+	state, e := LoadState(deps)
+	if e != nil {
+		return nil, std.GenerateError(std.GenericError, "LoadState error : "+e.Error(), "")
+	}
+	erc20 := NewErc20Protocol(state, deps, nil)
+	q := getNotEmptyQueryElem(querier)
+
+	switch q.(type) {
+	case Balance:
+		return QueryBalance(q.(Balance), erc20)
+	}
+	return nil, std.GenerateError(std.GenericError, "Unsupported query type", "")
+}
+
+func QueryBalance(b Balance, erc20 Erc20) (*std.QueryResponseOk, *std.CosmosResponseError) {
+	br := BalanceResponse{Value: erc20.BalanceOf(b.Address)}
+	v, e := ezjson.Marshal(br)
+	if e != nil {
+		return nil, std.GenerateError(std.GenericError, "Marshal BalanceResponse Failed "+e.Error(), "")
+	}
+	return std.BuildQueryResponse(string(v)), nil
+}
