@@ -1,8 +1,8 @@
 package src
 
 type HandleMsg struct {
-	Register *RegisterDomain `json:"register,omitempty"`
-	Sell     *SellDomain     `json:"sell,omitempty"`
+	Register RegisterDomain `json:"register,omitempty"`
+	Sell     SellDomain     `json:"sell,omitempty"`
 }
 
 type SellDomain struct {

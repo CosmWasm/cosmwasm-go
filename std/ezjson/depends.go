@@ -8,58 +8,52 @@ var tinygo_typeof = []string{
 	"Func", "Map", "Struct",
 }
 
-func bytesToUint64(b []byte) uint64 {
-	return uint64(b[7]) | uint64(b[6])<<8 | uint64(b[5])<<16 | uint64(b[4])<<24 |
-		uint64(b[3])<<32 | uint64(b[2])<<40 | uint64(b[1])<<48 | uint64(b[0])<<56
-}
-
-func bytesToInt64(buf []byte) int64 {
-	return int64(bytesToUint64(buf))
-}
-
-func bytesToString(buf []byte) string {
-	return string(buf)
-}
-
-func bytesToBoolean(buf []byte) bool {
-	return true
-}
+const (
+	OmitEmpty  = "omitempty"
+	RustOption = "rust_option"
+)
 
 //support flag:
 //json:"xxx"
 //json:"omitempty"
 //json:"xxx,omitempty"
-//return name and isOmitEmpty
-func getTag(orgTags string) (string, bool) {
+//return name and isOmitEmpty,rust_option
+func getTag(orgTags string) (string, bool, bool) {
 	if len(orgTags) < 6 {
-		return orgTags, false
+		return orgTags, false, false
 	}
 
 	prefix := orgTags[0:6]
 	if prefix != "json:\"" {
-		return orgTags, false
+		return orgTags, false, false
 	}
 	begin := 6
 	name := ""
 	omit := false
+	rustOption := false
 	for i, c := range orgTags[6:] {
 		if c == 34 { //"
 			str := orgTags[begin : i+6]
-			if str == "omitempty" {
+			if str == OmitEmpty {
 				omit = true
+			} else if str == RustOption {
+				rustOption = true
 			} else if len(name) <= 0 {
 				name = str
 			}
 			break
 		}
 		if c == 44 { //,
-			if orgTags[begin:begin+i] == "omitempty" {
+			str := orgTags[begin : i+6]
+			if str == OmitEmpty {
 				omit = true
+			} else if str == RustOption {
+				rustOption = true
 			} else {
-				name = orgTags[begin : begin+i]
+				name = str
 			}
-			begin += i + 1 //skip `,`
+			begin = i + 7 //skip `,`
 		}
 	}
-	return name, omit
+	return name, omit, rustOption
 }

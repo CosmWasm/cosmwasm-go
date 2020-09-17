@@ -116,23 +116,49 @@ func TestUnmarshal(t *testing.T) {
 	var obj Env
 	e := Unmarshal([]byte(str), &obj)
 	require.Nil(t, e)
-	obj.Contract.Address = nil //set to nil
+	obj.Contract.Address = nil //set to nil, test omitempty keyword
 	b, e := Marshal(obj)
 	require.Nil(t, e)
 	fmt.Println(string(b))
 }
 
 func TestMarshal_Tag(t *testing.T) {
-	name, b := getTag("json:\"time\"")
+	name, b, _ := getTag("json:\"time\"")
 	require.Equal(t, "time", name)
 	require.Equal(t, b, false)
 
-	name, b = getTag("json:\"opt,omitempty\"")
+	name, b, _ = getTag("json:\"opt,omitempty\"")
 	require.Equal(t, "opt", name)
 	require.Equal(t, b, true)
 
-	name, b = getTag("json:\"omitempty\"")
+	name, b, r := getTag("json:\"omitempty\"")
 	require.Equal(t, "", name)
 	require.Equal(t, b, true)
+	require.Equal(t, r, false)
 
+	name, _, r = getTag("json:\"rust_option\"")
+	require.Equal(t, "", name)
+	require.Equal(t, r, true)
+
+	name, _, r = getTag(`json:"Ok,omitempty,rust_option"`)
+	require.Equal(t, "Ok", name)
+	require.Equal(t, r, true)
+
+}
+
+func TestRustOption(t *testing.T) {
+	type Coin struct {
+		Denom  string `json:"denom,rust_option"` // type, eg. "ATOM"
+		Amount string `json:"amount"`            // string encoing of decimal value, eg. "12.3456"
+		Name   string
+	}
+	c := Coin{
+		Denom:  "",
+		Amount: "1000",
+		Name:   "",
+	}
+	b, e := Marshal(c)
+	require.Nil(t, e)
+	require.NotNil(t, b)
+	fmt.Println(string(b))
 }

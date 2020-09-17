@@ -48,28 +48,72 @@ func (c *Coins) UnmarshalJSON(data []byte) error {
 // ============= MSG ===========
 //------- Results / Msgs -------------
 
-// CosmosResponse is the raw response from the init / handle calls
-type CosmosResponseOk struct {
-	Ok Result
+// InitResponse defines the return value on a successful handle
+type InitResponse struct {
+	// Messages comes directly from the contract and is it's request for action
+	Messages []CosmosMsg `json:"messages"`
+	// log message to return over abci interface
+	Log []LogAttribute `json:"log"`
 }
 
-type CosmosResponseError struct {
-	Err StdError
+type InitResultOk struct {
+	Ok InitResponse
 }
 
-func CosmosResponseOkDefault() CosmosResponseOk {
-	return CosmosResponseOk{
-		Ok: Result{
+func InitResultOkOkDefault() *InitResultOk {
+	return &InitResultOk{
+		Ok: InitResponse{
 			Messages: []CosmosMsg{},
 			Log:      []LogAttribute{},
 		},
 	}
 }
 
-// Result defines the return value on a successful
-type Result struct {
+type CosmosResponseError struct {
+	Err StdError
+}
+
+type OptionBinary struct {
+	None string `json:"omitempty"`
+	Some []byte `json:"omitempty"`
+}
+
+// HandleResponse defines the return value on a successful handle
+type HandleResponse struct {
 	// Messages comes directly from the contract and is it's request for action
 	Messages []CosmosMsg `json:"messages"`
+	// base64-encoded bytes to return as ABCI.Data field
+	Data string `json:"data,rust_option"`
+	// log message to return over abci interface
+	Log []LogAttribute `json:"log"`
+}
+
+type HandleResultOk struct {
+	Ok HandleResponse
+}
+
+func HandleResultOkDefault() *HandleResultOk {
+	return &HandleResultOk{
+		Ok: HandleResponse{
+			Messages: []CosmosMsg{},
+			Log:      []LogAttribute{},
+			Data:     "",
+		},
+	}
+}
+
+// MigrateResult is the raw response from the handle call
+type MigrateResult struct {
+	Ok  MigrateResponse `json:"Ok,omitempty"`
+	Err StdError        `json:"Err,omitempty"`
+}
+
+// MigrateResponse defines the return value on a successful handle
+type MigrateResponse struct {
+	// Messages comes directly from the contract and is it's request for action
+	Messages []CosmosMsg `json:"messages"`
+	// base64-encoded bytes to return as ABCI.Data field
+	Data []byte `json:"data"`
 	// log message to return over abci interface
 	Log []LogAttribute `json:"log"`
 }
@@ -83,10 +127,10 @@ type LogAttribute struct {
 // CosmosMsg is an rust enum and only (exactly) one of the fields should be set
 // Should we do a cleaner approach in Go? (type/data?)
 type CosmosMsg struct {
-	Bank    BankMsg    `json:"bank"`
-	Custom  RawMessage `json:"custom"`
-	Staking StakingMsg `json:"staking"`
-	Wasm    WasmMsg    `json:"wasm"`
+	Bank    BankMsg    `json:"bank,omitempty"`
+	Custom  RawMessage `json:"custom,omitempty"`
+	Staking StakingMsg `json:"staking,omitempty"`
+	Wasm    WasmMsg    `json:"wasm,omitempty"`
 }
 
 type BankMsg struct {

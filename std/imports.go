@@ -21,6 +21,7 @@ extern int display_message(void* str);
 import "C"
 
 import (
+	"encoding/base64"
 	"errors"
 	"github.com/cosmwasm/cosmwasm-go/std/ezjson"
 	"unsafe"
@@ -49,9 +50,12 @@ const (
 // log print
 
 func DisplayMessage(data []byte) int {
+	//cause that cosmwasm-vm does not support display_message, we denied it in publish version for now.
+	//if you want using display_message to build and test your contract, try using cosmwasm-simulate tool to load and test
+	//download it from :https://github.com/CosmWasm/cosmwasm-simulate
+
 	msg := C.malloc(C.ulong(len(data)))
 	regionMsg := TranslateToRegion(data, uintptr(msg))
-
 	C.display_message(unsafe.Pointer(regionMsg))
 	C.free(unsafe.Pointer(msg))
 	return 0
@@ -261,29 +265,18 @@ func (querier ExternalQuerier) RawQuery(request []byte) ([]byte, error) {
 }
 
 // ------- query detail types ---------
-type QueryResponse struct {
-	Ok  []byte   `json:"Ok,omitempty"`
-	Err StdError `json:"Err,omitempty"`
+type QueryResponseOk struct {
+	Ok string `json:"Ok,omitempty,rust_option"`
 }
 
 // This is a 2-level result
 type QuerierResult struct {
-	Ok  QueryResponse `json:"Ok,omitempty"`
-	Err SystemError   `json:"Err,omitempty"`
+	Ok QueryResponseOk `json:"Ok,omitempty"`
 }
 
-func ToQuerierResult(response []byte, err error) QuerierResult {
-	if err == nil {
-		return QuerierResult{
-			Ok: QueryResponse{
-				Ok: response,
-			},
-		}
-	}
-	syserr := ToSystemError(err)
-	return QuerierResult{
-		Err: syserr,
-	}
+func BuildQueryResponse(msg string) *QueryResponseOk {
+	encoding := base64.StdEncoding.EncodeToString([]byte(msg))
+	return &QueryResponseOk{Ok: encoding}
 }
 
 // QueryRequest is an rust enum and only (exactly) one of the fields should be set

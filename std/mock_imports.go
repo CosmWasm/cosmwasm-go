@@ -3,6 +3,7 @@
 package std
 
 import (
+	"encoding/base64"
 	"errors"
 	"fmt"
 	dbm "github.com/tendermint/tm-db"
@@ -133,6 +134,22 @@ func (api ExternalApi) HumanAddress(canonical CanonicalAddr) (string, error) {
 }
 
 // ====== Querier ======
+
+// ------- query detail types ---------
+type QueryResponseOk struct {
+	Ok string `json:"Ok,omitempty,rust_option"`
+}
+
+// This is a 2-level result
+type QuerierResult struct {
+	Ok QueryResponseOk `json:"Ok,omitempty"`
+}
+
+func BuildQueryResponse(msg string) *QueryResponseOk {
+	encoding := base64.StdEncoding.EncodeToString([]byte(msg))
+	return &QueryResponseOk{Ok: encoding}
+}
+
 type Querier interface {
 	RawQuery(request []byte) ([]byte, error)
 }
