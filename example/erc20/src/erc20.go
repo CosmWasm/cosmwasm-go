@@ -207,7 +207,7 @@ func (i implErc20) Transfer(toAddr []byte, value uint64) bool {
 
 func (i implErc20) TransferFrom(from, to []byte, value uint64) bool {
 	approval := i.getApproval(from)
-	if approval == 0 {
+	if approval == 0 || value > approval {
 		return false
 	}
 	return i.transfer(from, to, value)
