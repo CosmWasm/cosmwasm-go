@@ -27,6 +27,6 @@ func Invoke(deps *std.Extern, _env std.Env, msg []byte) (*std.HandleResultOk, *s
 	return nil, std.GenerateError(std.GenericError, "unimplemented", "")
 }
 
-func Query(deps *std.Extern, msg []byte) (*std.CosmosResponseOk, *std.CosmosResponseError) {
+func Query(deps *std.Extern, msg []byte) (*std.QueryResponseOk, *std.CosmosResponseError) {
 	return nil, std.GenerateError(std.GenericError, "unimplemented", "")
 }
