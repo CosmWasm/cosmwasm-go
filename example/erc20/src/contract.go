@@ -20,9 +20,13 @@ func Init(deps *std.Extern, env std.Env, msg []byte) (*std.InitResultOk, *std.Co
 		TotalSupplyOf: initMsg.TotalSupply,
 	}, deps, &env)
 
-	ownerShip.Owned(env.Message.Sender)
+	owner, err := deps.EApi.CanonicalAddress(env.Message.Sender)
+	if err != nil {
+		return nil, std.GenerateError(std.GenericError, "Invalid Sender: "+err.Error(), "")
+	}
+	ownerShip.Owned(owner)
 
-	erc20Protocol.Assign(env.Message.Sender, 10000)
+	erc20Protocol.Assign(owner, 10000)
 	//saving state and owner info
 	erc20Protocol.SaveState()
 	ownerShip.SaveOwner()

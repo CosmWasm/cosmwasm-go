@@ -46,10 +46,10 @@ func handleInvokeMessage(deps *std.Extern, env std.Env, msg []byte) (*std.Handle
 		return handleTransferFrom(i.(TransferFrom), erc20)
 	case TransferOwner:
 		ownerShip.LoadOwner()
-		return handleTransferOwner(&env, i.(TransferOwner), ownerShip)
+		return handleTransferOwner(deps, &env, i.(TransferOwner), ownerShip)
 	case AcceptTransferredOwner:
 		ownerShip.LoadOwner()
-		return handleTransferOwnerAccepted(&env, i.(AcceptTransferredOwner), ownerShip)
+		return handleTransferOwnerAccepted(deps, &env, i.(AcceptTransferredOwner), ownerShip)
 	default:
 		return nil, std.GenerateError(std.GenericError, "Unsupported invoke type", "")
 	}
@@ -76,16 +76,34 @@ func handleTransferFrom(tf TransferFrom, erc20 Erc20) (*std.HandleResultOk, *std
 	return nil, std.GenerateError(std.GenericError, "TransferFrom failed", "")
 }
 
-func handleTransferOwner(env *std.Env, to TransferOwner, owner Owner) (*std.HandleResultOk, *std.CosmosResponseError) {
-	owner.TransferOwnership(env.Message.Sender, []byte(to.NewOwner))
+func handleTransferOwner(deps *std.Extern, env *std.Env, to TransferOwner, owner Owner) (*std.HandleResultOk, *std.CosmosResponseError) {
+	sender, err := deps.EApi.CanonicalAddress(env.Message.Sender)
+	if err != nil {
+		return nil, std.GenerateError(std.GenericError, "Invalid Sender: "+err.Error(), "")
+	}
+	newOwner, err := deps.EApi.CanonicalAddress(to.NewOwner)
+	if err != nil {
+		return nil, std.GenerateError(std.GenericError, "Invalid new owner: "+err.Error(), "")
+	}
+
+	owner.TransferOwnership(sender, newOwner)
 	if owner.SaveOwner() {
 		return std.HandleResultOkDefault(), nil
 	}
 	return nil, std.GenerateError(std.GenericError, "Transfer ownership execute success", "")
 }
 
-func handleTransferOwnerAccepted(env *std.Env, atf AcceptTransferredOwner, owner Owner) (*std.HandleResultOk, *std.CosmosResponseError) {
-	owner.AcceptTransfer(env.Message.Sender, []byte(atf.AcceptedAddr))
+func handleTransferOwnerAccepted(deps *std.Extern, env *std.Env, atf AcceptTransferredOwner, owner Owner) (*std.HandleResultOk, *std.CosmosResponseError) {
+	sender, err := deps.EApi.CanonicalAddress(env.Message.Sender)
+	if err != nil {
+		return nil, std.GenerateError(std.GenericError, "Invalid Sender: "+err.Error(), "")
+	}
+	accepted, err := deps.EApi.CanonicalAddress(atf.AcceptedAddr)
+	if err != nil {
+		return nil, std.GenerateError(std.GenericError, "Invalid accetped owner: "+err.Error(), "")
+	}
+
+	owner.AcceptTransfer(sender, accepted)
 	if owner.SaveOwner() {
 		return std.HandleResultOkDefault(), nil
 	}

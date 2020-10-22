@@ -202,7 +202,13 @@ func (i implErc20) transfer(from, to []byte, value uint64) bool {
 }
 
 func (i implErc20) Transfer(toAddr []byte, value uint64) bool {
-	return i.transfer(i.env.Message.Sender, toAddr, value)
+	sender, err := i.apis.EApi.CanonicalAddress(i.env.Message.Sender)
+	if err != nil {
+		// TODO: use an error
+		//return nil, std.GenerateError(std.GenericError, "Invalid Sender: " + err.Error(), "")
+		panic("invalid sender - expected valid bech32")
+	}
+	return i.transfer(sender, toAddr, value)
 }
 
 func (i implErc20) TransferFrom(from, to []byte, value uint64) bool {
