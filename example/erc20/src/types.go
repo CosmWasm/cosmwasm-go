@@ -14,8 +14,8 @@ type InitMsg struct {
 
 // returns an error if invalid
 func (i InitMsg) Validate() *std.CosmosResponseError {
-	if len(i.Name) < 4 {
-		return std.GenerateError(std.GenericError, "Name must be at least 4 characters", "")
+	if len(i.Name) < 2 {
+		return std.GenerateError(std.GenericError, "Name must be at least 2 characters", "")
 	}
 	if len(i.Symbol) < 2 || len(i.Symbol) > 6 {
 		return std.GenerateError(std.GenericError, "Symbol must be 2-6 characters", "")
