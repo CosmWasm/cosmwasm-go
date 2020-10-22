@@ -1,7 +1,5 @@
 package main
 
-import "C"
-
 import (
 	"github.com/cosmwasm/cosmwasm-go/std"
 	"github.com/cosmwasm/cosmwasm-go/example/tester/src"

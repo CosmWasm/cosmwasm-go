@@ -4,6 +4,9 @@ DOCKER_IMAGE=tinygo/tinygo:0.13.1
 DOCKER_CUSTOM=cosmwasm/tinygo:latest
 WASM_FILE=contract.wasm
 
+PACKAGE_NAME=erc20
+GO_MOUNTS=-v $(shell pwd):/code -v $(shell pwd):/go/src/github.com/cosmwasm/cosmwasm-go/example/$(PACKAGE_NAME) -v $(shell pwd)/../../std:/go/src/github.com/cosmwasm/cosmwasm-go/std -v $(GOPATH)/src/github.com/cosmwasm/jsonparser:/go/src/github.com/cosmwasm/jsonparser
+
 all: build-docker public
 	@ ls -l main.wasm
 
@@ -18,13 +21,11 @@ build-docker:
 build-custom:
 	docker run --rm -v $(shell pwd):/code $(DOCKER_CUSTOM) tinygo build -o /code/main.wasm -target wasm /code/main.go
 
-# build-cosmwasm uses our custom build, and custom flags
+# build-cosmwasm uses -no-debug flag for smaller executables.
+# also, tinygo build currently error without that flag due to unresolvable imports
 build-cosmwasm:
-	docker run --rm -v $(shell pwd):/code -v $(shell pwd):/go/src/github.com/cosmwasm/cosmwasm-go/example -v $(GOPATH)/src/github.com/cosmwasm/cosmwasm-go/std:/go/src/github.com/cosmwasm/cosmwasm-go/std -v $(GOPATH)/src/github.com/cosmwasm/jsonparser:/go/src/github.com/cosmwasm/jsonparser $(DOCKER_CUSTOM) tinygo build -tags cosmwasm -o /code/contract.wasm -target wasm /code/main.go
-
-# build-cosmwasm-trim is like build-cosmwasm but trims out debug code for small byte size
-build-cosmwasm-trim:
-	docker run --rm -v $(shell pwd):/code -v $(shell pwd):/go/src/github.com/cosmwasm/cosmwasm-go/example/erc20 -v $(GOPATH)/src/github.com/cosmwasm/cosmwasm-go/std:/go/src/github.com/cosmwasm/cosmwasm-go/std -v $(GOPATH)/src/github.com/cosmwasm/jsonparser:/go/src/github.com/cosmwasm/jsonparser  $(DOCKER_CUSTOM) tinygo build -tags cosmwasm -no-debug -o /code/contract.wasm -target wasm /code/main.go
+    # TODO: automatically download jsonparser dependency
+	docker run --rm $(GO_MOUNTS) $(DOCKER_CUSTOM) tinygo build -tags cosmwasm -no-debug -o /code/contract.wasm -target wasm /code/main.go
 
 view:
 	@ wasm-nm $(WASM_FILE)
