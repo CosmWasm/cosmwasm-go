@@ -1,11 +1,29 @@
 package src
 
+import (
+	"github.com/cosmwasm/cosmwasm-go/std"
+)
+
 //all message type define here
 type InitMsg struct {
 	Name        string `json:"name"`
 	Symbol      string `json:"symbol"`
 	Decimal     uint64 `json:"decimal"`
 	TotalSupply uint64 `json:"total_supply"`
+}
+
+// returns an error if invalid
+func (i InitMsg) Validate() *std.CosmosResponseError {
+	if len(i.Name) < 4 {
+		return std.GenerateError(std.GenericError, "Name must be at least 4 characters", "")
+	}
+	if len(i.Symbol) < 2 || len(i.Symbol) > 6 {
+		return std.GenerateError(std.GenericError, "Symbol must be 2-6 characters", "")
+	}
+	if i.TotalSupply == 0 {
+		return std.GenerateError(std.GenericError, "Total Supply must be greater than 0", "")
+	}
+	return nil
 }
 
 type Transfer struct {

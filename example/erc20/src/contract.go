@@ -12,6 +12,9 @@ func Init(deps *std.Extern, env std.Env, msg []byte) (*std.InitResultOk, *std.Co
 	if e != nil {
 		return nil, std.GenerateError(std.GenericError, "Unmarshal initMsg failed "+e.Error(), "")
 	}
+	if err := initMsg.Validate(); err != nil {
+		return nil, err
+	}
 
 	erc20Protocol := NewErc20Protocol(State{
 		NameOfToken:   initMsg.Name,
