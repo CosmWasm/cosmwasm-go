@@ -27,11 +27,11 @@ tester:
 	docker run --rm $(DOCKER_FLAGS) $(DOCKER_CUSTOM) tinygo build $(TINYGO_FLAGS) -o /code/tester.wasm /code/example/tester/main.go
 
 view:
-	@ wasm-nm *.wasm
+	@ wasm-nm erc20.wasm
 	@ ls -l *.wasm
 
 imports:
-	wasm-nm -i *.wasm
+	wasm-nm -i erc20.wasm
 
 exports:
-	wasm-nm -e *.wasm
+	wasm-nm -e erc20.wasm

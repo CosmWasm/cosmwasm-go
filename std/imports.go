@@ -61,8 +61,6 @@ func DisplayMessage(data []byte) int {
 
 // ====== DB ======
 
-type Order uint32
-
 var (
 	_ ReadonlyStorage = (*ExternalStorage)(nil)
 	_ Storage         = (*ExternalStorage)(nil)
