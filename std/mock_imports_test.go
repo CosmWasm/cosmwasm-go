@@ -5,8 +5,8 @@ import (
 	"testing"
 )
 
-func TestExternalStorage(t *testing.T) {
-	var es ExternalStorage
+func TestMockStorage(t *testing.T) {
+	es := NewMockStorage()
 	key1, key2, key3, key4, key5 := []byte("aaaaa"), []byte("bbbbb"), []byte("ccccc"), []byte("ddddd"), []byte("eeeee")
 	value1, value2, value3, value4, value5 := []byte("11111"), []byte("22222"), []byte("33333"), []byte("44444"), []byte("55555")
 	inexistentKey := []byte("inexistent")
@@ -59,8 +59,8 @@ func assertKV(t *testing.T, iter Iterator, key, value []byte, isEnd bool) {
 	require.Equal(t, curValue, value)
 }
 
-func TestExternalApi_CanonicalAddress(t *testing.T) {
-	var ea ExternalApi
+func TestMockApi_CanonicalAddress(t *testing.T) {
+	ea := MockApi{}
 	humanAddr := "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 	longHumanAddr := humanAddr + "a"
 	expectedCanonAddr := CanonicalAddr(humanAddr)
@@ -74,8 +74,8 @@ func TestExternalApi_CanonicalAddress(t *testing.T) {
 	require.Equal(t, expectedCanonAddr, canonAddr)
 }
 
-func TestExternalApi_HumanAddress(t *testing.T) {
-	var ea ExternalApi
+func TestMockApi_HumanAddress(t *testing.T) {
+	ea := MockApi{}
 	expectedHumanAddr := "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 	expectedCanonAddr := CanonicalAddr(expectedHumanAddr)
 

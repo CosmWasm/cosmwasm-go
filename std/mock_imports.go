@@ -3,39 +3,34 @@
 package std
 
 import (
-	"encoding/base64"
 	"errors"
 	"fmt"
 	dbm "github.com/tendermint/tm-db"
 )
 
-// ====== DB mock ======
-type Order uint32
-
-const (
-	Ascending  Order = 1
-	Descending Order = 2
-)
-
-type Iterator interface {
-	Next() (key, value []byte, err error)
+func MockExten() *Extern {
+	return &Extern{
+		EStorage: NewMockStorage(),
+		EApi:     MockApi{},
+		EQuerier: MockQuerier{},
+	}
 }
 
 var (
-	_ Iterator = (*ExternalIterator)(nil)
+	_ Iterator = (*MockIterator)(nil)
 )
 
-type ExternalIterator struct {
+type MockIterator struct {
 	Iter dbm.Iterator
 }
 
-func newExternalIterator(iter dbm.Iterator) ExternalIterator {
-	return ExternalIterator{
+func newMockIterator(iter dbm.Iterator) MockIterator {
+	return MockIterator{
 		Iter: iter,
 	}
 }
 
-func (iter ExternalIterator) Next() (key, value []byte, err error) {
+func (iter MockIterator) Next() (key, value []byte, err error) {
 	if !iter.Iter.Valid() {
 		iter.Iter.Close()
 		return key, value, errors.New("the end of iterator")
@@ -45,71 +40,60 @@ func (iter ExternalIterator) Next() (key, value []byte, err error) {
 	return
 }
 
-var storage = dbm.NewMemDB()
-
-type ReadonlyStorage interface {
-	Get(key []byte) (value []byte, err error)
-	Range(start, end []byte, order Order) (Iterator, error)
+type MockStorage struct {
+	storage dbm.DB
 }
 
-type Storage interface {
-	ReadonlyStorage
-
-	Set(key, value []byte) error
-	Remove(key []byte) error
+func NewMockStorage() *MockStorage {
+	return &MockStorage{
+		storage: dbm.NewMemDB(),
+	}
 }
-
-type ExternalStorage struct{}
 
 var (
-	_ ReadonlyStorage = (*ExternalStorage)(nil)
-	_ Storage         = (*ExternalStorage)(nil)
+	_ ReadonlyStorage = (*MockStorage)(nil)
+	_ Storage         = (*MockStorage)(nil)
 )
 
-func (es ExternalStorage) Get(key []byte) ([]byte, error) {
-	return storage.Get(key)
+func (s *MockStorage) Get(key []byte) ([]byte, error) {
+	return s.storage.Get(key)
 }
 
-func (es ExternalStorage) Range(start, end []byte, order Order) (iter Iterator, err error) {
+func (s *MockStorage) Range(start, end []byte, order Order) (iter Iterator, err error) {
 	var iterator dbm.Iterator
 	switch order {
 	case Ascending:
-		iterator, err = storage.Iterator(start, end)
-		iter = newExternalIterator(iterator)
+		iterator, err = s.storage.Iterator(start, end)
+		iter = newMockIterator(iterator)
 	case Descending:
-		iterator, err = storage.ReverseIterator(start, end)
-		iter = newExternalIterator(iterator)
+		iterator, err = s.storage.ReverseIterator(start, end)
+		iter = newMockIterator(iterator)
 	default:
 		err = errors.New("failed. unexpected Order")
 	}
 	return
 }
 
-func (es ExternalStorage) Set(key, value []byte) error {
-	return storage.Set(key, value)
+func (s *MockStorage) Set(key, value []byte) error {
+	return s.storage.Set(key, value)
 }
 
-func (es ExternalStorage) Remove(key []byte) error {
-	return storage.Delete(key)
+func (s *MockStorage) Remove(key []byte) error {
+	return s.storage.Delete(key)
 }
 
 type CanonicalAddr []byte
 
 const canonicalLength = 32
 
-type Api interface {
-	CanonicalAddress(human string) (CanonicalAddr, error)
-	HumanAddress(canonical CanonicalAddr) (string, error)
-}
-
 // ensure Api interface compliance at compile time
 var (
-	_ Api = (*ExternalApi)(nil)
+	_ Api = (*MockApi)(nil)
 )
 
-type ExternalApi struct{}
+type MockApi struct{}
 
-func (api ExternalApi) CanonicalAddress(human string) (CanonicalAddr, error) {
+func (api MockApi) CanonicalAddress(human string) (CanonicalAddr, error) {
 	if len(human) > canonicalLength {
 		return nil, errors.New("failed. human encoding too long")
 	}
@@ -117,7 +101,7 @@ func (api ExternalApi) CanonicalAddress(human string) (CanonicalAddr, error) {
 	return []byte(human), nil
 }
 
-func (api ExternalApi) HumanAddress(canonical CanonicalAddr) (string, error) {
+func (api MockApi) HumanAddress(canonical CanonicalAddr) (string, error) {
 	if len(canonical) != canonicalLength {
 		return "", errors.New("failed. wrong canonical address length")
 	}
@@ -135,34 +119,14 @@ func (api ExternalApi) HumanAddress(canonical CanonicalAddr) (string, error) {
 
 // ====== Querier ======
 
-// ------- query detail types ---------
-type QueryResponseOk struct {
-	Ok string `json:"Ok,omitempty,rust_option"`
-}
-
-// This is a 2-level result
-type QuerierResult struct {
-	Ok QueryResponseOk `json:"Ok,omitempty"`
-}
-
-func BuildQueryResponse(msg string) *QueryResponseOk {
-	encoding := base64.StdEncoding.EncodeToString([]byte(msg))
-	return &QueryResponseOk{Ok: encoding}
-}
-
-type Querier interface {
-	RawQuery(request []byte) ([]byte, error)
-}
-
 // ensure Api interface compliance at compile time
 var (
-	_ Querier = (*ExternalQuerier)(nil)
+	_ Querier = (*MockQuerier)(nil)
 )
 
-type ExternalQuerier struct{}
+type MockQuerier struct{}
 
-func (querier ExternalQuerier) RawQuery(request []byte) ([]byte, error) {
-
+func (querier MockQuerier) RawQuery(request []byte) ([]byte, error) {
 	return []byte(""), nil
 }
 
