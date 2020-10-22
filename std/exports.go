@@ -1,3 +1,5 @@
+// +build cosmwasm
+
 package std
 
 import (
@@ -11,13 +13,6 @@ func Build_ErrResponse(msg string) string {
 
 func StdErrResult(msg string) unsafe.Pointer {
 	return Package_message([]byte(`{"Err":` + Build_ErrResponse(msg) + `}`))
-}
-
-// =========== Extern --> context =======
-type Extern struct {
-	EStorage Storage
-	EApi     Api
-	EQuerier Querier
 }
 
 func (deps Extern) change_querier(transform func(Querier) Querier) Extern {
@@ -129,8 +124,8 @@ func _do_query(handlerFn func(deps *Extern, msg []byte) (*QueryResponseOk, *Cosm
 	return handlerFn(&deps, msgData)
 }
 
-//export cosmwasm_vm_version_2
-func cosmwasm_vm_version_2() {}
+//export cosmwasm_vm_version_3
+func cosmwasm_vm_version_3() {}
 
 //export allocate
 func allocate(size uint32) unsafe.Pointer {
