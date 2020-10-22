@@ -109,7 +109,7 @@ func (o Ownership) SaveOwner() bool {
 func (o *Ownership) LoadOwner() bool {
 	//unhandled error
 	o.owner, _ = o.apis.EStorage.Get([]byte("owner"))
-	o.newOwner, _ = o.apis.EStorage.Get([]byte("owner"))
+	o.newOwner, _ = o.apis.EStorage.Get([]byte("newOwner"))
 
 	return true
 }
