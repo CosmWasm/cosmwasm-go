@@ -1,9 +1,22 @@
-.PHONY: view imports exports erc20 tester examples
+.PHONY: view imports exports erc20 tester examples test test-contracts test-std
 
 DOCKER_CUSTOM=cosmwasm/tinygo:0.14.1
 
 DOCKER_FLAGS=-w /code -v $(shell pwd):/code
 TINYGO_FLAGS=-tags cosmwasm -no-debug -target wasm
+
+# Set on the command line for verbose output, eg.
+# TEST_FLAG=-v make test
+TEST_FLAG=-v -count=1
+
+test: test-std test-contracts
+
+test-std:
+	go test $(TEST_FLAG) ./std/...
+
+test-contracts:
+	go test $(TEST_FLAG) ./example/tester/src
+	go test $(TEST_FLAG) ./example/erc20/src
 
 examples: erc20 tester
 
