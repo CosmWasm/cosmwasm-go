@@ -1,6 +1,6 @@
 module github.com/cosmwasm/cosmwasm-go
 
-go 1.12
+go 1.14
 
 require (
 	github.com/cosmwasm/jsonparser v1.0.2

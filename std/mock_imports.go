@@ -8,11 +8,30 @@ import (
 	dbm "github.com/tendermint/tm-db"
 )
 
-func MockExten() *Extern {
+func MockExtern() *Extern {
 	return &Extern{
 		EStorage: NewMockStorage(),
 		EApi:     MockApi{},
 		EQuerier: MockQuerier{},
+	}
+}
+
+const MOCK_CONTRACT_ADDR = "test-contract"
+
+func MockEnv(sender string, funds []Coin) Env {
+	return Env{
+		Block: BlockInfo{
+			Height:  12_345,
+			Time:    1_571_797_419,
+			ChainID: "cosmos-testnet-14002",
+		},
+		Message: MessageInfo{
+			Sender:    sender,
+			SentFunds: funds,
+		},
+		Contract: ContractInfo{
+			Address: MOCK_CONTRACT_ADDR,
+		},
 	}
 }
 
