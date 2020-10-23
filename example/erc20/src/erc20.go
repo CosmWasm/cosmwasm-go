@@ -2,6 +2,7 @@ package src
 
 import (
 	"bytes"
+
 	"github.com/cosmwasm/cosmwasm-go/std"
 	"github.com/cosmwasm/cosmwasm-go/std/ezjson"
 	"github.com/cosmwasm/cosmwasm-go/std/safe_math"
@@ -70,7 +71,7 @@ func (o Ownership) GetNewOwner() []byte {
 	return o.newOwner
 }
 
-func (o Ownership) TransferOwnership(sender, newer []byte) {
+func (o *Ownership) TransferOwnership(sender, newer []byte) {
 	if !o.OnlyOwner(sender) {
 		//from must an owner of this contract
 		return
@@ -85,7 +86,7 @@ func (o Ownership) OnlyOwner(addr []byte) bool {
 func (o Ownership) OwnershipTransferred(sender, to []byte) {
 }
 
-func (o Ownership) AcceptTransfer(sender, to []byte) {
+func (o *Ownership) AcceptTransfer(sender, to []byte) {
 	if !bytes.Equal(sender, o.newOwner) || !bytes.Equal(to, o.newOwner) {
 		return
 	}
