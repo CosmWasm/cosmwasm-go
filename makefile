@@ -37,9 +37,19 @@ rewrite:
 	docker run --rm $(DOCKER_FLAGS) $(EMSCRIPTEN) wat2wasm /code/minimal-rewrite.wat
 
 # TODO: replace with local test - this requires proper local keys
-upload:
+upload-minimal:
 #	coral tx wasm store minimal-rewrite.wasm --source https://foo.bar/123 --from validator --gas 1000000 --gas-prices 0.025ushell -o json -y -b block | jq .raw_log
 	coral q tx -o json $(shell coral tx wasm store minimal-rewrite.wasm --source https://foo.bar/123 --from validator --gas 1000000 --gas-prices 0.025ushell -o json -y | jq -r .txhash; sleep 12) | jq .raw_log
+
+# this is ugly but succeeds in uploading our code!!
+rewrite-erc20:
+	docker run --rm $(DOCKER_FLAGS) $(EMSCRIPTEN) wasm2wat /code/erc20.wasm > erc20.wat
+	# this just replaces all the floating point ops with unreachable. It still leaves them in the args and local variables
+	cat erc20.wat | sed -E 's/^(\s*)f[[:digit:]]{2}\.[^()]+/\1unreachable/' | sed -E 's/^(\s*)i[[:digit:]]{2}\.trunc_[^()]+/\1unreachable/' | sed -E 's/^(\s*)i[[:digit:]]{2}\.reinterpret_[^()]+/\1unreachable/' > erc20-rewrite.wat
+	docker run --rm $(DOCKER_FLAGS) $(EMSCRIPTEN) wat2wasm /code/erc20-rewrite.wat
+
+upload-erc20:
+	coral q tx -o json $(shell coral tx wasm store erc20-rewrite.wasm --source https://foo.bar/erc20 --from validator --gas 1000000 --gas-prices 0.025ushell -o json -y | jq -r .txhash; sleep 12) | jq .raw_log
 
 view:
 	@ wasm-nm erc20.wasm
