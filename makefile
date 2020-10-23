@@ -18,13 +18,16 @@ test-contracts:
 	go test $(TEST_FLAG) ./example/tester/src
 	go test $(TEST_FLAG) ./example/erc20/src
 
-examples: erc20 tester
+examples: erc20 tester minimal
 
 erc20:
 	docker run --rm $(DOCKER_FLAGS) $(DOCKER_CUSTOM) tinygo build $(TINYGO_FLAGS) -o /code/erc20.wasm /code/example/erc20/main.go
 
 tester:
 	docker run --rm $(DOCKER_FLAGS) $(DOCKER_CUSTOM) tinygo build $(TINYGO_FLAGS) -o /code/tester.wasm /code/example/tester/main.go
+
+minimal:
+	docker run --rm $(DOCKER_FLAGS) $(DOCKER_CUSTOM) tinygo build $(TINYGO_FLAGS) -o /code/minimal.wasm /code/example/minimal/main.go
 
 view:
 	@ wasm-nm erc20.wasm

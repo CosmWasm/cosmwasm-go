@@ -4,3 +4,4 @@ example/.idea/*
 .DS_Store
 
 *.wasm
+*.wat
