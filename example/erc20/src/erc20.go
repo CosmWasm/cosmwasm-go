@@ -2,6 +2,7 @@ package src
 
 import (
 	"bytes"
+
 	"github.com/cosmwasm/cosmwasm-go/std"
 	"github.com/cosmwasm/cosmwasm-go/std/ezjson"
 	"github.com/cosmwasm/cosmwasm-go/std/safe_math"
@@ -70,7 +71,7 @@ func (o Ownership) GetNewOwner() []byte {
 	return o.newOwner
 }
 
-func (o Ownership) TransferOwnership(sender, newer []byte) {
+func (o *Ownership) TransferOwnership(sender, newer []byte) {
 	if !o.OnlyOwner(sender) {
 		//from must an owner of this contract
 		return
@@ -85,7 +86,7 @@ func (o Ownership) OnlyOwner(addr []byte) bool {
 func (o Ownership) OwnershipTransferred(sender, to []byte) {
 }
 
-func (o Ownership) AcceptTransfer(sender, to []byte) {
+func (o *Ownership) AcceptTransfer(sender, to []byte) {
 	if !bytes.Equal(sender, o.newOwner) || !bytes.Equal(to, o.newOwner) {
 		return
 	}
@@ -109,7 +110,7 @@ func (o Ownership) SaveOwner() bool {
 func (o *Ownership) LoadOwner() bool {
 	//unhandled error
 	o.owner, _ = o.apis.EStorage.Get([]byte("owner"))
-	o.newOwner, _ = o.apis.EStorage.Get([]byte("owner"))
+	o.newOwner, _ = o.apis.EStorage.Get([]byte("newOwner"))
 
 	return true
 }
@@ -153,15 +154,15 @@ func (i implErc20) TotalSupply() uint64 {
 
 func (i implErc20) BalanceOf(addr []byte) uint64 {
 	v, e := i.apis.EStorage.Get(amountPrefix(addr))
-	if e != nil {
+	if e != nil || len(v) == 0 {
 		return 0
 	}
 	return std.BytesToUint64(v)
 }
 
 func (i implErc20) getApproval(addr []byte) uint64 {
-	v, ea := i.apis.EStorage.Get(approvalPrefix(addr))
-	if ea != nil {
+	v, e := i.apis.EStorage.Get(approvalPrefix(addr))
+	if e != nil || len(v) == 0 {
 		return 0
 	}
 	return std.BytesToUint64(v)
@@ -202,7 +203,13 @@ func (i implErc20) transfer(from, to []byte, value uint64) bool {
 }
 
 func (i implErc20) Transfer(toAddr []byte, value uint64) bool {
-	return i.transfer(i.env.Message.Sender, toAddr, value)
+	sender, err := i.apis.EApi.CanonicalAddress(i.env.Message.Sender)
+	if err != nil {
+		// TODO: use an error
+		//return nil, std.GenerateError(std.GenericError, "Invalid Sender: " + err.Error(), "")
+		panic("invalid sender - expected valid bech32")
+	}
+	return i.transfer(sender, toAddr, value)
 }
 
 func (i implErc20) TransferFrom(from, to []byte, value uint64) bool {
