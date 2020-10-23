@@ -1,6 +1,7 @@
 package src
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/cosmwasm/cosmwasm-go/std"
@@ -92,4 +93,31 @@ func TestOwner(t *testing.T) {
 	// data is available
 	require.Equal(t, second, loaded.GetOwner())
 	require.Equal(t, first, loaded.GetNewOwner())
+}
+
+// This runs the same path we do in cosmwasm-simulate
+func TestWorkflow(t *testing.T) {
+	deps := std.MockExtern()
+	env := std.MockEnv("original_owner_addr", nil)
+
+	initMsg := []byte(`{"name":"OKB","symbol":"OKB","decimal":10,"total_supply":170000}`)
+	ires, err := Init(deps, env, initMsg)
+	require.Nil(t, err)
+	require.NotNil(t, ires)
+
+	handleMsg := []byte(`{"Transfer":{"to":"1234567","value": 2000}}`)
+	hres, err := Invoke(deps, env, handleMsg)
+	require.Nil(t, err)
+	require.NotNil(t, hres)
+
+	queryMsg := []byte(`{"balance":{"address":"1234567"}}`)
+	qres, err := Query(deps, queryMsg)
+	require.Nil(t, err)
+	require.NotEmpty(t, qres.Ok)
+
+	// let us parse the query??
+	var bal BalanceResponse
+	jerr := json.Unmarshal(qres.Ok, &bal)
+	require.NoError(t, jerr)
+	require.Equal(t, uint64(2000), bal.Value)
 }
