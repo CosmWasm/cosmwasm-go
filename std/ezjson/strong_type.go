@@ -467,16 +467,6 @@ func Generate(name, tag string, in interface{}, isDecoding bool) BaseOpt {
 			}
 		}
 		return &unsupportedOpt{}
-	case reflect.Float32, reflect.Float64:
-		return &unsupportedOpt{
-			BaseName: BaseName{
-				realName:    name,
-				tag:         tag,
-				omitempty:   false,
-				rust_option: false,
-			},
-			realTypeName: tinygo_typeof[kind],
-		}
 	default:
 		return &unsupportedOpt{
 			BaseName: BaseName{
