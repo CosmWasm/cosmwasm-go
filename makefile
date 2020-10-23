@@ -1,6 +1,7 @@
 .PHONY: view imports exports erc20 tester examples test test-contracts test-std
 
 DOCKER_CUSTOM=cosmwasm/tinygo:0.14.1
+EMSCRIPTEN=trzeci/emscripten:1.39.8-fastcomp
 
 DOCKER_FLAGS=-w /code -v $(shell pwd):/code
 TINYGO_FLAGS=-tags cosmwasm -no-debug -target wasm
@@ -28,6 +29,17 @@ tester:
 
 minimal:
 	docker run --rm $(DOCKER_FLAGS) $(DOCKER_CUSTOM) tinygo build $(TINYGO_FLAGS) -o /code/minimal.wasm /code/example/minimal/main.go
+
+rewrite:
+	docker run --rm $(DOCKER_FLAGS) $(EMSCRIPTEN) wasm2wat /code/minimal.wasm > minimal.wat
+	# this just replaces all the floating point ops with unreachable. It still leaves them in the args and local variables
+	cat minimal.wat | sed -E 's/^(\s*)f64\.[^()]+/\1unreachable/' | sed -E 's/^(\s*)f32\.[^()]+/\1unreachable/' > minimal-rewrite.wat
+	docker run --rm $(DOCKER_FLAGS) $(EMSCRIPTEN) wat2wasm /code/minimal-rewrite.wat
+
+# TODO: replace with local test - this requires proper local keys
+upload:
+#	coral tx wasm store minimal-rewrite.wasm --source https://foo.bar/123 --from validator --gas 1000000 --gas-prices 0.025ushell -o json -y -b block | jq .raw_log
+	coral q tx -o json $(shell coral tx wasm store minimal-rewrite.wasm --source https://foo.bar/123 --from validator --gas 1000000 --gas-prices 0.025ushell -o json -y | jq -r .txhash; sleep 12) | jq .raw_log
 
 view:
 	@ wasm-nm erc20.wasm
