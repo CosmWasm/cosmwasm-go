@@ -154,15 +154,15 @@ func (i implErc20) TotalSupply() uint64 {
 
 func (i implErc20) BalanceOf(addr []byte) uint64 {
 	v, e := i.apis.EStorage.Get(amountPrefix(addr))
-	if e != nil {
+	if e != nil || len(v) == 0 {
 		return 0
 	}
 	return std.BytesToUint64(v)
 }
 
 func (i implErc20) getApproval(addr []byte) uint64 {
-	v, ea := i.apis.EStorage.Get(approvalPrefix(addr))
-	if ea != nil {
+	v, e := i.apis.EStorage.Get(approvalPrefix(addr))
+	if e != nil || len(v) == 0 {
 		return 0
 	}
 	return std.BytesToUint64(v)

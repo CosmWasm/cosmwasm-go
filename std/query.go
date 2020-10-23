@@ -1,14 +1,12 @@
 package std
 
 import (
-	"encoding/base64"
-
 	"github.com/cosmwasm/cosmwasm-go/std/ezjson"
 )
 
 // ------- query detail types ---------
 type QueryResponseOk struct {
-	Ok string `json:"Ok,omitempty,rust_option"`
+	Ok []byte `json:"Ok,omitempty,rust_option"`
 }
 
 // This is a 2-level result
@@ -17,8 +15,7 @@ type QuerierResult struct {
 }
 
 func BuildQueryResponse(msg string) *QueryResponseOk {
-	encoding := base64.StdEncoding.EncodeToString([]byte(msg))
-	return &QueryResponseOk{Ok: encoding}
+	return &QueryResponseOk{Ok: []byte(msg)}
 }
 
 // QueryRequest is an rust enum and only (exactly) one of the fields should be set
