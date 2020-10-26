@@ -5,7 +5,6 @@ package ezjson
 
 import (
 	"errors"
-	"fmt"
 	"github.com/cosmwasm/jsonparser"
 	"reflect"
 )
@@ -154,13 +153,9 @@ func decodeSlice(name, tag string, jsonstr []byte) BaseOpt {
 
 func doAssign(opts []BaseOpt, vals reflect.Value, tps reflect.Type) error {
 	Log("doAssign")
-	fmt.Printf("tps: %s\n", tps)
-	fmt.Printf("vals: %#v\n", vals)
-	fmt.Printf("addressable: %t / setable: %t\n", vals.CanAddr(), vals.CanSet())
 
 	if tps.Kind() == reflect.Slice || tps.Kind() == reflect.Array {
 		Log("Process Slice")
-		fmt.Printf("Cap: %d\n", vals.Cap())
 		if len(opts) <= 0 {
 			//if none, skip it
 			return nil
@@ -211,9 +206,7 @@ func doAssign(opts []BaseOpt, vals reflect.Value, tps reflect.Type) error {
 				stringSlice = append(stringSlice, opt.Value().(string))
 			case reflect.Struct:
 				item := reflect.New(tps.Elem())
-				fmt.Printf("item: %#v\n", item)
 				doAssign(opt.Value().([]BaseOpt), item.Elem(), tps.Elem())
-				fmt.Printf("item: %#v\n", item)
 				bigger := reflect.Append(vals, item.Elem())
 				vals.Set(bigger)
 			case reflect.Slice, reflect.Array:
