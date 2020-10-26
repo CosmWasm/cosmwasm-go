@@ -31,20 +31,6 @@ func (c Coins) MarshalJSON() ([]byte, error) {
 	return ezjson.Marshal(d)
 }
 
-// UnmarshalJSON ensures that we get [] for empty arrays
-func (c *Coins) UnmarshalJSON(data []byte) error {
-	// make sure we deserialize [] back to null
-	if string(data) == "[]" || string(data) == "null" {
-		return nil
-	}
-	var d []Coin
-	if err := ezjson.Unmarshal(data, &d); err != nil {
-		return err
-	}
-	*c = d
-	return nil
-}
-
 // ============= MSG ===========
 //------- Results / Msgs -------------
 

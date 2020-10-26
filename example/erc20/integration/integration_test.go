@@ -2,6 +2,7 @@ package integration
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -12,6 +13,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmwasm/cosmwasm-go/example/erc20/src"
+	"github.com/cosmwasm/cosmwasm-go/std"
+	"github.com/cosmwasm/cosmwasm-go/std/ezjson"
 )
 
 var CONTRACT = filepath.Join("..", "erc20.wasm")
@@ -92,8 +95,37 @@ func TestWorkflow(t *testing.T) {
 	err = json.Unmarshal(qres, &bal)
 	require.NoError(t, err)
 	require.Equal(t, uint64(2000), bal.Value)
-
 }
+
+
+func TestEnvMarshalCompatibility(t *testing.T) {
+	cases := map[string]struct{
+		funds []types.Coin
+	}{
+		"no funds": {},
+		"some funds": {funds: types.Coins{types.NewCoin(1000, "uatom")}},
+	}
+
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			env := mockEnv("coral1e86v774dch5uwkks0cepw8mdz8a9flhhapvf6w", tc.funds)
+			bz, err := json.Marshal(env)
+			require.NoError(t, err)
+			fmt.Println(string(bz))
+
+			var parsed std.Env
+			err = ezjson.Unmarshal(bz, &parsed)
+			require.NoError(t, err)
+			fmt.Printf("%#v\n", parsed)
+
+			// types are different to compare, but re-encode should match
+			reencode, err := ezjson.Marshal(parsed)
+			require.NoError(t, err)
+			require.Equal(t, string(bz), string(reencode))
+		})
+	}
+}
+
 
 func TestWorkflowWithFunds(t *testing.T) {
 	// setup wasmer instance
