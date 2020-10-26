@@ -10,8 +10,8 @@ test-std:
 	go test $(TEST_FLAG) ./std/...
 
 test-contracts:
-	go test $(TEST_FLAG) ./example/tester/src
-	go test $(TEST_FLAG) ./example/erc20/src
+	cd example/erc20 && $(MAKE) test
+	cd example/tester && $(MAKE) test
 
 examples: erc20 tester minimal
 

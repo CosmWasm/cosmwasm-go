@@ -1,4 +1,4 @@
-.PHONY: build view all build-docker build-custom
+.PHONY: build view all build-docker build-custom test
 
 DOCKER_IMAGE=tinygo/tinygo:0.13.1
 DOCKER_CUSTOM=cosmwasm/tinygo:latest
@@ -6,6 +6,9 @@ WASM_FILE=contract.wasm
 
 all: build-docker public
 	@ ls -l main.wasm
+
+test:
+	go test ./src
 
 build:
 	tinygo build -o main.wasm -target wasm ./main.go

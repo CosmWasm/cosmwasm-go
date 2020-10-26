@@ -104,7 +104,7 @@ func mockEnv(sender types.HumanAddress) types.Env {
 		},
 		Message: types.MessageInfo{
 			Sender: sender,
-			// TODO: fix this
+			// TODO: fix this - need proper coin parse logic
 			//SentFunds: []types.Coin{{
 			//	Denom:  "ATOM",
 			//	Amount: "100",
