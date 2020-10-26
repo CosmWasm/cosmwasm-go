@@ -9,7 +9,7 @@ test: unit-test integration-test
 unit-test:
 	go test $(TEST_FLAG) ./src
 
-integration-test: build
+integration-test: # build
 	go test $(TEST_FLAG) ./integration
 
 build:
