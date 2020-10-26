@@ -22,7 +22,7 @@ if [ "$#" -ne 1 ]; then
 fi
 
 CONTRACT="$1"
-DIR="./example/$CONTRACT"
+DIR="${ROOT}/example/${CONTRACT}"
 
 if [ ! -d "$DIR" ]; then
     print_usage
