@@ -1,14 +1,8 @@
 .PHONY: view imports exports erc20 tester examples test test-contracts test-std
 
-DOCKER_CUSTOM=cosmwasm/tinygo:0.14.1
-EMSCRIPTEN=trzeci/emscripten:1.39.8-fastcomp
-
-DOCKER_FLAGS=-w /code -v $(shell pwd):/code
-TINYGO_FLAGS=-tags cosmwasm -no-debug -target wasm
-
 # Set on the command line for verbose output, eg.
 # TEST_FLAG=-v make test
-TEST_FLAG=-v -count=1
+#TEST_FLAG=-v -count=1
 
 test: test-std test-contracts
 
@@ -23,12 +17,18 @@ examples: erc20 tester minimal
 
 erc20:
 	./scripts/compile.sh erc20
+	@ wasm-nm -e erc20.wasm
+	@ wasm-nm -i erc20.wasm
 
 tester:
 	./scripts/compile.sh tester
+	@ wasm-nm -e erc20.wasm
+	@ wasm-nm -i erc20.wasm
 
 minimal:
 	./scripts/compile.sh minimal
+	@ wasm-nm -e erc20.wasm
+	@ wasm-nm -i erc20.wasm
 
 # Manually tested that re-written wasm code runs well
 upload-erc20:
@@ -40,13 +40,3 @@ upload-erc20:
 	# coral tx wasm execute $CONTRACT '{"Transfer":{"to":"coral1reednyl4473um535crt0tuqgkfy2k68tzy5762","value": 2000}}' --from validator --gas 200000 --gas-prices 0.025ushell -y
 	# coral q tx $EXEC_HASH -o json | jq .logs
 	# coral q wasm contract-state smart $CONTRACT '{"balance":{"address":"coral1reednyl4473um535crt0tuqgkfy2k68tzy5762"}}'
-
-view:
-	@ wasm-nm erc20.wasm
-	@ ls -l *.wasm
-
-imports:
-	wasm-nm -i erc20.wasm
-
-exports:
-	wasm-nm -e erc20.wasm
