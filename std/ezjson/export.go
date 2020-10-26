@@ -2,11 +2,6 @@ package ezjson
 
 var logging func([]byte) int = nil
 
-//var logging func([]byte) int = func(bz []byte) int {
-//	fmt.Println(string(bz))
-//	return len(bz)
-//}
-
 func Log(msg string) int {
 	if logging != nil {
 		logging([]byte(msg))
