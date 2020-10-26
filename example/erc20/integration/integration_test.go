@@ -44,7 +44,7 @@ func TestWorkflow(t *testing.T) {
 	store := NewLookup(gasMeter)
 	api := NewMockAPI()
 	querier := DefaultQuerier(mockContractAddr, types.Coins{types.NewCoin(100, "ATOM")})
-	env := mockEnv("coral1e86v774dch5uwkks0cepw8mdz8a9flhhapvf6w")
+	env := mockEnv("coral1e86v774dch5uwkks0cepw8mdz8a9flhhapvf6w", nil)
 
 	initMsg := []byte(`{"name":"OKB","symbol":"OKB","decimal":10,"total_supply":170000}`)
 	//initMsg := []byte(`{123]]`) // invalid json
@@ -95,7 +95,45 @@ func TestWorkflow(t *testing.T) {
 
 }
 
-func mockEnv(sender types.HumanAddress) types.Env {
+func TestWorkflowWithFunds(t *testing.T) {
+	// setup wasmer instance
+	tmpdir, err := ioutil.TempDir("", "erc20")
+	require.NoError(t, err)
+	defer os.RemoveAll(tmpdir)
+	wasmer, err := cosmwasm.NewWasmer(tmpdir, FEATURES, 3)
+	require.NoError(t, err)
+
+	// upload code and get some sha256 hash
+	codeID, err := wasmer.Create(loadCode(t))
+	require.NoError(t, err)
+	require.Equal(t, 32, len(codeID))
+
+	// a whole lot of setup object using go-cosmwasm mock/test code
+	var gasLimit uint64 = 100_000_000
+	gasMeter := NewMockGasMeter(gasLimit)
+	store := NewLookup(gasMeter)
+	api := NewMockAPI()
+	funds := types.Coins{types.NewCoin(1000, "uatom")}
+	querier := DefaultQuerier(mockContractAddr, funds)
+	env := mockEnv("coral1e86v774dch5uwkks0cepw8mdz8a9flhhapvf6w", funds)
+
+	initMsg := []byte(`{"name":"OKB","symbol":"OKB","decimal":10,"total_supply":170000}`)
+	//initMsg := []byte(`{123]]`) // invalid json
+	res, gas, err := wasmer.Instantiate(codeID,
+		env,
+		initMsg,
+		store,
+		api,
+		querier,
+		gasMeter,
+		gasLimit,
+	)
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	require.Equal(t, uint64(0xc5976), gas)
+}
+
+func mockEnv(sender types.HumanAddress, sentFunds []types.Coin) types.Env {
 	return types.Env{
 		Block: types.BlockInfo{
 			Height:  123,
@@ -104,6 +142,7 @@ func mockEnv(sender types.HumanAddress) types.Env {
 		},
 		Message: types.MessageInfo{
 			Sender: sender,
+			SentFunds: sentFunds,
 			// TODO: fix this - need proper coin parse logic
 			//SentFunds: []types.Coin{{
 			//	Denom:  "ATOM",

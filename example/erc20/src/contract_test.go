@@ -12,18 +12,24 @@ import (
 func TestInit(t *testing.T) {
 	cases := map[string]struct {
 		initMsg []byte
+		funds   []std.Coin
 		valid   bool
 	}{
-		// TODO: why doesn't exjson.Unmarshal return an error here?
+		// TODO: why doesn't ezjson.Unmarshal return an error here?
 		"invalid json": {initMsg: []byte("{...")},
 		"wrong struct": {initMsg: []byte(`{"foo": 1, "bar": "world"}`)},
 		"proper init":  {initMsg: []byte(`{"name":"Cool Coin","symbol":"COOL","decimal":6,"total_supply":12345678}`), valid: true},
+		"proper init with funds": {
+			initMsg: []byte(`{"name":"Cool Coin","symbol":"COOL","decimal":6,"total_supply":12345678}`),
+			valid:   true,
+			funds:   []std.Coin{{Denom: "uatom", Amount: "1000"}},
+		},
 	}
 
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
 			deps := std.MockExtern()
-			env := std.MockEnv("creator", nil)
+			env := std.MockEnv("creator", tc.funds)
 			res, err := Init(deps, env, tc.initMsg)
 			if tc.valid {
 				require.Nil(t, err)
