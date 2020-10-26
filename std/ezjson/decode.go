@@ -160,6 +160,7 @@ func doAssign(opts []BaseOpt, vals reflect.Value, tps reflect.Type) error {
 
 	if tps.Kind() == reflect.Slice || tps.Kind() == reflect.Array {
 		Log("Process Slice")
+		fmt.Printf("Cap: %d\n", vals.Cap())
 		if len(opts) <= 0 {
 			//if none, skip it
 			return nil
@@ -210,14 +211,11 @@ func doAssign(opts []BaseOpt, vals reflect.Value, tps reflect.Type) error {
 				stringSlice = append(stringSlice, opt.Value().(string))
 			case reflect.Struct:
 				item := reflect.New(tps.Elem())
-				//item := reflect.Zero(tps.Elem())
-				fmt.Printf("DEBUG: %s / %s\n", tps, tps.Elem())
-				//fmt.Printf("DEBUG: %s\n", reflect.PtrTo(tps.Elem()))
 				fmt.Printf("item: %#v\n", item)
 				doAssign(opt.Value().([]BaseOpt), item.Elem(), tps.Elem())
-				//doAssign(opt.Value().([]BaseOpt), item, reflect.PtrTo(tps.Elem()))
 				fmt.Printf("item: %#v\n", item)
-				vals = reflect.Append(vals, item.Elem())
+				bigger := reflect.Append(vals, item.Elem())
+				vals.Set(bigger)
 			case reflect.Slice, reflect.Array:
 				if opt.Type() != reflect.Slice && opt.Type() != reflect.Array {
 					if opt.IsEmpty() {
