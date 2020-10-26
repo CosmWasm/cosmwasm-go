@@ -162,3 +162,94 @@ func TestRustOption(t *testing.T) {
 	require.NotNil(t, b)
 	fmt.Println(string(b))
 }
+
+func TestCoinsFailure(t *testing.T) {
+	type Coin struct {
+		Denom  string `json:"denom"`
+		Amount string `json:"amount"`
+	}
+	type MessageInfo struct {
+		Sender    string `json:"sender"`
+		SentFunds []Coin `json:"sent_funds"`
+	}
+
+	sender := "coral1e86v774dch5uwkks0cepw8mdz8a9flhhapvf6w"
+
+	cases := map[string]struct {
+		msg      []byte
+		expected MessageInfo
+	}{
+		"nil coins": {
+			msg:      []byte(`{"sender":"coral1e86v774dch5uwkks0cepw8mdz8a9flhhapvf6w"}`),
+			expected: MessageInfo{Sender: sender},
+		},
+		"zero coins": {
+			msg: []byte(`{"sender":"coral1e86v774dch5uwkks0cepw8mdz8a9flhhapvf6w","sent_funds":[]}`),
+			// [] decoded as nil
+			expected: MessageInfo{Sender: sender},
+		},
+		"one coin": {
+			msg:      []byte(`{"sender":"coral1e86v774dch5uwkks0cepw8mdz8a9flhhapvf6w","sent_funds":[{"denom":"uatom","amount":"1000"}]}`),
+			expected: MessageInfo{Sender: sender, SentFunds: []Coin{{Denom: "uatom", Amount: "1000"}}},
+		},
+	}
+
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			var info MessageInfo
+			err := Unmarshal(tc.msg, &info)
+			require.NoError(t, err)
+			require.Equal(t, tc.expected, info)
+		})
+	}
+}
+
+// this is env import that causes a wasm test failure in erc20/integration
+// why does it pass here?
+func TestEnvFailure(t *testing.T) {
+	type Coin struct {
+		Denom  string `json:"denom"`
+		Amount string `json:"amount"`
+	}
+	type BlockInfo struct {
+		Height  uint64 `json:"height"`
+		Time    uint64 `json:"time"`
+		ChainID string `json:"chain_id"`
+	}
+	type MessageInfo struct {
+		Sender    string `json:"sender"`
+		SentFunds []Coin `json:"sent_funds"`
+	}
+	type ContractInfo struct {
+		Address string `json:"address"`
+	}
+	type Env struct {
+		Block    BlockInfo    `json:"block"`
+		Message  MessageInfo  `json:"message"`
+		Contract ContractInfo `json:"contract"`
+	}
+
+	msg := []byte(`{"block":{"height":123,"time":1578939743,"chain_id":"foobar"},"message":{"sender":"coral1e86v774dch5uwkks0cepw8mdz8a9flhhapvf6w","sent_funds":[{"denom":"uatom","amount":"1000"}]},"contract":{"address":"coral1lstq3dy9v0s86czkx0rvgwnmunds5y2lz53all"}}`)
+	var env Env
+	err := Unmarshal(msg, &env)
+	require.NoError(t, err)
+
+	expected := Env{
+		Block: BlockInfo{
+			Height:  123,
+			Time:    1578939743,
+			ChainID: "foobar",
+		},
+		Message: MessageInfo{
+			Sender: "coral1e86v774dch5uwkks0cepw8mdz8a9flhhapvf6w",
+			SentFunds: []Coin{{
+				Denom:  "uatom",
+				Amount: "1000",
+			}},
+		},
+		Contract: ContractInfo{
+			Address: "coral1lstq3dy9v0s86czkx0rvgwnmunds5y2lz53all",
+		},
+	}
+	require.Equal(t, expected, env)
+}

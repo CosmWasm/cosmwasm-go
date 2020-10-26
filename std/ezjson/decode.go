@@ -153,6 +153,7 @@ func decodeSlice(name, tag string, jsonstr []byte) BaseOpt {
 
 func doAssign(opts []BaseOpt, vals reflect.Value, tps reflect.Type) error {
 	Log("doAssign")
+
 	if tps.Kind() == reflect.Slice || tps.Kind() == reflect.Array {
 		Log("Process Slice")
 		if len(opts) <= 0 {
@@ -204,7 +205,10 @@ func doAssign(opts []BaseOpt, vals reflect.Value, tps reflect.Type) error {
 			case reflect.String:
 				stringSlice = append(stringSlice, opt.Value().(string))
 			case reflect.Struct:
-				doAssign(opt.Value().([]BaseOpt), vals, tps.Elem())
+				item := reflect.New(tps.Elem())
+				doAssign(opt.Value().([]BaseOpt), item.Elem(), tps.Elem())
+				bigger := reflect.Append(vals, item.Elem())
+				vals.Set(bigger)
 			case reflect.Slice, reflect.Array:
 				if opt.Type() != reflect.Slice && opt.Type() != reflect.Array {
 					if opt.IsEmpty() {
