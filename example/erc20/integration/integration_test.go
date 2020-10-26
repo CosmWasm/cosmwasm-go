@@ -17,7 +17,7 @@ import (
 var CONTRACT = filepath.Join("..", "erc20.wasm")
 
 const FEATURES = "staking"
-const mockContractAddr = "contract"
+const mockContractAddr = "coral1lstq3dy9v0s86czkx0rvgwnmunds5y2lz53all"
 
 func loadCode(t *testing.T) []byte {
 	bz, err := ioutil.ReadFile(CONTRACT)
@@ -30,7 +30,7 @@ func TestWorkflow(t *testing.T) {
 	tmpdir, err := ioutil.TempDir("", "erc20")
 	require.NoError(t, err)
 	defer os.RemoveAll(tmpdir)
-	wasmer, err := cosmwasm.NewWasmer(tmpdir, FEATURES, 0)
+	wasmer, err := cosmwasm.NewWasmer(tmpdir, FEATURES, 3)
 	require.NoError(t, err)
 
 	// upload code and get some sha256 hash
@@ -44,10 +44,11 @@ func TestWorkflow(t *testing.T) {
 	store := NewLookup(gasMeter)
 	api := NewMockAPI()
 	querier := DefaultQuerier(mockContractAddr, types.Coins{types.NewCoin(100, "ATOM")})
-	env := mockEnv("creator")
+	env := mockEnv("coral1e86v774dch5uwkks0cepw8mdz8a9flhhapvf6w")
 
 	initMsg := []byte(`{"name":"OKB","symbol":"OKB","decimal":10,"total_supply":170000}`)
-	_, gas, err := wasmer.Instantiate(codeID,
+	//initMsg := []byte(`{123]]`) // invalid json
+	res, gas, err := wasmer.Instantiate(codeID,
 		env,
 		initMsg,
 		store,
@@ -56,8 +57,9 @@ func TestWorkflow(t *testing.T) {
 		gasMeter,
 		gasLimit,
 	)
-	require.Equal(t, uint64(486334), gas)
 	require.NoError(t, err)
+	require.NotNil(t, res)
+	require.Equal(t, uint64(0xc5976), gas)
 
 	handleMsg := []byte(`{"Transfer":{"to":"1234567","value": 2000}}`)
 	_, gas, err = wasmer.Execute(codeID,
@@ -70,7 +72,7 @@ func TestWorkflow(t *testing.T) {
 		gasLimit,
 	)
 	require.NoError(t, err)
-	require.Equal(t, uint64(400000), gas)
+	require.Equal(t, uint64(0x1ad44f), gas)
 
 	queryMsg := []byte(`{"balance":{"address":"1234567"}}`)
 	qres, gas, err := wasmer.Query(codeID,
@@ -83,7 +85,7 @@ func TestWorkflow(t *testing.T) {
 	)
 	require.NoError(t, err)
 	require.NotEmpty(t, qres)
-	require.Equal(t, uint64(200000), gas)
+	require.Equal(t, uint64(0x4cb6b), gas)
 
 	// let us parse the query??
 	var bal src.BalanceResponse
@@ -102,10 +104,11 @@ func mockEnv(sender types.HumanAddress) types.Env {
 		},
 		Message: types.MessageInfo{
 			Sender: sender,
-			SentFunds: []types.Coin{{
-				Denom:  "ATOM",
-				Amount: "100",
-			}},
+			// TODO: fix this
+			//SentFunds: []types.Coin{{
+			//	Denom:  "ATOM",
+			//	Amount: "100",
+			//}},
 		},
 		Contract: types.ContractInfo{
 			Address: mockContractAddr,

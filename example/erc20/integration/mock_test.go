@@ -78,7 +78,6 @@ func (g *mockGasMeter) ConsumeGas(amount api.Gas, descriptor string) {
 	if g.consumed > g.limit {
 		panic(ErrorOutOfGas{descriptor})
 	}
-
 }
 
 /*** Mock KVStore ****/
