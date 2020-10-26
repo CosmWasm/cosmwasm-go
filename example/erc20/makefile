@@ -1,4 +1,4 @@
-.PHONY: test build unit-test integration-test
+.PHONY: test build unit-test integration-test bug
 
 # Set on the command line for verbose output, eg.
 # TEST_FLAG=-v make test
@@ -16,3 +16,6 @@ build:
 	../../scripts/compile.sh erc20
 	@mv -f ../../erc20.wasm .
 	@rm -f ../../erc20.wat
+
+bug: build
+	go test ./integration/ -run TestWorkflowWithFunds

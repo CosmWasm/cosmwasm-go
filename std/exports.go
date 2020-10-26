@@ -35,9 +35,20 @@ func make_dependencies() Extern {
 func DoInit(initFn func(deps *Extern, _env Env, msg []byte) (*InitResultOk, *CosmosResponseError), envPtr, msgPtr uint32) unsafe.Pointer {
 	var data []byte
 	var err error
-	envData := TranslateToSlice(uintptr(envPtr))
-	msgData := Translate_range_custom(uintptr(msgPtr))
-	ok, ers := _do_init(initFn, envData, msgData)
+	//envData := TranslateToSlice(uintptr(envPtr))
+	//msgData := Translate_range_custom(uintptr(msgPtr))
+
+	//ok, ers := _do_init(initFn, envData, msgData)
+	//var ok *InitResultOk
+	//ers := GenerateError(GenericError, "Testing generic error result", "")
+	ok := &InitResultOk{
+		Ok: InitResponse{
+			Messages: nil,
+			Log:      nil,
+		},
+	}
+	var ers *CosmosResponseError
+
 	if ok != nil {
 		data, err = ezjson.Marshal(*ok)
 	} else {
