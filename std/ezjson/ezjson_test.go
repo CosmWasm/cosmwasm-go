@@ -179,15 +179,15 @@ func TestEnvFailure(t *testing.T) {
 		msg      []byte
 		expected MessageInfo
 	}{
-		"nil coins": {
-			msg:      []byte(`{"sender":"coral1e86v774dch5uwkks0cepw8mdz8a9flhhapvf6w"}`),
-			expected: MessageInfo{Sender: sender},
-		},
-		"zero coins": {
-			msg: []byte(`{"sender":"coral1e86v774dch5uwkks0cepw8mdz8a9flhhapvf6w","sent_funds":[]}`),
-			// [] decoded as nil
-			expected: MessageInfo{Sender: sender},
-		},
+		//"nil coins": {
+		//	msg:      []byte(`{"sender":"coral1e86v774dch5uwkks0cepw8mdz8a9flhhapvf6w"}`),
+		//	expected: MessageInfo{Sender: sender},
+		//},
+		//"zero coins": {
+		//	msg: []byte(`{"sender":"coral1e86v774dch5uwkks0cepw8mdz8a9flhhapvf6w","sent_funds":[]}`),
+		//	// [] decoded as nil
+		//	expected: MessageInfo{Sender: sender},
+		//},
 		"one coin": {
 			msg:      []byte(`{"sender":"coral1e86v774dch5uwkks0cepw8mdz8a9flhhapvf6w","sent_funds":[{"denom":"uatom","amount":"1000"}]}`),
 			expected: MessageInfo{Sender: sender, SentFunds: []Coin{{Denom: "uatom", Amount: "1000"}}},

@@ -5,6 +5,7 @@ package ezjson
 
 import (
 	"errors"
+	"fmt"
 	"github.com/cosmwasm/jsonparser"
 	"reflect"
 )
@@ -153,6 +154,10 @@ func decodeSlice(name, tag string, jsonstr []byte) BaseOpt {
 
 func doAssign(opts []BaseOpt, vals reflect.Value, tps reflect.Type) error {
 	Log("doAssign")
+	fmt.Printf("tps: %s\n", tps)
+	fmt.Printf("vals: %#v\n", vals)
+	fmt.Printf("addressable: %t / setable: %t\n", vals.CanAddr(), vals.CanSet())
+
 	if tps.Kind() == reflect.Slice || tps.Kind() == reflect.Array {
 		Log("Process Slice")
 		if len(opts) <= 0 {
@@ -204,7 +209,15 @@ func doAssign(opts []BaseOpt, vals reflect.Value, tps reflect.Type) error {
 			case reflect.String:
 				stringSlice = append(stringSlice, opt.Value().(string))
 			case reflect.Struct:
-				doAssign(opt.Value().([]BaseOpt), vals, tps.Elem())
+				item := reflect.New(tps.Elem())
+				//item := reflect.Zero(tps.Elem())
+				fmt.Printf("DEBUG: %s / %s\n", tps, tps.Elem())
+				//fmt.Printf("DEBUG: %s\n", reflect.PtrTo(tps.Elem()))
+				fmt.Printf("item: %#v\n", item)
+				doAssign(opt.Value().([]BaseOpt), item.Elem(), tps.Elem())
+				//doAssign(opt.Value().([]BaseOpt), item, reflect.PtrTo(tps.Elem()))
+				fmt.Printf("item: %#v\n", item)
+				vals = reflect.Append(vals, item.Elem())
 			case reflect.Slice, reflect.Array:
 				if opt.Type() != reflect.Slice && opt.Type() != reflect.Array {
 					if opt.IsEmpty() {
