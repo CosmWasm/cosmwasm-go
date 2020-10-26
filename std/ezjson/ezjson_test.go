@@ -163,26 +163,24 @@ func TestRustOption(t *testing.T) {
 	fmt.Println(string(b))
 }
 
-
-
 func TestEnvFailure(t *testing.T) {
 	type Coin struct {
 		Denom  string `json:"denom"`
 		Amount string `json:"amount"`
 	}
 	type MessageInfo struct {
-		Sender string `json:"sender"`
+		Sender    string `json:"sender"`
 		SentFunds []Coin `json:"sent_funds"`
 	}
 
 	sender := "coral1e86v774dch5uwkks0cepw8mdz8a9flhhapvf6w"
 
-	cases := map[string]struct{
-		msg []byte
+	cases := map[string]struct {
+		msg      []byte
 		expected MessageInfo
 	}{
 		"nil coins": {
-			msg : []byte(`{"sender":"coral1e86v774dch5uwkks0cepw8mdz8a9flhhapvf6w"}`),
+			msg:      []byte(`{"sender":"coral1e86v774dch5uwkks0cepw8mdz8a9flhhapvf6w"}`),
 			expected: MessageInfo{Sender: sender},
 		},
 		"zero coins": {
@@ -191,7 +189,7 @@ func TestEnvFailure(t *testing.T) {
 			expected: MessageInfo{Sender: sender},
 		},
 		"one coin": {
-			msg: []byte(`{"sender":"coral1e86v774dch5uwkks0cepw8mdz8a9flhhapvf6w","sent_funds":[{"denom":"uatom","amount":"1000"}]}`),
+			msg:      []byte(`{"sender":"coral1e86v774dch5uwkks0cepw8mdz8a9flhhapvf6w","sent_funds":[{"denom":"uatom","amount":"1000"}]}`),
 			expected: MessageInfo{Sender: sender, SentFunds: []Coin{{Denom: "uatom", Amount: "1000"}}},
 		},
 	}
