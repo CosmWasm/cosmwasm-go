@@ -3,6 +3,7 @@
 package std
 
 import (
+	"strconv"
 	"strings"
 	"unsafe"
 
@@ -59,8 +60,15 @@ func DoInit(initFn func(*Extern, Env, MessageInfo, []byte) (*InitResultOk, error
 		return StdErrResult(err, "Parse Info")
 	}
 	// measure funds length
+	deps.EApi.Debug("Len: " + strconv.Itoa(len(info.SentFunds)))
 
 	// remove 0's
+	var i = 0
+	for info.SentFunds[i].Denom != "" {
+		i++
+	}
+	info.SentFunds = info.SentFunds[:i]
+	deps.EApi.Debug("Trimmed Len: " + strconv.Itoa(len(info.SentFunds)))
 
 	ok, err := initFn(&deps, env, info, msgData)
 	if ok == nil {
