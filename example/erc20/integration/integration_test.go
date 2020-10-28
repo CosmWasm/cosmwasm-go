@@ -131,9 +131,45 @@ func TestInfoMarshalCompatibility(t *testing.T) {
 	}
 }
 
-func TestWorkflowWithFunds(t *testing.T) {
-	t.Skip("Punting this til 0.11 integration and better error messages")
+func TestErrorReturned(t *testing.T) {
+	// setup wasmer instance
+	tmpdir, err := ioutil.TempDir("", "erc20")
+	require.NoError(t, err)
+	defer os.RemoveAll(tmpdir)
+	wasmer, err := cosmwasm.NewWasmer(tmpdir, FEATURES)
+	require.NoError(t, err)
 
+	// upload code and get some sha256 hash
+	codeID, err := wasmer.Create(loadCode(t))
+	require.NoError(t, err)
+	require.Equal(t, 32, len(codeID))
+
+	// a whole lot of setup object using go-cosmwasm mock/test code
+	var gasLimit uint64 = 100_000_000
+	gasMeter := NewMockGasMeter(gasLimit)
+	store := NewLookup(gasMeter)
+	api := NewMockAPI()
+	querier := DefaultQuerier(mockContractAddr, nil)
+	info := mockInfo("coral1e86v774dch5uwkks0cepw8mdz8a9flhhapvf6w", nil)
+
+	// this doesn't create json parse error, but we error on validating an empty InitMsg
+	initMsg := []byte(`{.32r!`)
+	_, _, err = wasmer.Instantiate(codeID,
+		mockEnv(),
+		info,
+		initMsg,
+		store,
+		api,
+		querier,
+		gasMeter,
+		gasLimit,
+	)
+	require.Error(t, err)
+	require.Equal(t, "Name must be at least 2 characters", err.Error())
+
+}
+
+func TestWorkflowWithFunds(t *testing.T) {
 	// setup wasmer instance
 	tmpdir, err := ioutil.TempDir("", "erc20")
 	require.NoError(t, err)
