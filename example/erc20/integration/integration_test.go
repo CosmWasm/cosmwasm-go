@@ -164,7 +164,7 @@ func TestErrorReturned(t *testing.T) {
 		gasLimit,
 	)
 	require.Error(t, err)
-	require.Equal(t, "Name must be at least 2 characters", err.Error())
+	require.Equal(t, "Init: Name must be at least 2 characters", err.Error())
 
 }
 
