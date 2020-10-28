@@ -16,8 +16,9 @@ type BlockInfo struct {
 	// block height this transaction is executed
 	Height uint64 `json:"height"`
 	// time in seconds since unix epoch - since cosmwasm 0.3
-	Time    uint64 `json:"time"`
-	ChainID string `json:"chain_id"`
+	Time      uint64 `json:"time"`
+	TimeNanos uint64 `json:"time_nanos"`
+	ChainID   string `json:"chain_id"`
 }
 
 type MessageInfo struct {
