@@ -3,6 +3,7 @@
 package std
 
 import (
+	"strings"
 	"unsafe"
 
 	"github.com/cosmwasm/cosmwasm-go/std/ezjson"
@@ -13,13 +14,18 @@ type ContractError struct {
 }
 
 func StdErrResult(err error, prefix string) unsafe.Pointer {
-	msg := err.Error()
-	if prefix != "" {
-		msg = prefix + ": " + msg
-	}
-	e := ContractError{Err: msg}
-	bz, _ := ezjson.Marshal(e)
-	return Package_message(bz)
+	clean := strings.Replace(err.Error(), `"`, `\"`, -1)
+	msg := `{"error":"` + clean + `"}`
+	//msg := `{"error":"` + prefix + `"}`
+	return Package_message([]byte(msg))
+
+	//msg := err.Error()
+	//if prefix != "" {
+	//	msg = prefix + "- " + msg
+	//}
+	//e := ContractError{Err: msg}
+	//bz, _ := ezjson.Marshal(e)
+	//return Package_message(bz)
 }
 
 func make_dependencies() Extern {
@@ -40,8 +46,10 @@ func DoInit(initFn func(*Extern, Env, MessageInfo, []byte) (*InitResultOk, error
 	if err != nil {
 		return StdErrResult(err, "Parse Env")
 	}
+
 	info := MessageInfo{}
 	infoData := TranslateToSlice(uintptr(infoPtr))
+
 	err = ezjson.Unmarshal(infoData, &info)
 	if err != nil {
 		return StdErrResult(err, "Parse Info")
