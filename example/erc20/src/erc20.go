@@ -125,7 +125,7 @@ type State struct {
 type implErc20 struct {
 	State
 	apis *std.Extern
-	env  *std.Env
+	info *std.MessageInfo
 }
 
 func approvalPrefix(addr []byte) []byte {
@@ -203,7 +203,7 @@ func (i implErc20) transfer(from, to []byte, value uint64) bool {
 }
 
 func (i implErc20) Transfer(toAddr []byte, value uint64) bool {
-	sender, err := i.apis.EApi.CanonicalAddress(i.env.Message.Sender)
+	sender, err := i.apis.EApi.CanonicalAddress(i.info.Sender)
 	if err != nil {
 		// TODO: use an error
 		//return nil, std.GenerateError(std.GenericError, "Invalid Sender: " + err.Error(), "")
@@ -255,11 +255,11 @@ func LoadState(extern *std.Extern) (State, error) {
 	return state, e
 }
 
-func NewErc20Protocol(state State, extern *std.Extern, env *std.Env) Erc20 {
+func NewErc20Protocol(state State, extern *std.Extern, info *std.MessageInfo) Erc20 {
 	return implErc20{
 		State: state,
 		apis:  extern,
-		env:   env,
+		info:  info,
 	}
 }
 

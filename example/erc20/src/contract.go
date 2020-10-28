@@ -5,7 +5,7 @@ import (
 	"github.com/cosmwasm/cosmwasm-go/std/ezjson"
 )
 
-func Init(deps *std.Extern, env std.Env, msg []byte) (*std.InitResultOk, *std.CosmosResponseError) {
+func Init(deps *std.Extern, env std.Env, info std.MessageInfo, msg []byte) (*std.InitResultOk, *std.CosmosResponseError) {
 	initMsg := InitMsg{}
 	ownerShip := NewOwnership(deps)
 	e := ezjson.Unmarshal(msg, &initMsg)
@@ -21,9 +21,9 @@ func Init(deps *std.Extern, env std.Env, msg []byte) (*std.InitResultOk, *std.Co
 		SymbolOfToken: initMsg.Symbol,
 		DecOfTokens:   initMsg.Decimal,
 		TotalSupplyOf: initMsg.TotalSupply,
-	}, deps, &env)
+	}, deps, &info)
 
-	owner, err := deps.EApi.CanonicalAddress(env.Message.Sender)
+	owner, err := deps.EApi.CanonicalAddress(info.Sender)
 	if err != nil {
 		return nil, std.GenerateError(std.GenericError, "Invalid Sender: "+err.Error(), "")
 	}
@@ -36,10 +36,10 @@ func Init(deps *std.Extern, env std.Env, msg []byte) (*std.InitResultOk, *std.Co
 	return std.InitResultOkOkDefault(), nil
 }
 
-func Invoke(deps *std.Extern, env std.Env, msg []byte) (*std.HandleResultOk, *std.CosmosResponseError) {
-	return handleInvokeMessage(deps, env, msg)
+func Invoke(deps *std.Extern, env std.Env, info std.MessageInfo, msg []byte) (*std.HandleResultOk, *std.CosmosResponseError) {
+	return handleInvokeMessage(deps, env, info, msg)
 }
 
-func Query(deps *std.Extern, msg []byte) (*std.QueryResponseOk, *std.CosmosResponseError) {
-	return handleQuery(deps, msg)
+func Query(deps *std.Extern, env std.Env, msg []byte) (*std.QueryResponseOk, *std.CosmosResponseError) {
+	return handleQuery(deps, env, msg)
 }

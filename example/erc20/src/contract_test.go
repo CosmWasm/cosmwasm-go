@@ -29,8 +29,9 @@ func TestInit(t *testing.T) {
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
 			deps := std.MockExtern()
-			env := std.MockEnv("creator", tc.funds)
-			res, err := Init(deps, env, tc.initMsg)
+			env := std.MockEnv()
+			info := std.MockInfo("creator", tc.funds)
+			res, err := Init(deps, env, info, tc.initMsg)
 			if tc.valid {
 				require.Nil(t, err)
 				require.NotNil(t, res)
@@ -104,20 +105,21 @@ func TestOwner(t *testing.T) {
 // This runs the same path we do in cosmwasm-simulate
 func TestWorkflow(t *testing.T) {
 	deps := std.MockExtern()
-	env := std.MockEnv("original_owner_addr", nil)
+	env := std.MockEnv()
+	info := std.MockInfo("original_owner_addr", nil)
 
 	initMsg := []byte(`{"name":"OKB","symbol":"OKB","decimal":10,"total_supply":170000}`)
-	ires, err := Init(deps, env, initMsg)
+	ires, err := Init(deps, env, info, initMsg)
 	require.Nil(t, err)
 	require.NotNil(t, ires)
 
 	handleMsg := []byte(`{"Transfer":{"to":"1234567","value": 2000}}`)
-	hres, err := Invoke(deps, env, handleMsg)
+	hres, err := Invoke(deps, env, info, handleMsg)
 	require.Nil(t, err)
 	require.NotNil(t, hres)
 
 	queryMsg := []byte(`{"balance":{"address":"1234567"}}`)
-	qres, err := Query(deps, queryMsg)
+	qres, err := Query(deps, env, queryMsg)
 	require.Nil(t, err)
 	require.NotEmpty(t, qres.Ok)
 
