@@ -33,7 +33,7 @@ func TestWorkflow(t *testing.T) {
 	tmpdir, err := ioutil.TempDir("", "erc20")
 	require.NoError(t, err)
 	defer os.RemoveAll(tmpdir)
-	wasmer, err := cosmwasm.NewWasmer(tmpdir, FEATURES, 3)
+	wasmer, err := cosmwasm.NewWasmer(tmpdir, FEATURES)
 	require.NoError(t, err)
 
 	// upload code and get some sha256 hash
@@ -47,12 +47,13 @@ func TestWorkflow(t *testing.T) {
 	store := NewLookup(gasMeter)
 	api := NewMockAPI()
 	querier := DefaultQuerier(mockContractAddr, types.Coins{types.NewCoin(100, "ATOM")})
-	env := mockEnv("coral1e86v774dch5uwkks0cepw8mdz8a9flhhapvf6w", nil)
+	info := mockInfo("coral1e86v774dch5uwkks0cepw8mdz8a9flhhapvf6w", nil)
 
 	initMsg := []byte(`{"name":"OKB","symbol":"OKB","decimal":10,"total_supply":170000}`)
 	//initMsg := []byte(`{123]]`) // invalid json
 	res, gas, err := wasmer.Instantiate(codeID,
-		env,
+		mockEnv(),
+		info,
 		initMsg,
 		store,
 		api,
@@ -62,11 +63,12 @@ func TestWorkflow(t *testing.T) {
 	)
 	require.NoError(t, err)
 	require.NotNil(t, res)
-	require.Equal(t, uint64(0xc5974), gas)
+	require.Equal(t, uint64(0xadf4d), gas)
 
 	handleMsg := []byte(`{"Transfer":{"to":"1234567","value": 2000}}`)
 	_, gas, err = wasmer.Execute(codeID,
-		env,
+		mockEnv(),
+		info,
 		handleMsg,
 		store,
 		api,
@@ -75,10 +77,11 @@ func TestWorkflow(t *testing.T) {
 		gasLimit,
 	)
 	require.NoError(t, err)
-	require.Equal(t, uint64(0x1ad41f), gas)
+	require.Equal(t, uint64(0x195920), gas)
 
 	queryMsg := []byte(`{"balance":{"address":"1234567"}}`)
 	qres, gas, err := wasmer.Query(codeID,
+		mockEnv(),
 		queryMsg,
 		store,
 		api,
@@ -88,7 +91,7 @@ func TestWorkflow(t *testing.T) {
 	)
 	require.NoError(t, err)
 	require.NotEmpty(t, qres)
-	require.Equal(t, uint64(0x4cb43), gas)
+	require.Equal(t, uint64(0xb00c7), gas)
 
 	// let us parse the query??
 	var bal src.BalanceResponse
@@ -97,7 +100,7 @@ func TestWorkflow(t *testing.T) {
 	require.Equal(t, uint64(2000), bal.Value)
 }
 
-func TestEnvMarshalCompatibility(t *testing.T) {
+func TestInfoMarshalCompatibility(t *testing.T) {
 	cases := map[string]struct {
 		funds []types.Coin
 	}{
@@ -107,11 +110,11 @@ func TestEnvMarshalCompatibility(t *testing.T) {
 
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
-			env := mockEnv("coral1e86v774dch5uwkks0cepw8mdz8a9flhhapvf6w", tc.funds)
-			bz, err := json.Marshal(env)
+			info := mockInfo("coral1e86v774dch5uwkks0cepw8mdz8a9flhhapvf6w", tc.funds)
+			bz, err := json.Marshal(info)
 			require.NoError(t, err)
 
-			var parsed std.Env
+			var parsed std.MessageInfo
 			err = ezjson.Unmarshal(bz, &parsed)
 			require.NoError(t, err)
 
@@ -130,7 +133,7 @@ func TestWorkflowWithFunds(t *testing.T) {
 	tmpdir, err := ioutil.TempDir("", "erc20")
 	require.NoError(t, err)
 	defer os.RemoveAll(tmpdir)
-	wasmer, err := cosmwasm.NewWasmer(tmpdir, FEATURES, 3)
+	wasmer, err := cosmwasm.NewWasmer(tmpdir, FEATURES)
 	require.NoError(t, err)
 
 	// upload code and get some sha256 hash
@@ -145,14 +148,15 @@ func TestWorkflowWithFunds(t *testing.T) {
 	api := NewMockAPI()
 	funds := types.Coins{types.NewCoin(1000, "uatom")}
 	querier := DefaultQuerier(mockContractAddr, funds)
-	env := mockEnv("coral1e86v774dch5uwkks0cepw8mdz8a9flhhapvf6w", funds)
-	bz, err := json.Marshal(env)
+	info := mockInfo("coral1e86v774dch5uwkks0cepw8mdz8a9flhhapvf6w", funds)
+	bz, err := json.Marshal(info)
 	require.NoError(t, err)
 	fmt.Println(string(bz))
 
 	initMsg := []byte(`{"name":"OKB","symbol":"OKB","decimal":10,"total_supply":170000}`)
 	res, gas, err := wasmer.Instantiate(codeID,
-		env,
+		mockEnv(),
+		info,
 		initMsg,
 		store,
 		api,
@@ -165,19 +169,22 @@ func TestWorkflowWithFunds(t *testing.T) {
 	require.Equal(t, uint64(0xc5976), gas)
 }
 
-func mockEnv(sender types.HumanAddress, sentFunds []types.Coin) types.Env {
+func mockEnv() types.Env {
 	return types.Env{
 		Block: types.BlockInfo{
 			Height:  123,
 			Time:    1578939743,
 			ChainID: "foobar",
 		},
-		Message: types.MessageInfo{
-			Sender:    sender,
-			SentFunds: sentFunds,
-		},
 		Contract: types.ContractInfo{
 			Address: mockContractAddr,
 		},
+	}
+}
+
+func mockInfo(sender types.HumanAddress, sentFunds []types.Coin) types.MessageInfo {
+	return types.MessageInfo{
+		Sender:    sender,
+		SentFunds: sentFunds,
 	}
 }
