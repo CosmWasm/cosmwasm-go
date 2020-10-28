@@ -62,7 +62,7 @@ func TestWorkflow(t *testing.T) {
 	)
 	require.NoError(t, err)
 	require.NotNil(t, res)
-	require.Equal(t, uint64(0xc5984), gas)
+	require.Equal(t, uint64(0xc5974), gas)
 
 	handleMsg := []byte(`{"Transfer":{"to":"1234567","value": 2000}}`)
 	_, gas, err = wasmer.Execute(codeID,
@@ -75,7 +75,7 @@ func TestWorkflow(t *testing.T) {
 		gasLimit,
 	)
 	require.NoError(t, err)
-	require.Equal(t, uint64(0x1ad44b), gas)
+	require.Equal(t, uint64(0x1ad41f), gas)
 
 	queryMsg := []byte(`{"balance":{"address":"1234567"}}`)
 	qres, gas, err := wasmer.Query(codeID,
@@ -88,7 +88,7 @@ func TestWorkflow(t *testing.T) {
 	)
 	require.NoError(t, err)
 	require.NotEmpty(t, qres)
-	require.Equal(t, uint64(0x4cb69), gas)
+	require.Equal(t, uint64(0x4cb43), gas)
 
 	// let us parse the query??
 	var bal src.BalanceResponse
