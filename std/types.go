@@ -39,7 +39,7 @@ type InitResponse struct {
 	// Messages comes directly from the contract and is it's request for action
 	Messages []CosmosMsg `json:"messages"`
 	// log message to return over abci interface
-	Log []LogAttribute `json:"log"`
+	Attributes []Attribute `json:"attributes"`
 }
 
 type InitResultOk struct {
@@ -49,8 +49,8 @@ type InitResultOk struct {
 func InitResultOkOkDefault() *InitResultOk {
 	return &InitResultOk{
 		Ok: InitResponse{
-			Messages: []CosmosMsg{},
-			Log:      []LogAttribute{},
+			Messages:   []CosmosMsg{},
+			Attributes: []Attribute{},
 		},
 	}
 }
@@ -71,7 +71,7 @@ type HandleResponse struct {
 	// base64-encoded bytes to return as ABCI.Data field
 	Data string `json:"data,rust_option"`
 	// log message to return over abci interface
-	Log []LogAttribute `json:"log"`
+	Attributes []Attribute `json:"attributes"`
 }
 
 type HandleResultOk struct {
@@ -81,9 +81,9 @@ type HandleResultOk struct {
 func HandleResultOkDefault() *HandleResultOk {
 	return &HandleResultOk{
 		Ok: HandleResponse{
-			Messages: []CosmosMsg{},
-			Log:      []LogAttribute{},
-			Data:     "",
+			Messages:   []CosmosMsg{},
+			Attributes: []Attribute{},
+			Data:       "",
 		},
 	}
 }
@@ -101,11 +101,10 @@ type MigrateResponse struct {
 	// base64-encoded bytes to return as ABCI.Data field
 	Data []byte `json:"data"`
 	// log message to return over abci interface
-	Log []LogAttribute `json:"log"`
+	Attributes []Attribute `json:"attributes"`
 }
 
-// LogAttribute
-type LogAttribute struct {
+type Attribute struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
 }

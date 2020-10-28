@@ -155,7 +155,7 @@ type FullDelegation struct {
 	Delegator          string `json:"delegator"`
 	Validator          string `json:"validator"`
 	Amount             Coin   `json:"amount"`
-	AccumulatedRewards Coin   `json:"accumulated_rewards"`
+	AccumulatedRewards []Coin `json:"accumulated_rewards"`
 	CanRedelegate      Coin   `json:"can_redelegate"`
 }
 
