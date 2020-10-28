@@ -33,7 +33,7 @@ func TestWorkflow(t *testing.T) {
 	tmpdir, err := ioutil.TempDir("", "erc20")
 	require.NoError(t, err)
 	defer os.RemoveAll(tmpdir)
-	wasmer, err := cosmwasm.NewWasmer(tmpdir, FEATURES)
+	wasmer, err := cosmwasm.NewWasmer(tmpdir, FEATURES, true)
 	require.NoError(t, err)
 
 	// upload code and get some sha256 hash
@@ -136,7 +136,7 @@ func TestErrorReturned(t *testing.T) {
 	tmpdir, err := ioutil.TempDir("", "erc20")
 	require.NoError(t, err)
 	defer os.RemoveAll(tmpdir)
-	wasmer, err := cosmwasm.NewWasmer(tmpdir, FEATURES)
+	wasmer, err := cosmwasm.NewWasmer(tmpdir, FEATURES, true)
 	require.NoError(t, err)
 
 	// upload code and get some sha256 hash
@@ -174,7 +174,7 @@ func TestWorkflowWithFunds(t *testing.T) {
 	tmpdir, err := ioutil.TempDir("", "erc20")
 	require.NoError(t, err)
 	defer os.RemoveAll(tmpdir)
-	wasmer, err := cosmwasm.NewWasmer(tmpdir, FEATURES)
+	wasmer, err := cosmwasm.NewWasmer(tmpdir, FEATURES, true)
 	require.NoError(t, err)
 
 	// upload code and get some sha256 hash
@@ -194,7 +194,7 @@ func TestWorkflowWithFunds(t *testing.T) {
 	require.NoError(t, err)
 	fmt.Println(string(bz))
 
-	initMsg := []byte(`{"name":"OKB","symbol":"OKB","decimal":10,"total_supply":170000}`)
+	initMsg := []byte(`{"name":"","symbol":"OKB","decimal":10,"total_supply":170000}`)
 	res, gas, err := wasmer.Instantiate(codeID,
 		mockEnv(),
 		info,

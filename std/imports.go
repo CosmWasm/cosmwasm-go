@@ -238,3 +238,13 @@ func (querier ExternalQuerier) RawQuery(request []byte) ([]byte, error) {
 	response := TranslateToSlice(uintptr(ret))
 	return response, nil
 }
+
+// use for ezjson Logging
+
+func Wasmlog(msg []byte) int {
+	msgPtr := C.malloc(C.ulong(len(msg)))
+	regionMsg := TranslateToRegion(msg, uintptr(msgPtr))
+	C.debug(unsafe.Pointer(regionMsg))
+	C.free(msgPtr)
+	return 0
+}
