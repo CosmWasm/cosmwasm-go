@@ -13,6 +13,7 @@ extern void* db_next(unsigned iterator_id);
 
 extern int canonicalize_address(void* human, void* canonical);
 extern int humanize_address(void* canonical, void* human);
+extern void debug(void* msg);
 
 extern void* query_chain(void* request);
 
@@ -205,6 +206,13 @@ func (api ExternalApi) HumanAddress(canonical CanonicalAddr) (string, error) {
 	humanAddress := TranslateToSlice(uintptr(regionHuman))
 
 	return string(humanAddress), nil
+}
+
+func (api ExternalApi) Debug(msg string) {
+	msgPtr := C.malloc(C.ulong(len(msg)))
+	regionMsg := TranslateToRegion([]byte(msg), uintptr(msgPtr))
+	C.debug(unsafe.Pointer(regionMsg))
+	C.free(msgPtr)
 }
 
 // ====== Querier ======

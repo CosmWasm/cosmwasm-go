@@ -35,7 +35,7 @@ func DoInit(initFn func(*Extern, Env, MessageInfo, []byte) (*InitResultOk, *Cosm
 	}
 	info := MessageInfo{}
 	infoData := TranslateToSlice(uintptr(infoPtr))
-	err := ezjson.Unmarshal(infoData, &info)
+	err = ezjson.Unmarshal(infoData, &info)
 	if err != nil {
 		return StdErrResult("Cannot Parse Info")
 	}
@@ -68,7 +68,7 @@ func DoHandler(handlerFn func(*Extern, Env, MessageInfo, []byte) (*HandleResultO
 	}
 	info := MessageInfo{}
 	infoData := TranslateToSlice(uintptr(infoPtr))
-	err := ezjson.Unmarshal(infoData, &info)
+	err = ezjson.Unmarshal(infoData, &info)
 	if err != nil {
 		return StdErrResult("Cannot Parse Info")
 	}

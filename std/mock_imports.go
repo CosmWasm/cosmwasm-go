@@ -140,6 +140,10 @@ func (api MockApi) HumanAddress(canonical CanonicalAddr) (string, error) {
 	return string(canonical[:cutIndex]), nil
 }
 
+func (api MockApi) Debug(msg string) {
+	fmt.Println("DEBUG: " + msg)
+}
+
 // ====== Querier ======
 
 // ensure Api interface compliance at compile time
