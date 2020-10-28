@@ -2,7 +2,6 @@ package integration
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -190,9 +189,6 @@ func TestWorkflowWithFunds(t *testing.T) {
 	funds := types.Coins{types.NewCoin(1000, "uatom"), types.NewCoin(60000, "utgd")}
 	querier := DefaultQuerier(mockContractAddr, funds)
 	info := mockInfo("coral1e86v774dch5uwkks0cepw8mdz8a9flhhapvf6w", funds)
-	bz, err := json.Marshal(info)
-	require.NoError(t, err)
-	fmt.Println(string(bz))
 
 	initMsg := []byte(`{"name":"Okay","symbol":"OKB","decimal":10,"total_supply":170000}`)
 	res, gas, err := wasmer.Instantiate(codeID,
@@ -207,7 +203,7 @@ func TestWorkflowWithFunds(t *testing.T) {
 	)
 	require.NoError(t, err)
 	require.NotNil(t, res)
-	require.Equal(t, uint64(0xc5976), gas)
+	require.Equal(t, uint64(0xe4c9e), gas)
 }
 
 func mockEnv() types.Env {
