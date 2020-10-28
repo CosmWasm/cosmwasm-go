@@ -5,8 +5,9 @@ package ezjson
 
 import (
 	"errors"
-	"github.com/cosmwasm/jsonparser"
 	"reflect"
+
+	"github.com/cosmwasm/jsonparser"
 )
 
 func decodeJson(jsonstr []byte, out interface{}) error {
@@ -214,7 +215,6 @@ func doAssign(opts []BaseOpt, vals reflect.Value, tps reflect.Type) error {
 					bigger := reflect.Append(vals, item.Elem())
 					vals.Set(bigger)
 				}
-				// TODO: see if opt.Value().([]BaseOpt)
 				// this sets the next item in the pre-allocated array
 				doAssign(opt.Value().([]BaseOpt), vals.Index(structIndex), tps.Elem())
 				structIndex++

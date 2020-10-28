@@ -7,6 +7,12 @@ import (
 	"github.com/cosmwasm/cosmwasm-go/std/ezjson"
 )
 
+// set this to true if you want to do deep debuging of ezjson parsing inside the wasm blog
+// (using debug import to print)
+const DEBUG_EZJSON = false
+
 func init() {
-	ezjson.SetDisplay(std.Wasmlog)
+	if DEBUG_EZJSON {
+		ezjson.SetDisplay(std.Wasmlog)
+	}
 }

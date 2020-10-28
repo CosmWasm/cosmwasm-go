@@ -187,14 +187,14 @@ func TestWorkflowWithFunds(t *testing.T) {
 	gasMeter := NewMockGasMeter(gasLimit)
 	store := NewLookup(gasMeter)
 	api := NewMockAPI()
-	funds := types.Coins{types.NewCoin(1000, "uatom")}
+	funds := types.Coins{types.NewCoin(1000, "uatom"), types.NewCoin(60000, "utgd")}
 	querier := DefaultQuerier(mockContractAddr, funds)
 	info := mockInfo("coral1e86v774dch5uwkks0cepw8mdz8a9flhhapvf6w", funds)
 	bz, err := json.Marshal(info)
 	require.NoError(t, err)
 	fmt.Println(string(bz))
 
-	initMsg := []byte(`{"name":"","symbol":"OKB","decimal":10,"total_supply":170000}`)
+	initMsg := []byte(`{"name":"Okay","symbol":"OKB","decimal":10,"total_supply":170000}`)
 	res, gas, err := wasmer.Instantiate(codeID,
 		mockEnv(),
 		info,
