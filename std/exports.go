@@ -117,8 +117,8 @@ func DoQuery(queryFn func(*Extern, Env, []byte) (*QueryResponseOk, *CosmosRespon
 	return Package_message(data)
 }
 
-//export cosmwasm_vm_version_3
-func cosmwasm_vm_version_3() {}
+//export cosmwasm_vm_version_4
+func cosmwasm_vm_version_4() {}
 
 //export allocate
 func allocate(size uint32) unsafe.Pointer {
