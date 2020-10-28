@@ -24,7 +24,7 @@ func getNotEmptyElem(h Handler) interface{} {
 	return nil
 }
 
-func handleInvokeMessage(deps *std.Extern, env std.Env, msg []byte) (*std.HandleResultOk, *std.CosmosResponseError) {
+func handleInvokeMessage(deps *std.Extern, env std.Env, info std.MessageInfo, msg []byte) (*std.HandleResultOk, *std.CosmosResponseError) {
 	handler := Handler{}
 	e := ezjson.Unmarshal(msg, &handler)
 	if e != nil {
@@ -35,7 +35,7 @@ func handleInvokeMessage(deps *std.Extern, env std.Env, msg []byte) (*std.Handle
 	if e != nil {
 		return nil, std.GenerateError(std.GenericError, "LoadState error : "+e.Error(), "")
 	}
-	erc20 := NewErc20Protocol(state, deps, &env)
+	erc20 := NewErc20Protocol(state, deps, &info)
 	ownerShip := NewOwnership(deps)
 	switch i.(type) {
 	case Approve:
@@ -46,10 +46,10 @@ func handleInvokeMessage(deps *std.Extern, env std.Env, msg []byte) (*std.Handle
 		return handleTransferFrom(i.(TransferFrom), erc20)
 	case TransferOwner:
 		ownerShip.LoadOwner()
-		return handleTransferOwner(deps, &env, i.(TransferOwner), ownerShip)
+		return handleTransferOwner(deps, &info, i.(TransferOwner), ownerShip)
 	case AcceptTransferredOwner:
 		ownerShip.LoadOwner()
-		return handleTransferOwnerAccepted(deps, &env, i.(AcceptTransferredOwner), ownerShip)
+		return handleTransferOwnerAccepted(deps, &info, i.(AcceptTransferredOwner), ownerShip)
 	default:
 		return nil, std.GenerateError(std.GenericError, "Unsupported invoke type", "")
 	}
@@ -76,8 +76,8 @@ func handleTransferFrom(tf TransferFrom, erc20 Erc20) (*std.HandleResultOk, *std
 	return nil, std.GenerateError(std.GenericError, "TransferFrom failed", "")
 }
 
-func handleTransferOwner(deps *std.Extern, env *std.Env, to TransferOwner, owner Owner) (*std.HandleResultOk, *std.CosmosResponseError) {
-	sender, err := deps.EApi.CanonicalAddress(env.Message.Sender)
+func handleTransferOwner(deps *std.Extern, info *std.MessageInfo, to TransferOwner, owner Owner) (*std.HandleResultOk, *std.CosmosResponseError) {
+	sender, err := deps.EApi.CanonicalAddress(info.Sender)
 	if err != nil {
 		return nil, std.GenerateError(std.GenericError, "Invalid Sender: "+err.Error(), "")
 	}
@@ -93,8 +93,8 @@ func handleTransferOwner(deps *std.Extern, env *std.Env, to TransferOwner, owner
 	return nil, std.GenerateError(std.GenericError, "Transfer ownership execute success", "")
 }
 
-func handleTransferOwnerAccepted(deps *std.Extern, env *std.Env, atf AcceptTransferredOwner, owner Owner) (*std.HandleResultOk, *std.CosmosResponseError) {
-	sender, err := deps.EApi.CanonicalAddress(env.Message.Sender)
+func handleTransferOwnerAccepted(deps *std.Extern, info *std.MessageInfo, atf AcceptTransferredOwner, owner Owner) (*std.HandleResultOk, *std.CosmosResponseError) {
+	sender, err := deps.EApi.CanonicalAddress(info.Sender)
 	if err != nil {
 		return nil, std.GenerateError(std.GenericError, "Invalid Sender: "+err.Error(), "")
 	}
@@ -120,7 +120,7 @@ func getNotEmptyQueryElem(q Querier) interface{} {
 	return nil
 }
 
-func handleQuery(deps *std.Extern, msg []byte) (*std.QueryResponseOk, *std.CosmosResponseError) {
+func handleQuery(deps *std.Extern, _env std.Env, msg []byte) (*std.QueryResponseOk, *std.CosmosResponseError) {
 	querier := Querier{}
 	e := ezjson.Unmarshal(msg, &querier)
 	if e != nil {
