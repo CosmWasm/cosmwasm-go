@@ -43,7 +43,7 @@ type InitResponse struct {
 }
 
 type InitResultOk struct {
-	Ok InitResponse
+	Ok InitResponse `json:"ok"`
 }
 
 func InitResultOkOkDefault() *InitResultOk {
@@ -75,7 +75,7 @@ type HandleResponse struct {
 }
 
 type HandleResultOk struct {
-	Ok HandleResponse
+	Ok HandleResponse `json:"ok"`
 }
 
 func HandleResultOkDefault() *HandleResultOk {
@@ -86,22 +86,6 @@ func HandleResultOkDefault() *HandleResultOk {
 			Data:       "",
 		},
 	}
-}
-
-// MigrateResult is the raw response from the handle call
-type MigrateResult struct {
-	Ok  MigrateResponse `json:"Ok,omitempty"`
-	Err StdError        `json:"Err,omitempty"`
-}
-
-// MigrateResponse defines the return value on a successful handle
-type MigrateResponse struct {
-	// Messages comes directly from the contract and is it's request for action
-	Messages []CosmosMsg `json:"messages"`
-	// base64-encoded bytes to return as ABCI.Data field
-	Data []byte `json:"data"`
-	// log message to return over abci interface
-	Attributes []Attribute `json:"attributes"`
 }
 
 type Attribute struct {
