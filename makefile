@@ -13,19 +13,9 @@ test-contracts:
 	cd example/erc20 && $(MAKE) test
 	cd example/tester && $(MAKE) test
 
-examples: erc20 tester minimal
+examples: erc20
 
 erc20:
 	./scripts/compile.sh erc20
-	@ wasm-nm -e erc20.wasm
-	@ wasm-nm -i erc20.wasm
-
-tester:
-	./scripts/compile.sh tester
-	@ wasm-nm -e erc20.wasm
-	@ wasm-nm -i erc20.wasm
-
-minimal:
-	./scripts/compile.sh minimal
 	@ wasm-nm -e erc20.wasm
 	@ wasm-nm -i erc20.wasm
