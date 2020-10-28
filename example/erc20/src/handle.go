@@ -1,6 +1,7 @@
 package src
 
 import (
+	"errors"
 	"github.com/cosmwasm/cosmwasm-go/std"
 	"github.com/cosmwasm/cosmwasm-go/std/ezjson"
 )
@@ -24,16 +25,16 @@ func getNotEmptyElem(h Handler) interface{} {
 	return nil
 }
 
-func handleInvokeMessage(deps *std.Extern, env std.Env, info std.MessageInfo, msg []byte) (*std.HandleResultOk, *std.CosmosResponseError) {
+func handleInvokeMessage(deps *std.Extern, env std.Env, info std.MessageInfo, msg []byte) (*std.HandleResultOk, error) {
 	handler := Handler{}
-	e := ezjson.Unmarshal(msg, &handler)
-	if e != nil {
-		return nil, std.GenerateError(std.GenericError, "Unamrshal handle error : "+e.Error(), "")
+	err := ezjson.Unmarshal(msg, &handler)
+	if err != nil {
+		return nil, err
 	}
 	i := getNotEmptyElem(handler)
-	state, e := LoadState(deps)
-	if e != nil {
-		return nil, std.GenerateError(std.GenericError, "LoadState error : "+e.Error(), "")
+	state, err := LoadState(deps)
+	if err != nil {
+		return nil, err
 	}
 	erc20 := NewErc20Protocol(state, deps, &info)
 	ownerShip := NewOwnership(deps)
@@ -51,63 +52,63 @@ func handleInvokeMessage(deps *std.Extern, env std.Env, info std.MessageInfo, ms
 		ownerShip.LoadOwner()
 		return handleTransferOwnerAccepted(deps, &info, i.(AcceptTransferredOwner), ownerShip)
 	default:
-		return nil, std.GenerateError(std.GenericError, "Unsupported invoke type", "")
+		return nil, errors.New("Unsupported HandleMsg variant")
 	}
 }
 
-func handleApprove(a Approve, erc20 Erc20) (*std.HandleResultOk, *std.CosmosResponseError) {
+func handleApprove(a Approve, erc20 Erc20) (*std.HandleResultOk, error) {
 	if erc20.Approve([]byte(a.Spender), a.Value) {
 		return std.HandleResultOkDefault(), nil
 	}
-	return nil, std.GenerateError(std.GenericError, "Approve failed", "")
+	return nil, errors.New("Approve failed")
 }
 
-func handleTransfer(t Transfer, erc20 Erc20) (*std.HandleResultOk, *std.CosmosResponseError) {
+func handleTransfer(t Transfer, erc20 Erc20) (*std.HandleResultOk, error) {
 	if erc20.Transfer([]byte(t.ToAddr), t.Value) {
 		return std.HandleResultOkDefault(), nil
 	}
-	return nil, std.GenerateError(std.GenericError, "Transfer failed", "")
+	return nil, errors.New("Transfer failed")
 }
 
-func handleTransferFrom(tf TransferFrom, erc20 Erc20) (*std.HandleResultOk, *std.CosmosResponseError) {
+func handleTransferFrom(tf TransferFrom, erc20 Erc20) (*std.HandleResultOk, error) {
 	if erc20.TransferFrom([]byte(tf.FromAddr), []byte(tf.ToAddr), tf.Value) {
 		return std.HandleResultOkDefault(), nil
 	}
-	return nil, std.GenerateError(std.GenericError, "TransferFrom failed", "")
+	return nil, errors.New("TransferFrom failed")
 }
 
-func handleTransferOwner(deps *std.Extern, info *std.MessageInfo, to TransferOwner, owner Owner) (*std.HandleResultOk, *std.CosmosResponseError) {
+func handleTransferOwner(deps *std.Extern, info *std.MessageInfo, to TransferOwner, owner Owner) (*std.HandleResultOk, error) {
 	sender, err := deps.EApi.CanonicalAddress(info.Sender)
 	if err != nil {
-		return nil, std.GenerateError(std.GenericError, "Invalid Sender: "+err.Error(), "")
+		return nil, err
 	}
 	newOwner, err := deps.EApi.CanonicalAddress(to.NewOwner)
 	if err != nil {
-		return nil, std.GenerateError(std.GenericError, "Invalid new owner: "+err.Error(), "")
+		return nil, err
 	}
 
 	owner.TransferOwnership(sender, newOwner)
 	if owner.SaveOwner() {
 		return std.HandleResultOkDefault(), nil
 	}
-	return nil, std.GenerateError(std.GenericError, "Transfer ownership execute success", "")
+	return nil, errors.New("TransferOwner save failed")
 }
 
-func handleTransferOwnerAccepted(deps *std.Extern, info *std.MessageInfo, atf AcceptTransferredOwner, owner Owner) (*std.HandleResultOk, *std.CosmosResponseError) {
+func handleTransferOwnerAccepted(deps *std.Extern, info *std.MessageInfo, atf AcceptTransferredOwner, owner Owner) (*std.HandleResultOk, error) {
 	sender, err := deps.EApi.CanonicalAddress(info.Sender)
 	if err != nil {
-		return nil, std.GenerateError(std.GenericError, "Invalid Sender: "+err.Error(), "")
+		return nil, err
 	}
 	accepted, err := deps.EApi.CanonicalAddress(atf.AcceptedAddr)
 	if err != nil {
-		return nil, std.GenerateError(std.GenericError, "Invalid accetped owner: "+err.Error(), "")
+		return nil, err
 	}
 
 	owner.AcceptTransfer(sender, accepted)
 	if owner.SaveOwner() {
 		return std.HandleResultOkDefault(), nil
 	}
-	return nil, std.GenerateError(std.GenericError, "Transfer ownership execute success", "")
+	return nil, errors.New("TransferOwnerAccepted save failed")
 }
 
 //query handler
@@ -120,15 +121,15 @@ func getNotEmptyQueryElem(q Querier) interface{} {
 	return nil
 }
 
-func handleQuery(deps *std.Extern, _env std.Env, msg []byte) (*std.QueryResponseOk, *std.CosmosResponseError) {
+func handleQuery(deps *std.Extern, _env std.Env, msg []byte) (*std.QueryResponseOk, error) {
 	querier := Querier{}
-	e := ezjson.Unmarshal(msg, &querier)
-	if e != nil {
-		return nil, std.GenerateError(std.GenericError, "Unamrshal handle error : "+e.Error(), "")
+	err := ezjson.Unmarshal(msg, &querier)
+	if err != nil {
+		return nil, err
 	}
-	state, e := LoadState(deps)
-	if e != nil {
-		return nil, std.GenerateError(std.GenericError, "LoadState error : "+e.Error(), "")
+	state, err := LoadState(deps)
+	if err != nil {
+		return nil, err
 	}
 	erc20 := NewErc20Protocol(state, deps, nil)
 	q := getNotEmptyQueryElem(querier)
@@ -137,14 +138,14 @@ func handleQuery(deps *std.Extern, _env std.Env, msg []byte) (*std.QueryResponse
 	case Balance:
 		return QueryBalance(q.(Balance), erc20)
 	}
-	return nil, std.GenerateError(std.GenericError, "Unsupported query type", "")
+	return nil, errors.New("Unsupported query type")
 }
 
-func QueryBalance(b Balance, erc20 Erc20) (*std.QueryResponseOk, *std.CosmosResponseError) {
+func QueryBalance(b Balance, erc20 Erc20) (*std.QueryResponseOk, error) {
 	br := BalanceResponse{Value: erc20.BalanceOf(b.Address)}
-	v, e := ezjson.Marshal(br)
-	if e != nil {
-		return nil, std.GenerateError(std.GenericError, "Marshal BalanceResponse Failed "+e.Error(), "")
+	v, err := ezjson.Marshal(br)
+	if err != nil {
+		return nil, err
 	}
 	return std.BuildQueryResponse(string(v)), nil
 }

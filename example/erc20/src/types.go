@@ -1,7 +1,7 @@
 package src
 
 import (
-	"github.com/cosmwasm/cosmwasm-go/std"
+	"errors"
 )
 
 //all message type define here
@@ -13,15 +13,15 @@ type InitMsg struct {
 }
 
 // returns an error if invalid
-func (i InitMsg) Validate() *std.CosmosResponseError {
+func (i InitMsg) Validate() error {
 	if len(i.Name) < 2 {
-		return std.GenerateError(std.GenericError, "Name must be at least 2 characters", "")
+		return errors.New("Name must be at least 2 characters")
 	}
 	if len(i.Symbol) < 2 || len(i.Symbol) > 6 {
-		return std.GenerateError(std.GenericError, "Symbol must be 2-6 characters", "")
+		return errors.New("Symbol must be 2-6 characters")
 	}
 	if i.TotalSupply == 0 {
-		return std.GenerateError(std.GenericError, "Total Supply must be greater than 0", "")
+		return errors.New("Total Supply must be greater than 0")
 	}
 	return nil
 }

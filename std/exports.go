@@ -7,12 +7,18 @@ import (
 	"unsafe"
 )
 
-func Build_ErrResponse(msg string) string {
-	return `{"generic_err":{"msg":"` + msg + `","backtrace":null}}`
+type ContractError struct {
+	Err string `json:"error"`
 }
 
-func StdErrResult(msg string) unsafe.Pointer {
-	return Package_message([]byte(`{"Err":` + Build_ErrResponse(msg) + `}`))
+func StdErrResult(err error, prefix string) unsafe.Pointer {
+	msg := err.Error()
+	if prefix != "" {
+		msg = prefix + ": " + msg
+	}
+	e := ContractError{Err: msg}
+	bz, _ := ezjson.Marshal(e)
+	return Package_message(bz)
 }
 
 func make_dependencies() Extern {
@@ -24,95 +30,83 @@ func make_dependencies() Extern {
 }
 
 // ========== init ==============
-func DoInit(initFn func(*Extern, Env, MessageInfo, []byte) (*InitResultOk, *CosmosResponseError), envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
+func DoInit(initFn func(*Extern, Env, MessageInfo, []byte) (*InitResultOk, error), envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
 	msgData := Translate_range_custom(uintptr(msgPtr))
 
 	env := Env{}
 	envData := TranslateToSlice(uintptr(envPtr))
 	err := ezjson.Unmarshal(envData, &env)
 	if err != nil {
-		return StdErrResult("Cannot Parse Env")
+		return StdErrResult(err, "Parse Env")
 	}
 	info := MessageInfo{}
 	infoData := TranslateToSlice(uintptr(infoPtr))
 	err = ezjson.Unmarshal(infoData, &info)
 	if err != nil {
-		return StdErrResult("Cannot Parse Info")
+		return StdErrResult(err, "Parse Info")
 	}
 
 	deps := make_dependencies()
-	ok, ers := initFn(&deps, env, info, msgData)
+	ok, err := initFn(&deps, env, info, msgData)
 	if ok == nil {
-		b, e := ezjson.Marshal(ers)
-		if e != nil {
-			return StdErrResult("Marshal error failed : " + e.Error())
-		}
-		return Package_message(b)
+		return StdErrResult(err, "")
 	}
 
 	data, err := ezjson.Marshal(*ok)
 	if err != nil {
-		return StdErrResult("Failed to marshal init response to []byte: " + err.Error())
+		return StdErrResult(err, "Marshal Response")
 	}
 	return Package_message(data)
 }
 
 // ========= handler ============
-func DoHandler(handlerFn func(*Extern, Env, MessageInfo, []byte) (*HandleResultOk, *CosmosResponseError), envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
+func DoHandler(handlerFn func(*Extern, Env, MessageInfo, []byte) (*HandleResultOk, error), envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
 	msgData := Translate_range_custom(uintptr(msgPtr))
 	env := Env{}
 	envData := TranslateToSlice(uintptr(envPtr))
 	err := ezjson.Unmarshal(envData, &env)
 	if err != nil {
-		return StdErrResult("Cannot Parse Env")
+		return StdErrResult(err, "Parse Env")
 	}
 	info := MessageInfo{}
 	infoData := TranslateToSlice(uintptr(infoPtr))
 	err = ezjson.Unmarshal(infoData, &info)
 	if err != nil {
-		return StdErrResult("Cannot Parse Info")
+		return StdErrResult(err, "Parse Info")
 	}
 
 	deps := make_dependencies()
-	ok, ers := handlerFn(&deps, env, info, msgData)
+	ok, err := handlerFn(&deps, env, info, msgData)
 	if ok == nil {
-		b, e := ezjson.Marshal(ers)
-		if e != nil {
-			return StdErrResult("Marshal error failed : " + e.Error())
-		}
-		return Package_message(b)
+		return StdErrResult(err, "")
 	}
 
 	data, err := ezjson.Marshal(*ok)
 	if err != nil {
-		return StdErrResult("Failed to marshal init response to []byte: " + err.Error())
+		return StdErrResult(err, "Marshal Response")
 	}
 	return Package_message(data)
 }
 
 // =========== query ===================
-func DoQuery(queryFn func(*Extern, Env, []byte) (*QueryResponseOk, *CosmosResponseError), envPtr, msgPtr uint32) unsafe.Pointer {
+func DoQuery(queryFn func(*Extern, Env, []byte) (*QueryResponseOk, error), envPtr, msgPtr uint32) unsafe.Pointer {
 	msgData := Translate_range_custom(uintptr(msgPtr))
 	env := Env{}
 	envData := TranslateToSlice(uintptr(envPtr))
 	err := ezjson.Unmarshal(envData, &env)
 	if err != nil {
-		return StdErrResult("Cannot Parse Env")
+		return StdErrResult(err, "Parse Env")
 	}
 
 	deps := make_dependencies()
-	ok, ers := queryFn(&deps, env, msgData)
+	ok, err := queryFn(&deps, env, msgData)
 	if ok == nil {
-		b, e := ezjson.Marshal(ers)
-		if e != nil {
-			return StdErrResult("Marshal error failed : " + e.Error())
-		}
-		return Package_message(b)
+		return StdErrResult(err, "")
 	}
 
 	data, err := ezjson.Marshal(*ok)
 	if err != nil {
-		return StdErrResult("Failed to marshal init response to []byte: " + err.Error())
+		return StdErrResult(err, "Marshal Response")
 	}
 	return Package_message(data)
 }
