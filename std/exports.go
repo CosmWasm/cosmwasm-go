@@ -14,9 +14,12 @@ type ContractError struct {
 }
 
 func StdErrResult(err error, prefix string) unsafe.Pointer {
-	clean := strings.Replace(err.Error(), `"`, `\"`, -1)
+	raw := err.Error()
+	if prefix != "" {
+		raw = prefix + ": " + raw
+	}
+	clean := strings.Replace(raw, `"`, `\"`, -1)
 	msg := `{"error":"` + clean + `"}`
-	//msg := `{"error":"` + prefix + `"}`
 	return Package_message([]byte(msg))
 
 	//msg := err.Error()
@@ -75,7 +78,7 @@ func DoInit(initFn func(*Extern, Env, MessageInfo, []byte) (*InitResultOk, error
 	msgData := Translate_range_custom(uintptr(msgPtr))
 	ok, err := initFn(&deps, env, info, msgData)
 	if ok == nil {
-		return StdErrResult(err, "")
+		return StdErrResult(err, "Init")
 	}
 
 	data, err := ezjson.Marshal(*ok)
@@ -103,7 +106,7 @@ func DoHandler(handlerFn func(*Extern, Env, MessageInfo, []byte) (*HandleResultO
 	msgData := Translate_range_custom(uintptr(msgPtr))
 	ok, err := handlerFn(&deps, env, info, msgData)
 	if ok == nil {
-		return StdErrResult(err, "")
+		return StdErrResult(err, "Handle")
 	}
 
 	data, err := ezjson.Marshal(*ok)
@@ -126,7 +129,7 @@ func DoQuery(queryFn func(*Extern, Env, []byte) (*QueryResponseOk, error), envPt
 	deps := make_dependencies()
 	ok, err := queryFn(&deps, env, msgData)
 	if ok == nil {
-		return StdErrResult(err, "")
+		return StdErrResult(err, "Query")
 	}
 
 	data, err := ezjson.Marshal(*ok)
