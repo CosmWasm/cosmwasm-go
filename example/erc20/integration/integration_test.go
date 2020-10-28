@@ -63,7 +63,12 @@ func TestWorkflow(t *testing.T) {
 	)
 	require.NoError(t, err)
 	require.NotNil(t, res)
-	require.Equal(t, uint64(0xadf4d), gas)
+	require.Equal(t, uint64(0xb74a9), gas)
+
+	// check we get the attributes out
+	require.Equal(t, 1, len(res.Attributes))
+	require.Equal(t, "hello", res.Attributes[0].Key)
+	require.Equal(t, "world", res.Attributes[0].Value)
 
 	handleMsg := []byte(`{"Transfer":{"to":"1234567","value": 2000}}`)
 	_, gas, err = wasmer.Execute(codeID,

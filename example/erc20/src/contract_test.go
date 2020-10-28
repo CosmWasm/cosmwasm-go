@@ -35,6 +35,9 @@ func TestInit(t *testing.T) {
 			if tc.valid {
 				require.Nil(t, err)
 				require.NotNil(t, res)
+				require.Equal(t, 1, len(res.Ok.Attributes))
+				require.Equal(t, "hello", res.Ok.Attributes[0].Key)
+				require.Equal(t, "world", res.Ok.Attributes[0].Value)
 				// make sure we wrote the owner
 				owner := NewOwnership(deps)
 				owner.LoadOwner()

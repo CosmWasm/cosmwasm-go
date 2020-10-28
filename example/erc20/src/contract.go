@@ -33,7 +33,11 @@ func Init(deps *std.Extern, env std.Env, info std.MessageInfo, msg []byte) (*std
 	//saving state and owner info
 	erc20Protocol.SaveState()
 	ownerShip.SaveOwner()
-	return std.InitResultOkOkDefault(), nil
+	return &std.InitResultOk{
+		Ok: std.InitResponse{
+			Attributes: []std.Attribute{{"hello", "world"}},
+		},
+	}, nil
 }
 
 func Invoke(deps *std.Extern, env std.Env, info std.MessageInfo, msg []byte) (*std.HandleResultOk, *std.CosmosResponseError) {
