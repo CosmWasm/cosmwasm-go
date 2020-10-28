@@ -7,6 +7,7 @@ import (
 
 func Init(deps *std.Extern, env std.Env, info std.MessageInfo, msg []byte) (*std.InitResultOk, error) {
 	initMsg := InitMsg{}
+
 	ownerShip := NewOwnership(deps)
 	err := ezjson.Unmarshal(msg, &initMsg)
 	if err != nil {
@@ -15,6 +16,7 @@ func Init(deps *std.Extern, env std.Env, info std.MessageInfo, msg []byte) (*std
 	if err = initMsg.Validate(); err != nil {
 		return nil, err
 	}
+	deps.EApi.Debug("*** Init Called ***")
 
 	erc20Protocol := NewErc20Protocol(State{
 		NameOfToken:   initMsg.Name,

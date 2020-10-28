@@ -3,8 +3,9 @@
 package std
 
 import (
-	"github.com/cosmwasm/cosmwasm-go/std/ezjson"
 	"unsafe"
+
+	"github.com/cosmwasm/cosmwasm-go/std/ezjson"
 )
 
 type ContractError struct {
