@@ -174,6 +174,7 @@ func doAssign(opts []BaseOpt, vals reflect.Value, tps reflect.Type) error {
 		var uint64Slice []uint64
 		var uintptrSlice []uintptr
 		var stringSlice []string
+		var structIndex int
 
 		for _, opt := range opts {
 			Log(tinygo_typeof[opt.Type()] + ":" + opt.Name())
@@ -205,10 +206,18 @@ func doAssign(opts []BaseOpt, vals reflect.Value, tps reflect.Type) error {
 			case reflect.String:
 				stringSlice = append(stringSlice, opt.Value().(string))
 			case reflect.Struct:
-				item := reflect.New(tps.Elem())
-				doAssign(opt.Value().([]BaseOpt), item.Elem(), tps.Elem())
-				bigger := reflect.Append(vals, item.Elem())
-				vals.Set(bigger)
+				if structIndex >= vals.Len() {
+					//panic("We cannot allocate, you need to pass in an array with space")
+					// the following is correct but panics in wasm (needs float op)
+					item := reflect.New(tps.Elem())
+					doAssign(opt.Value().([]BaseOpt), item.Elem(), tps.Elem())
+					bigger := reflect.Append(vals, item.Elem())
+					vals.Set(bigger)
+				}
+				// TODO: see if opt.Value().([]BaseOpt)
+				// this sets the next item in the pre-allocated array
+				doAssign(opt.Value().([]BaseOpt), vals.Index(structIndex), tps.Elem())
+				structIndex++
 			case reflect.Slice, reflect.Array:
 				if opt.Type() != reflect.Slice && opt.Type() != reflect.Array {
 					if opt.IsEmpty() {
