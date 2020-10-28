@@ -208,6 +208,7 @@ func doAssign(opts []BaseOpt, vals reflect.Value, tps reflect.Type) error {
 				stringSlice = append(stringSlice, opt.Value().(string))
 			case reflect.Struct:
 				if structIndex >= vals.Len() {
+					// TODO: replace with break so we quietly drop rather than panic???
 					//panic("We cannot allocate, you need to pass in an array with space")
 					// the following is correct but panics in wasm (needs float op)
 					item := reflect.New(tps.Elem())

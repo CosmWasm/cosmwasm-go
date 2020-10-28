@@ -3,7 +3,6 @@
 package std
 
 import (
-	"strconv"
 	"strings"
 	"unsafe"
 
@@ -37,11 +36,29 @@ func make_dependencies() Extern {
 	}
 }
 
+func parseInfo(infoPtr uint32) (MessageInfo, error) {
+	infoData := TranslateToSlice(uintptr(infoPtr))
+	info := MessageInfo{
+		// we need to pre-allocate slices of structs due to ezjson limits
+		// this crashes if more than 5 native coins are sent
+		SentFunds: make([]Coin, 5),
+	}
+	err := ezjson.Unmarshal(infoData, &info)
+	if err != nil {
+		return info, err
+	}
+
+	// now we trim off the ones that we not filled above
+	var i = 0
+	for info.SentFunds[i].Denom != "" {
+		i++
+	}
+	info.SentFunds = info.SentFunds[:i]
+	return info, nil
+}
+
 // ========== init ==============
 func DoInit(initFn func(*Extern, Env, MessageInfo, []byte) (*InitResultOk, error), envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
-	msgData := Translate_range_custom(uintptr(msgPtr))
-	deps := make_dependencies()
-
 	env := Env{}
 	envData := TranslateToSlice(uintptr(envPtr))
 	err := ezjson.Unmarshal(envData, &env)
@@ -49,27 +66,13 @@ func DoInit(initFn func(*Extern, Env, MessageInfo, []byte) (*InitResultOk, error
 		return StdErrResult(err, "Parse Env")
 	}
 
-	info := MessageInfo{
-		//SentFunds: []Coin{{}},
-		SentFunds: make([]Coin, 5, 10),
-	}
-	infoData := TranslateToSlice(uintptr(infoPtr))
-
-	err = ezjson.Unmarshal(infoData, &info)
+	info, err := parseInfo(infoPtr)
 	if err != nil {
 		return StdErrResult(err, "Parse Info")
 	}
-	// measure funds length
-	deps.EApi.Debug("Len: " + strconv.Itoa(len(info.SentFunds)))
 
-	// remove 0's
-	var i = 0
-	for info.SentFunds[i].Denom != "" {
-		i++
-	}
-	info.SentFunds = info.SentFunds[:i]
-	deps.EApi.Debug("Trimmed Len: " + strconv.Itoa(len(info.SentFunds)))
-
+	deps := make_dependencies()
+	msgData := Translate_range_custom(uintptr(msgPtr))
 	ok, err := initFn(&deps, env, info, msgData)
 	if ok == nil {
 		return StdErrResult(err, "")
@@ -84,21 +87,20 @@ func DoInit(initFn func(*Extern, Env, MessageInfo, []byte) (*InitResultOk, error
 
 // ========= handler ============
 func DoHandler(handlerFn func(*Extern, Env, MessageInfo, []byte) (*HandleResultOk, error), envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
-	msgData := Translate_range_custom(uintptr(msgPtr))
 	env := Env{}
 	envData := TranslateToSlice(uintptr(envPtr))
 	err := ezjson.Unmarshal(envData, &env)
 	if err != nil {
 		return StdErrResult(err, "Parse Env")
 	}
-	info := MessageInfo{}
-	infoData := TranslateToSlice(uintptr(infoPtr))
-	err = ezjson.Unmarshal(infoData, &info)
+
+	info, err := parseInfo(infoPtr)
 	if err != nil {
 		return StdErrResult(err, "Parse Info")
 	}
 
 	deps := make_dependencies()
+	msgData := Translate_range_custom(uintptr(msgPtr))
 	ok, err := handlerFn(&deps, env, info, msgData)
 	if ok == nil {
 		return StdErrResult(err, "")
