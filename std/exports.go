@@ -39,6 +39,7 @@ func make_dependencies() Extern {
 // ========== init ==============
 func DoInit(initFn func(*Extern, Env, MessageInfo, []byte) (*InitResultOk, error), envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
 	msgData := Translate_range_custom(uintptr(msgPtr))
+	deps := make_dependencies()
 
 	env := Env{}
 	envData := TranslateToSlice(uintptr(envPtr))
@@ -47,15 +48,20 @@ func DoInit(initFn func(*Extern, Env, MessageInfo, []byte) (*InitResultOk, error
 		return StdErrResult(err, "Parse Env")
 	}
 
-	info := MessageInfo{}
+	info := MessageInfo{
+		//SentFunds: []Coin{{}},
+		SentFunds: make([]Coin, 5, 10),
+	}
 	infoData := TranslateToSlice(uintptr(infoPtr))
 
 	err = ezjson.Unmarshal(infoData, &info)
 	if err != nil {
 		return StdErrResult(err, "Parse Info")
 	}
+	// measure funds length
 
-	deps := make_dependencies()
+	// remove 0's
+
 	ok, err := initFn(&deps, env, info, msgData)
 	if ok == nil {
 		return StdErrResult(err, "")

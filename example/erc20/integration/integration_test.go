@@ -110,7 +110,7 @@ func TestInfoMarshalCompatibility(t *testing.T) {
 		funds []types.Coin
 	}{
 		"no funds":   {},
-		"some funds": {funds: types.Coins{types.NewCoin(1000, "uatom")}},
+		"some funds": {funds: types.Coins{types.NewCoin(1000, "uatom"), types.NewCoin(5000, "eth")}},
 	}
 
 	for name, tc := range cases {
