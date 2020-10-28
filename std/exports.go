@@ -24,18 +24,24 @@ func make_dependencies() Extern {
 }
 
 // ========== init ==============
-func DoInit(initFn func(*Extern, Env, []byte) (*InitResultOk, *CosmosResponseError), envPtr, msgPtr uint32) unsafe.Pointer {
-	envData := TranslateToSlice(uintptr(envPtr))
+func DoInit(initFn func(*Extern, Env, MessageInfo, []byte) (*InitResultOk, *CosmosResponseError), envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
 	msgData := Translate_range_custom(uintptr(msgPtr))
 
 	env := Env{}
+	envData := TranslateToSlice(uintptr(envPtr))
 	err := ezjson.Unmarshal(envData, &env)
 	if err != nil {
-		return StdErrResult("Testing generic error result")
+		return StdErrResult("Cannot Parse Env")
+	}
+	info := MessageInfo{}
+	infoData := TranslateToSlice(uintptr(infoPtr))
+	err := ezjson.Unmarshal(infoData, &info)
+	if err != nil {
+		return StdErrResult("Cannot Parse Info")
 	}
 
 	deps := make_dependencies()
-	ok, ers := initFn(&deps, env, msgData)
+	ok, ers := initFn(&deps, env, info, msgData)
 	if ok == nil {
 		b, e := ezjson.Marshal(ers)
 		if e != nil {
@@ -52,17 +58,23 @@ func DoInit(initFn func(*Extern, Env, []byte) (*InitResultOk, *CosmosResponseErr
 }
 
 // ========= handler ============
-func DoHandler(handlerFn func(*Extern, Env, []byte) (*HandleResultOk, *CosmosResponseError), envPtr, msgPtr uint32) unsafe.Pointer {
-	envData := TranslateToSlice(uintptr(envPtr))
+func DoHandler(handlerFn func(*Extern, Env, MessageInfo, []byte) (*HandleResultOk, *CosmosResponseError), envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
 	msgData := Translate_range_custom(uintptr(msgPtr))
 	env := Env{}
+	envData := TranslateToSlice(uintptr(envPtr))
 	err := ezjson.Unmarshal(envData, &env)
 	if err != nil {
-		return StdErrResult("Testing generic error result")
+		return StdErrResult("Cannot Parse Env")
+	}
+	info := MessageInfo{}
+	infoData := TranslateToSlice(uintptr(infoPtr))
+	err := ezjson.Unmarshal(infoData, &info)
+	if err != nil {
+		return StdErrResult("Cannot Parse Info")
 	}
 
 	deps := make_dependencies()
-	ok, ers := handlerFn(&deps, env, msgData)
+	ok, ers := handlerFn(&deps, env, info, msgData)
 	if ok == nil {
 		b, e := ezjson.Marshal(ers)
 		if e != nil {
@@ -79,11 +91,17 @@ func DoHandler(handlerFn func(*Extern, Env, []byte) (*HandleResultOk, *CosmosRes
 }
 
 // =========== query ===================
-func DoQuery(queryFn func(*Extern, []byte) (*QueryResponseOk, *CosmosResponseError), msgPtr uint32) unsafe.Pointer {
+func DoQuery(queryFn func(*Extern, Env, []byte) (*QueryResponseOk, *CosmosResponseError), envPtr, msgPtr uint32) unsafe.Pointer {
 	msgData := Translate_range_custom(uintptr(msgPtr))
+	env := Env{}
+	envData := TranslateToSlice(uintptr(envPtr))
+	err := ezjson.Unmarshal(envData, &env)
+	if err != nil {
+		return StdErrResult("Cannot Parse Env")
+	}
 
 	deps := make_dependencies()
-	ok, ers := queryFn(&deps, msgData)
+	ok, ers := queryFn(&deps, env, msgData)
 	if ok == nil {
 		b, e := ezjson.Marshal(ers)
 		if e != nil {
