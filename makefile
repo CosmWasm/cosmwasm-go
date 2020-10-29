@@ -11,7 +11,6 @@ test-std:
 
 test-contracts:
 	cd example/erc20 && $(MAKE) test
-	cd example/tester && $(MAKE) test
 
 examples: erc20
 
