@@ -15,7 +15,7 @@ func Init(deps *std.Extern, env std.Env, info std.MessageInfo, msg []byte) (*std
 	}
 
 	state := State{
-		Count: int64(initMsg.Count),
+		Count: initMsg.Count,
 		Owner: info.Sender,
 	}
 
@@ -50,7 +50,7 @@ func handleIncrement(deps *std.Extern, env *std.Env, info *std.MessageInfo, msg 
 		return nil, err
 	}
 
-	state.Count += int64(msg.Delta)
+	state.Count += msg.Delta
 
 	err = SaveState(deps.EStorage, state)
 	if err != nil {
@@ -68,7 +68,7 @@ func handleReset(deps *std.Extern, env *std.Env, info *std.MessageInfo, msg Rese
 	if info.Sender != state.Owner {
 		return nil, errors.New("Unauthorized")
 	}
-	state.Count = int64(msg.Value)
+	state.Count = msg.Value
 
 	err = SaveState(deps.EStorage, state)
 	if err != nil {

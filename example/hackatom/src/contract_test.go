@@ -11,7 +11,7 @@ import (
 func TestInit(t *testing.T) {
 	cases := map[string]struct {
 		initMsg []byte
-		count   int64
+		count   uint64
 	}{
 		// TODO: why doesn't ezjson.Unmarshal return an error here?
 		"random json": {initMsg: []byte("{...")},

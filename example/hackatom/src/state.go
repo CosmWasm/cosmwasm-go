@@ -8,11 +8,9 @@ import (
 
 // this is what we store
 type State struct {
-	// having issues storing []byte (maybe human addr is better?)
+	// having issues unmarshalling []byte (maybe human addr is better anyway?)
 	Owner string `json:"owner"`
-	// Huh, why does this fail to marhsall as uint64?
-	//Count uint64 `json:"count"`
-	Count int64 `json:"count"`
+	Count uint64 `json:"count"`
 }
 
 var StateKey = []byte("State")
