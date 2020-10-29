@@ -18,3 +18,6 @@ build:
 	../../scripts/compile.sh $(PACKAGE)
 	@mv -f ../../$(PACKAGE).wasm .
 	@rm -f ../../$(PACKAGE).wat
+
+fmt:
+	go fmt ./...
