@@ -1,7 +1,7 @@
 package std
 
-// =========== Extern --> context =======
-type Extern struct {
+// =========== Deps --> context =======
+type Deps struct {
 	Storage Storage
 	Api     Api
 	Querier Querier

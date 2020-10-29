@@ -31,8 +31,8 @@ func StdErrResult(err error, prefix string) unsafe.Pointer {
 	//return Package_message(bz)
 }
 
-func make_dependencies() Extern {
-	return Extern{
+func make_dependencies() Deps {
+	return Deps{
 		Storage: ExternalStorage{},
 		Api:     ExternalApi{},
 		Querier: ExternalQuerier{},
@@ -61,7 +61,7 @@ func parseInfo(infoPtr uint32) (MessageInfo, error) {
 }
 
 // ========== init ==============
-func DoInit(initFn func(*Extern, Env, MessageInfo, []byte) (*InitResultOk, error), envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
+func DoInit(initFn func(*Deps, Env, MessageInfo, []byte) (*InitResultOk, error), envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
 	env := Env{}
 	envData := TranslateToSlice(uintptr(envPtr))
 	err := ezjson.Unmarshal(envData, &env)
@@ -89,7 +89,7 @@ func DoInit(initFn func(*Extern, Env, MessageInfo, []byte) (*InitResultOk, error
 }
 
 // ========= handler ============
-func DoHandler(handlerFn func(*Extern, Env, MessageInfo, []byte) (*HandleResultOk, error), envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
+func DoHandler(handlerFn func(*Deps, Env, MessageInfo, []byte) (*HandleResultOk, error), envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
 	env := Env{}
 	envData := TranslateToSlice(uintptr(envPtr))
 	err := ezjson.Unmarshal(envData, &env)
@@ -117,7 +117,7 @@ func DoHandler(handlerFn func(*Extern, Env, MessageInfo, []byte) (*HandleResultO
 }
 
 // =========== query ===================
-func DoQuery(queryFn func(*Extern, Env, []byte) (*QueryResponseOk, error), envPtr, msgPtr uint32) unsafe.Pointer {
+func DoQuery(queryFn func(*Deps, Env, []byte) (*QueryResponseOk, error), envPtr, msgPtr uint32) unsafe.Pointer {
 	msgData := Translate_range_custom(uintptr(msgPtr))
 	env := Env{}
 	envData := TranslateToSlice(uintptr(envPtr))

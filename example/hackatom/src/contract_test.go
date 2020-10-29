@@ -21,7 +21,7 @@ func TestInit(t *testing.T) {
 
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
-			deps := std.MockExtern()
+			deps := std.MockDeps()
 			env := std.MockEnv()
 			info := std.MockInfo("creator", nil)
 			res, err := Init(deps, env, info, tc.initMsg)

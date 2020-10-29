@@ -25,7 +25,7 @@ func getNotEmptyElem(h Handler) interface{} {
 	return nil
 }
 
-func handleInvokeMessage(deps *std.Extern, env std.Env, info std.MessageInfo, msg []byte) (*std.HandleResultOk, error) {
+func handleInvokeMessage(deps *std.Deps, env std.Env, info std.MessageInfo, msg []byte) (*std.HandleResultOk, error) {
 	handler := Handler{}
 	err := ezjson.Unmarshal(msg, &handler)
 	if err != nil {
@@ -77,7 +77,7 @@ func handleTransferFrom(tf TransferFrom, erc20 Erc20) (*std.HandleResultOk, erro
 	return nil, errors.New("TransferFrom failed")
 }
 
-func handleTransferOwner(deps *std.Extern, info *std.MessageInfo, to TransferOwner, owner Owner) (*std.HandleResultOk, error) {
+func handleTransferOwner(deps *std.Deps, info *std.MessageInfo, to TransferOwner, owner Owner) (*std.HandleResultOk, error) {
 	sender, err := deps.Api.CanonicalAddress(info.Sender)
 	if err != nil {
 		return nil, err
@@ -94,7 +94,7 @@ func handleTransferOwner(deps *std.Extern, info *std.MessageInfo, to TransferOwn
 	return nil, errors.New("TransferOwner save failed")
 }
 
-func handleTransferOwnerAccepted(deps *std.Extern, info *std.MessageInfo, atf AcceptTransferredOwner, owner Owner) (*std.HandleResultOk, error) {
+func handleTransferOwnerAccepted(deps *std.Deps, info *std.MessageInfo, atf AcceptTransferredOwner, owner Owner) (*std.HandleResultOk, error) {
 	sender, err := deps.Api.CanonicalAddress(info.Sender)
 	if err != nil {
 		return nil, err
@@ -121,7 +121,7 @@ func getNotEmptyQueryElem(q Querier) interface{} {
 	return nil
 }
 
-func handleQuery(deps *std.Extern, _env std.Env, msg []byte) (*std.QueryResponseOk, error) {
+func handleQuery(deps *std.Deps, _env std.Env, msg []byte) (*std.QueryResponseOk, error) {
 	querier := Querier{}
 	err := ezjson.Unmarshal(msg, &querier)
 	if err != nil {

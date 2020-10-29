@@ -7,7 +7,7 @@ import (
 	"github.com/cosmwasm/cosmwasm-go/std/ezjson"
 )
 
-func Init(deps *std.Extern, env std.Env, info std.MessageInfo, msg []byte) (*std.InitResultOk, error) {
+func Init(deps *std.Deps, env std.Env, info std.MessageInfo, msg []byte) (*std.InitResultOk, error) {
 	initMsg := InitMsg{}
 	err := ezjson.Unmarshal(msg, &initMsg)
 	if err != nil {
@@ -26,7 +26,7 @@ func Init(deps *std.Extern, env std.Env, info std.MessageInfo, msg []byte) (*std
 	return &std.InitResultOk{}, nil
 }
 
-func Handle(deps *std.Extern, env std.Env, info std.MessageInfo, data []byte) (*std.HandleResultOk, error) {
+func Handle(deps *std.Deps, env std.Env, info std.MessageInfo, data []byte) (*std.HandleResultOk, error) {
 	msg := HandleMsg{}
 	err := ezjson.Unmarshal(data, &msg)
 	if err != nil {
@@ -44,7 +44,7 @@ func Handle(deps *std.Extern, env std.Env, info std.MessageInfo, data []byte) (*
 	}
 }
 
-func handleIncrement(deps *std.Extern, env *std.Env, info *std.MessageInfo, msg Increment) (*std.HandleResultOk, error) {
+func handleIncrement(deps *std.Deps, env *std.Env, info *std.MessageInfo, msg Increment) (*std.HandleResultOk, error) {
 	state, err := LoadState(deps.Storage)
 	if err != nil {
 		return nil, err
@@ -59,7 +59,7 @@ func handleIncrement(deps *std.Extern, env *std.Env, info *std.MessageInfo, msg 
 	return &std.HandleResultOk{}, nil
 }
 
-func handleReset(deps *std.Extern, env *std.Env, info *std.MessageInfo, msg Reset) (*std.HandleResultOk, error) {
+func handleReset(deps *std.Deps, env *std.Env, info *std.MessageInfo, msg Reset) (*std.HandleResultOk, error) {
 	state, err := LoadState(deps.Storage)
 	if err != nil {
 		return nil, err
@@ -77,7 +77,7 @@ func handleReset(deps *std.Extern, env *std.Env, info *std.MessageInfo, msg Rese
 	return &std.HandleResultOk{}, nil
 }
 
-func Query(deps *std.Extern, env std.Env, data []byte) (*std.QueryResponseOk, error) {
+func Query(deps *std.Deps, env std.Env, data []byte) (*std.QueryResponseOk, error) {
 	msg := QueryMsg{}
 	err := ezjson.Unmarshal(data, &msg)
 	if err != nil {
@@ -94,7 +94,7 @@ func Query(deps *std.Extern, env std.Env, data []byte) (*std.QueryResponseOk, er
 	}
 }
 
-func queryCount(deps *std.Extern, env *std.Env) (*std.QueryResponseOk, error) {
+func queryCount(deps *std.Deps, env *std.Env) (*std.QueryResponseOk, error) {
 	state, err := LoadState(deps.Storage)
 	if err != nil {
 		return nil, err

@@ -28,7 +28,7 @@ func TestInit(t *testing.T) {
 
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
-			deps := std.MockExtern()
+			deps := std.MockDeps()
 			env := std.MockEnv()
 			info := std.MockInfo("creator", tc.funds)
 			res, err := Init(deps, env, info, tc.initMsg)
@@ -53,7 +53,7 @@ func TestInit(t *testing.T) {
 
 // This demos unit testing state objects
 func TestOwner(t *testing.T) {
-	deps := std.MockExtern()
+	deps := std.MockDeps()
 	ownership := NewOwnership(deps)
 
 	// write some data
@@ -107,7 +107,7 @@ func TestOwner(t *testing.T) {
 
 // This runs the same path we do in cosmwasm-simulate
 func TestWorkflow(t *testing.T) {
-	deps := std.MockExtern()
+	deps := std.MockDeps()
 	env := std.MockEnv()
 	info := std.MockInfo("original_owner_addr", nil)
 

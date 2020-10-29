@@ -53,7 +53,7 @@ type Ownership struct {
 	owner    []byte
 	newOwner []byte
 
-	apis *std.Extern
+	apis *std.Deps
 }
 
 func (o *Ownership) Owned(ownerAddr []byte) {
@@ -124,7 +124,7 @@ type State struct {
 
 type implErc20 struct {
 	State
-	apis *std.Extern
+	apis *std.Deps
 	info *std.MessageInfo
 }
 
@@ -245,9 +245,9 @@ func (i implErc20) SaveState() bool {
 	return e == nil
 }
 
-func LoadState(extern *std.Extern) (State, error) {
+func LoadState(Deps *std.Deps) (State, error) {
 	state := State{}
-	v, e := extern.Storage.Get([]byte("State"))
+	v, e := Deps.Storage.Get([]byte("State"))
 	if e != nil {
 		return state, e
 	}
@@ -255,14 +255,14 @@ func LoadState(extern *std.Extern) (State, error) {
 	return state, e
 }
 
-func NewErc20Protocol(state State, extern *std.Extern, info *std.MessageInfo) Erc20 {
+func NewErc20Protocol(state State, Deps *std.Deps, info *std.MessageInfo) Erc20 {
 	return implErc20{
 		State: state,
-		apis:  extern,
+		apis:  Deps,
 		info:  info,
 	}
 }
 
-func NewOwnership(extern *std.Extern) Owner {
-	return &Ownership{owner: nil, newOwner: nil, apis: extern}
+func NewOwnership(Deps *std.Deps) Owner {
+	return &Ownership{owner: nil, newOwner: nil, apis: Deps}
 }
