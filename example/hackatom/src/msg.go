@@ -28,5 +28,5 @@ type Count struct {
 }
 
 type CountResponse struct {
-	Count uint64 `json:"count"`
+	Count int64 `json:"count"`
 }
