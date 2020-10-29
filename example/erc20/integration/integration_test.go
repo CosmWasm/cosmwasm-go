@@ -203,7 +203,7 @@ func TestWorkflowWithFunds(t *testing.T) {
 	)
 	require.NoError(t, err)
 	require.NotNil(t, res)
-	require.Equal(t, uint64(0xe4c9e), gas)
+	require.Equal(t, uint64(0xe4cb6), gas)
 }
 
 func mockEnv() types.Env {

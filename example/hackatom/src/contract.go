@@ -19,7 +19,7 @@ func Init(deps *std.Extern, env std.Env, info std.MessageInfo, msg []byte) (*std
 		Owner: info.Sender,
 	}
 
-	err = SaveState(deps.EStorage, &state)
+	err = SaveState(deps.Storage, &state)
 	if err != nil {
 		return nil, err
 	}
@@ -45,14 +45,14 @@ func Handle(deps *std.Extern, env std.Env, info std.MessageInfo, data []byte) (*
 }
 
 func handleIncrement(deps *std.Extern, env *std.Env, info *std.MessageInfo, msg Increment) (*std.HandleResultOk, error) {
-	state, err := LoadState(deps.EStorage)
+	state, err := LoadState(deps.Storage)
 	if err != nil {
 		return nil, err
 	}
 
 	state.Count += msg.Delta
 
-	err = SaveState(deps.EStorage, state)
+	err = SaveState(deps.Storage, state)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +60,7 @@ func handleIncrement(deps *std.Extern, env *std.Env, info *std.MessageInfo, msg 
 }
 
 func handleReset(deps *std.Extern, env *std.Env, info *std.MessageInfo, msg Reset) (*std.HandleResultOk, error) {
-	state, err := LoadState(deps.EStorage)
+	state, err := LoadState(deps.Storage)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +70,7 @@ func handleReset(deps *std.Extern, env *std.Env, info *std.MessageInfo, msg Rese
 	}
 	state.Count = msg.Value
 
-	err = SaveState(deps.EStorage, state)
+	err = SaveState(deps.Storage, state)
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +95,7 @@ func Query(deps *std.Extern, env std.Env, data []byte) (*std.QueryResponseOk, er
 }
 
 func queryCount(deps *std.Extern, env *std.Env) (*std.QueryResponseOk, error) {
-	state, err := LoadState(deps.EStorage)
+	state, err := LoadState(deps.Storage)
 	if err != nil {
 		return nil, err
 	}

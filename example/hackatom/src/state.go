@@ -33,6 +33,6 @@ func SaveState(storage std.Storage, state *State) error {
 		return err
 	}
 	// TODO: this should not return error
-	// TODO: change names EApi -> Api
+	// TODO: change names Api -> Api
 	return storage.Set(StateKey, bz)
 }

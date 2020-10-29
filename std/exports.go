@@ -33,9 +33,9 @@ func StdErrResult(err error, prefix string) unsafe.Pointer {
 
 func make_dependencies() Extern {
 	return Extern{
-		EStorage: ExternalStorage{},
-		EApi:     ExternalApi{},
-		EQuerier: ExternalQuerier{},
+		Storage: ExternalStorage{},
+		Api:     ExternalApi{},
+		Querier: ExternalQuerier{},
 	}
 }
 

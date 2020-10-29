@@ -78,11 +78,11 @@ func handleTransferFrom(tf TransferFrom, erc20 Erc20) (*std.HandleResultOk, erro
 }
 
 func handleTransferOwner(deps *std.Extern, info *std.MessageInfo, to TransferOwner, owner Owner) (*std.HandleResultOk, error) {
-	sender, err := deps.EApi.CanonicalAddress(info.Sender)
+	sender, err := deps.Api.CanonicalAddress(info.Sender)
 	if err != nil {
 		return nil, err
 	}
-	newOwner, err := deps.EApi.CanonicalAddress(to.NewOwner)
+	newOwner, err := deps.Api.CanonicalAddress(to.NewOwner)
 	if err != nil {
 		return nil, err
 	}
@@ -95,11 +95,11 @@ func handleTransferOwner(deps *std.Extern, info *std.MessageInfo, to TransferOwn
 }
 
 func handleTransferOwnerAccepted(deps *std.Extern, info *std.MessageInfo, atf AcceptTransferredOwner, owner Owner) (*std.HandleResultOk, error) {
-	sender, err := deps.EApi.CanonicalAddress(info.Sender)
+	sender, err := deps.Api.CanonicalAddress(info.Sender)
 	if err != nil {
 		return nil, err
 	}
-	accepted, err := deps.EApi.CanonicalAddress(atf.AcceptedAddr)
+	accepted, err := deps.Api.CanonicalAddress(atf.AcceptedAddr)
 	if err != nil {
 		return nil, err
 	}

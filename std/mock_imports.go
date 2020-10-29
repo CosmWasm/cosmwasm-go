@@ -10,9 +10,9 @@ import (
 
 func MockExtern() *Extern {
 	return &Extern{
-		EStorage: NewMockStorage(),
-		EApi:     MockApi{},
-		EQuerier: MockQuerier{},
+		Storage: NewMockStorage(),
+		Api:     MockApi{},
+		Querier: MockQuerier{},
 	}
 }
 

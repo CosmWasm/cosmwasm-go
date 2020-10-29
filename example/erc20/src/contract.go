@@ -16,7 +16,7 @@ func Init(deps *std.Extern, env std.Env, info std.MessageInfo, msg []byte) (*std
 	if err = initMsg.Validate(); err != nil {
 		return nil, err
 	}
-	deps.EApi.Debug("*** Init Called ***")
+	deps.Api.Debug("*** Init Called ***")
 
 	erc20Protocol := NewErc20Protocol(State{
 		NameOfToken:   initMsg.Name,
@@ -25,7 +25,7 @@ func Init(deps *std.Extern, env std.Env, info std.MessageInfo, msg []byte) (*std
 		TotalSupplyOf: initMsg.TotalSupply,
 	}, deps, &info)
 
-	owner, err := deps.EApi.CanonicalAddress(info.Sender)
+	owner, err := deps.Api.CanonicalAddress(info.Sender)
 	if err != nil {
 		return nil, err
 	}
