@@ -1,7 +1,6 @@
 package src
 
 import (
-	"fmt"
 	"github.com/cosmwasm/cosmwasm-go/std"
 	"github.com/cosmwasm/cosmwasm-go/std/ezjson"
 )
@@ -21,7 +20,6 @@ func LoadState(storage std.Storage) (*State, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(string(data))
 	err = ezjson.Unmarshal(data, &state)
 	if err != nil {
 		return nil, err
