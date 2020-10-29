@@ -14,13 +14,9 @@ func Init(deps *std.Extern, env std.Env, info std.MessageInfo, msg []byte) (*std
 		return nil, err
 	}
 
-	owner, err := deps.EApi.CanonicalAddress(info.Sender)
-	if err != nil {
-		return nil, err
-	}
 	state := State{
-		Count: initMsg.Count,
-		Owner: owner,
+		Count: int64(initMsg.Count),
+		Owner: info.Sender,
 	}
 
 	err = SaveState(deps.EStorage, &state)
@@ -54,7 +50,7 @@ func handleIncrement(deps *std.Extern, env *std.Env, info *std.MessageInfo, msg 
 		return nil, err
 	}
 
-	state.Count += msg.Delta
+	state.Count += int64(msg.Delta)
 
 	err = SaveState(deps.EStorage, state)
 	if err != nil {
@@ -69,14 +65,10 @@ func handleReset(deps *std.Extern, env *std.Env, info *std.MessageInfo, msg Rese
 		return nil, err
 	}
 
-	owner, err := deps.EApi.HumanAddress(state.Owner)
-	if err != nil {
-		return nil, err
-	}
-	if info.Sender != owner {
+	if info.Sender != state.Owner {
 		return nil, errors.New("Unauthorized")
 	}
-	state.Count = msg.Value
+	state.Count = int64(msg.Value)
 
 	err = SaveState(deps.EStorage, state)
 	if err != nil {
