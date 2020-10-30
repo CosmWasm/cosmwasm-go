@@ -123,27 +123,31 @@ func TestUnmarshal(t *testing.T) {
 }
 
 func TestMarshal_Tag(t *testing.T) {
-	name, b, _ := getTag("json:\"time\"")
+	name, b, _, _ := getTag("json:\"time\"")
 	require.Equal(t, "time", name)
 	require.Equal(t, b, false)
 
-	name, b, _ = getTag("json:\"opt,omitempty\"")
+	name, b, _, _ = getTag("json:\"opt,omitempty\"")
 	require.Equal(t, "opt", name)
 	require.Equal(t, b, true)
 
-	name, b, r := getTag("json:\"omitempty\"")
+	name, b, r, _ := getTag("json:\"omitempty\"")
 	require.Equal(t, "", name)
 	require.Equal(t, b, true)
 	require.Equal(t, r, false)
 
-	name, _, r = getTag("json:\"rust_option\"")
+	name, _, r, _ = getTag("json:\"rust_option\"")
 	require.Equal(t, "", name)
 	require.Equal(t, r, true)
 
-	name, _, r = getTag(`json:"Ok,omitempty,rust_option"`)
+	name, _, r, _ = getTag(`json:"Ok,omitempty,rust_option"`)
 	require.Equal(t, "Ok", name)
 	require.Equal(t, r, true)
 
+	name, _, r, o := getTag(`json:"get_count,opt_seen"`)
+	require.Equal(t, "get_count", name)
+	require.Equal(t, false, r)
+	require.Equal(t, true, o)
 }
 
 func TestRustOption(t *testing.T) {

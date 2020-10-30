@@ -29,6 +29,10 @@ type BaseOpt interface {
 
 	//setting attribute
 	Attribute(key string, value bool)
+
+	// whether we need to make a seen field on the struct
+	// currently only for EmptyStruct, may extend this later
+	IsOptSeen() bool
 }
 
 type BaseName struct {
@@ -36,6 +40,7 @@ type BaseName struct {
 	realName    string
 	omitempty   bool
 	rust_option bool
+	opt_seen    bool
 }
 
 func (b BaseName) Name() string {
@@ -51,6 +56,8 @@ func (b *BaseName) Attribute(key string, value bool) {
 		b.omitempty = value
 	} else if key == RustOption {
 		b.rust_option = value
+	} else if key == OptSeen {
+		b.opt_seen = value
 	}
 }
 
@@ -60,6 +67,10 @@ func (b BaseName) IsOmitEmpty() bool {
 
 func (b BaseName) IsRustOption() bool {
 	return b.rust_option
+}
+
+func (b BaseName) IsOptSeen() bool {
+	return b.opt_seen
 }
 
 func (b BaseName) GetJsonName() string {

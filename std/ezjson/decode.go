@@ -276,10 +276,12 @@ func doAssign(opts []BaseOpt, vals reflect.Value, tps reflect.Type) error {
 
 		return nil
 	}
+
 	FieldLen := vals.NumField()
 	for i := 0; i < FieldLen; i++ {
 		tp := tps.Field(i)
-		realName, _, _ := getTag(string(tp.Tag))
+		realName, _, _, _ := getTag(string(tp.Tag))
+
 		if len(realName) <= 0 {
 			realName = tps.Field(i).Name
 		}
@@ -311,7 +313,17 @@ func doAssign(opts []BaseOpt, vals reflect.Value, tps reflect.Type) error {
 				val.SetString(opt.Value().(string))
 			case reflect.Struct:
 				Log("Setting Struct")
-				doAssign(opt.Value().([]BaseOpt), val, tps.Field(i).Type)
+				subOpts := opt.Value().([]BaseOpt)
+				if opt.IsOptSeen() {
+					Log("OptSeen")
+					// here we do the magic - this works for EmptyStruct now, maybe others in the future?
+					unseen := len(subOpts) > 0 && subOpts[0].Tag() == "do_not_set_this_field"
+					if !unseen {
+						Log("Match")
+						val.Field(0).Set(ValueOf(true))
+					}
+				}
+				doAssign(subOpts, val, tps.Field(i).Type)
 			case reflect.Slice, reflect.Array:
 				Log("Setting Slice")
 				if opt.Type() != reflect.Slice && opt.Type() != reflect.Array {
