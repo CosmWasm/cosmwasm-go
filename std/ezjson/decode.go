@@ -354,10 +354,6 @@ func doAssign(opts []BaseOpt, vals reflect.Value, tps reflect.Type) error {
 	return nil
 }
 
-type EzJsonUnmarshaller interface {
-	UnmarshalEzJson(opts []BaseOpt) (interface{}, error)
-}
-
 func assign(opts []BaseOpt, out interface{}) error {
 	tps := reflect.TypeOf(out)
 	vals := reflect.ValueOf(out)

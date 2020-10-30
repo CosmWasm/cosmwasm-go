@@ -9,7 +9,7 @@ import (
 
 // set this to true if you want to do deep debuging of ezjson parsing inside the wasm blog
 // (using debug import to print)
-const DEBUG_EZJSON = true
+const DEBUG_EZJSON = false
 
 func init() {
 	if DEBUG_EZJSON {

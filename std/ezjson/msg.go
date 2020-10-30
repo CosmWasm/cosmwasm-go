@@ -8,8 +8,3 @@ type EmptyStruct struct {
 func (e EmptyStruct) WasSet() bool {
 	return e.Seen
 }
-
-//// always serialize as an empty struct
-//func (e EmptyStruct) MarshalJSON() ([]byte, error) {
-//	return []byte(`{}`), nil
-//}
