@@ -3,12 +3,12 @@ package src
 import "github.com/cosmwasm/cosmwasm-go/std/ezjson"
 
 type InitMsg struct {
-	Verifier    string `json:"verifier"`
-	Beneficiary string `json:"beneficiary"`
+	Verifier    string `json:"VERIFIER"`
+	Beneficiary string `json:"BENEFICIARY"`
 }
 
 type MigrateMsg struct {
-	Verifier string `json:"verifier"`
+	Verifier string `json:"VERIFIER"`
 }
 
 type HandleMsg struct {
@@ -22,7 +22,7 @@ type HandleMsg struct {
 }
 
 type QueryMsg struct {
-	Verifier     ezjson.EmptyStruct `json:"verifier,opt_seen"`
+	Verifier     ezjson.EmptyStruct `json:"VERIFIER,opt_seen"`
 	OtherBalance OtherBalance       `json:"other_balance,omit_empty"`
 	Recurse      Recurse            `json:"recurse,omit_empty"`
 }
@@ -37,7 +37,7 @@ type Recurse struct {
 }
 
 type VerifierResponse struct {
-	Verifier string `json:"verifier"`
+	Verifier string `json:"VERIFIER"`
 }
 
 type RecurseResponse struct {

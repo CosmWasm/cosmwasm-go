@@ -8,9 +8,9 @@ import (
 // this is what we store
 type State struct {
 	// TODO: convert to canonical addresses when that is supported by ezjson
-	Verifier    string `json:"verifier"`
-	Beneficiary string `json:"beneficiary"`
-	Funder      string `json:"funder"`
+	Verifier    string `json:"VERIFIER"`
+	Beneficiary string `json:"BENEFICIARY"`
+	Funder      string `json:"FUNDER"`
 }
 
 var StateKey = []byte("config")

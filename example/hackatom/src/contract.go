@@ -7,6 +7,10 @@ import (
 	"github.com/cosmwasm/cosmwasm-go/std/ezjson"
 )
 
+// TODO: use querier
+// TODO: add migration support
+// TODO: last functions
+
 func Init(deps *std.Deps, env std.Env, info std.MessageInfo, msg []byte) (*std.InitResultOk, error) {
 	deps.Api.Debug("here we go 🚀")
 
