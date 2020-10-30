@@ -5,6 +5,7 @@ package ezjson
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 
 	"github.com/cosmwasm/jsonparser"
@@ -276,6 +277,19 @@ func doAssign(opts []BaseOpt, vals reflect.Value, tps reflect.Type) error {
 
 		return nil
 	}
+	// this is the struct case. let's allow custom callbacks here
+	fmt.Printf("tps: %s\n", tps.Kind())
+	fmt.Printf("vals: %#v\n", vals.Interface())
+	if mar, ok := vals.Interface().(EzJsonUnmarshaller); ok {
+		fmt.Println("EEEZZZZ")
+		parsed, err := mar.UnmarshalEzJson(opts)
+		if err != nil {
+			return err
+		}
+		vals.Set(ValueOf(parsed))
+		return nil
+	}
+
 	FieldLen := vals.NumField()
 	for i := 0; i < FieldLen; i++ {
 		tp := tps.Field(i)
@@ -341,6 +355,11 @@ func doAssign(opts []BaseOpt, vals reflect.Value, tps reflect.Type) error {
 	}
 	return nil
 }
+
+type EzJsonUnmarshaller interface {
+	UnmarshalEzJson(opts []BaseOpt) (interface{}, error)
+}
+
 
 func assign(opts []BaseOpt, out interface{}) error {
 	tps := reflect.TypeOf(out)
