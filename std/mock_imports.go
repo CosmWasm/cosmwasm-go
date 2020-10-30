@@ -181,11 +181,11 @@ func (q *MockQuerier) RawQuery(raw []byte) ([]byte, error) {
 
 func (q *MockQuerier) HandleQuery(request QueryRequest) (interface{}, error) {
 	switch {
-	case request.Bank != nil:
+	case !request.Bank.IsEmpty():
 		return q.HandleBank(request.Bank)
-	case request.Staking != nil:
+	case !request.Staking.IsEmpty():
 		return nil, errors.New("Staking queries not implemented")
-	case request.Wasm != nil:
+	case !request.Wasm.IsEmpty():
 		return nil, errors.New("Wasm queries not implemented")
 	case len(request.Custom) > 0:
 		return nil, errors.New("Custom queries not implemented")
@@ -194,9 +194,9 @@ func (q *MockQuerier) HandleQuery(request QueryRequest) (interface{}, error) {
 	}
 }
 
-func (q *MockQuerier) HandleBank(request *BankQuery) (interface{}, error) {
+func (q *MockQuerier) HandleBank(request BankQuery) (interface{}, error) {
 	switch {
-	case request.Balance != nil:
+	case request.Balance.Address != "":
 		balances := q.GetBalance(request.Balance.Address)
 		coin := Coin{Denom: request.Balance.Denom, Amount: "0"}
 		for _, c := range balances {
@@ -206,7 +206,7 @@ func (q *MockQuerier) HandleBank(request *BankQuery) (interface{}, error) {
 			}
 		}
 		return BalanceResponse{Amount: coin}, nil
-	case request.AllBalances != nil:
+	case request.AllBalances.Address != "":
 		balances := q.GetBalance(request.AllBalances.Address)
 		return AllBalancesResponse{Amount: balances}, nil
 	default:

@@ -15,15 +15,15 @@ func mustEncode(t *testing.T, msg interface{}) []byte {
 	return bz
 }
 
-const VERIFIER = "VERIFIER"
+const VERIFIER = "verifies"
 const BENEFICIARY = "benefits"
 const FUNDER = "creator"
 
 // this can be used for a quick setup if you don't have nay other requirements
-func defaultInit(t *testing.T) *std.Deps {
-	deps := std.MockDeps()
+func defaultInit(t *testing.T, funds []std.Coin) *std.Deps {
+	deps := std.MockDeps(funds)
 	env := std.MockEnv()
-	info := std.MockInfo(FUNDER, nil)
+	info := std.MockInfo(FUNDER, funds)
 	initMsg := InitMsg{
 		Verifier:    VERIFIER,
 		Beneficiary: BENEFICIARY,
@@ -35,7 +35,7 @@ func defaultInit(t *testing.T) *std.Deps {
 }
 
 func TestInitAndQuery(t *testing.T) {
-	deps := std.MockDeps()
+	deps := std.MockDeps(nil)
 	env := std.MockEnv()
 	info := std.MockInfo(FUNDER, nil)
 	initMsg := InitMsg{
@@ -61,7 +61,7 @@ func TestInitAndQuery(t *testing.T) {
 }
 
 func TestPanic(t *testing.T) {
-	deps := defaultInit(t)
+	deps := defaultInit(t, nil)
 	env := std.MockEnv()
 	info := std.MockInfo(FUNDER, nil)
 	handleMsg := []byte(`{"panic":{}}`)
@@ -73,16 +73,17 @@ func TestPanic(t *testing.T) {
 func TestRelease(t *testing.T) {
 	cases := map[string]struct {
 		signer string
+		funds []std.Coin
 		valid  bool
 	}{
-		"verifier releases": {VERIFIER, true},
-		"random fails":      {BENEFICIARY, false},
+		"verifier releases": {VERIFIER, std.NewCoins(765432, "wei"), true},
+		"random fails":      {BENEFICIARY, std.NewCoins(765432, "wei"),false},
 	}
 
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
 			// TODO: figure out how to set query value and then query from the contract
-			deps := defaultInit(t)
+			deps := defaultInit(t, tc.funds)
 			env := std.MockEnv()
 			info := std.MockInfo(tc.signer, nil)
 			handleMsg := []byte(`{"release":{}}`)
@@ -99,8 +100,7 @@ func TestRelease(t *testing.T) {
 				expected := std.CosmosMsg{Bank: std.BankMsg{Send: std.SendMsg{
 					FromAddress: std.MOCK_CONTRACT_ADDR,
 					ToAddress:   BENEFICIARY,
-					// TODO: get this from the validator
-					Amount: []std.Coin{{"ATOM", "1000"}},
+					Amount: tc.funds,
 				}}}
 				assert.Equal(t, expected, msg)
 				assert.Equal(t, 2, len(res.Ok.Attributes))
@@ -109,27 +109,3 @@ func TestRelease(t *testing.T) {
 		})
 	}
 }
-
-//
-//func TestHandle(t *testing.T) {
-//	deps := std.MockDeps()
-//	env := std.MockEnv()
-//	info := std.MockInfo("creator", nil)
-//	initMsg := []byte(`{"count":123}`)
-//	res, err := Init(deps, env, info, initMsg)
-//	require.NoError(t, err)
-//	require.NotNil(t, res)
-//
-//	info = std.MockInfo("random", nil)
-//	handleMsg := []byte(`{"increment":{}}`)
-//	_, err = Handle(deps, env, info, handleMsg)
-//	require.NoError(t, err)
-//
-//	qmsg := []byte(`{"get_count":{}}`)
-//	data, err := Query(deps, env, qmsg)
-//	require.NoError(t, err)
-//	var qres CountResponse
-//	err = json.Unmarshal(data.Ok, &qres)
-//	require.NoError(t, err)
-//	require.Equal(t, uint64(124), qres.Count)
-//}

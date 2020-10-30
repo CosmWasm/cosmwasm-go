@@ -84,15 +84,38 @@ func handleRelease(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.Ha
 		return nil, errors.New("Unauthorized")
 	}
 	// TODO: query all balances
-	//balance := deps.Querier.Query()
-	balance := []std.Coin{{"ATOM", "1000"}}
+	query := std.QueryRequest{
+		Bank: std.BankQuery{
+			AllBalances: std.AllBalancesQuery{
+				Address: env.Contract.Address,
+			},
+		},
+	}
+	deps.Api.Debug("ONE")
+	binQuery, err := ezjson.Marshal(query)
+	if err != nil {
+		return nil, err
+	}
+	deps.Api.Debug("TWO")
+	deps.Api.Debug(string(binQuery))
+	data, err := deps.Querier.RawQuery(binQuery)
+	if err != nil {
+		return nil, err
+	}
+	deps.Api.Debug("THREE")
+	var qres std.AllBalancesResponse
+	err = ezjson.Unmarshal(data, &qres)
+	if err != nil {
+		return nil, err
+	}
+	deps.Api.Debug("FOUR")
 
 	msg := []std.CosmosMsg{{
 		Bank: std.BankMsg{
 			Send: std.SendMsg{
 				FromAddress: env.Contract.Address,
 				ToAddress:   state.Beneficiary,
-				Amount:      balance,
+				Amount:      qres.Amount,
 			},
 		},
 	}}
