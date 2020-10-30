@@ -118,3 +118,48 @@ The following produces the same sha256 hash everytime I run it:
 cd example/hackatom
 make build && sha256sum hackatom.wasm 
 ```
+
+## Performance
+
+Many people ask how these compare to the rust contracts. I have yet to
+do a detailed comparion, but now that we have two versions of the same
+hackatom contract, we can do a rough side-by-side analysis.
+
+**The good:**
+
+The contract size is significantly lower than the Rust version, that is
+97kB for the TinyGo version compared to 179kB for the Rust version.
+(There is a sha256 algorithm in the Rust version missing from the Go version,
+but that is only about 20Kb of the size)
+
+**The bad:**
+
+It uses much more gas. I am unsure if this is a one-time startup cost
+due to initializing the various components of the Go runtime. The
+much less efficient JSON parsing (it is a large component of the Rust
+cost an that is optimized codegen). Or generally less efficient code.
+
+For example, in a `cosmwasm-vm` test `instance::singlepass_test::contract_deducts_gas_init`
+I see `init` uses *829918* gas in the Go contract and *67349* in the equivalent
+Rust contract. That is about 12x more!
+
+However, before you get too scared, please not this is wasmer gas and only
+measuring the CPU usage. We normalize that with a factor of 100 for SDK
+gas, meaning the Go contract would require 8300 SDK gas and the Rust one 673.
+Given we have to pay ~2400 SDK gas just to store one data item, we have
+a "setup tax" of 40,000 SDK gas for running a contract, and the native bank
+send function requires about 55,000 SDK gas, these numbers are more
+acceptable.
+
+**The ugly:**
+
+In short, yes, the Go contracts are significantly less CPU efficient than
+the Rust ones. However, the CPU usage is not a major portion of the gas
+usage in most contracts. If you work on a computationally heavy contract
+(lots of math, hashing, or such) or parse/serialize large JSON objects,
+the lower performance here should be acceptable.
+
+The biggest issue is that we have no idea where this difference comes from
+and what are the biggest consumers of CPU cycles. We would be happy for some
+profiling work and maybe can use codegen to reduce some of the CPU time in
+exchange for more code size.
