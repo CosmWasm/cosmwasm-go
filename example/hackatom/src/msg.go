@@ -9,7 +9,7 @@ type InitMsg struct {
 
 type HandleMsg struct {
 	Increment ezjson.EmptyStruct `json:"increment,opt_seen"`
-	Reset     Reset     `json:"reset"`
+	Reset     Reset              `json:"reset"`
 }
 
 type Increment struct {
