@@ -7,12 +7,13 @@ import (
 
 // this is what we store
 type State struct {
-	// having issues unmarshalling []byte (maybe human addr is better anyway?)
-	Owner string `json:"owner"`
-	Count uint64 `json:"count"`
+	// TODO: convert to canonical addresses when that is supported by ezjson
+	Verifier    string `json:"verifier"`
+	Beneficiary string `json:"beneficiary"`
+	Funder      string `json:"funder"`
 }
 
-var StateKey = []byte("State")
+var StateKey = []byte("config")
 
 func LoadState(storage std.Storage) (*State, error) {
 	var state State
