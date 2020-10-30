@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-	SetDisplay(func (msg []byte) int {
+	SetDisplay(func(msg []byte) int {
 		fmt.Println(string(msg))
 		return len(msg)
 	})

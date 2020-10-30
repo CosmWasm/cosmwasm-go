@@ -276,27 +276,6 @@ func doAssign(opts []BaseOpt, vals reflect.Value, tps reflect.Type) error {
 
 		return nil
 	}
-	//
-	//// this is the struct case. let's allow custom callbacks here
-	//Log("**struct check**")
-	//switch len(opts) {
-	//case 0:
-	//	Log("opts: 0")
-	//case 1:
-	//	Log("opts: " + opts[0].Name() + " / " + opts[0].Tag())
-	//default:
-	//	Log("opts: 2+")
-	//}
-	//
-	//if mar, ok := vals.Interface().(EzJsonUnmarshaller); ok {
-	//	Log("--> is unmarshaller")
-	//	parsed, err := mar.UnmarshalEzJson(opts)
-	//	if err != nil {
-	//		return err
-	//	}
-	//	vals.Set(ValueOf(parsed))
-	//	return nil
-	//}
 
 	FieldLen := vals.NumField()
 	for i := 0; i < FieldLen; i++ {
@@ -337,17 +316,14 @@ func doAssign(opts []BaseOpt, vals reflect.Value, tps reflect.Type) error {
 				subOpts := opt.Value().([]BaseOpt)
 				if opt.IsOptSeen() {
 					Log("OptSeen")
-					// here we do the magic
-					unseen := len(subOpts) > 0  && subOpts[0].Tag() == "do_not_set_this_field"
+					// here we do the magic - this works for EmptyStruct now, maybe others in the future?
+					unseen := len(subOpts) > 0 && subOpts[0].Tag() == "do_not_set_this_field"
 					if !unseen {
 						Log("Match")
+						val.Field(0).Set(ValueOf(true))
 					}
-					empty := EmptyStruct{Seen: !unseen}
-					val.Set(ValueOf(empty))
-				} else {
-					Log("Not OptSeen")
-					doAssign(subOpts, val, tps.Field(i).Type)
 				}
+				doAssign(subOpts, val, tps.Field(i).Type)
 			case reflect.Slice, reflect.Array:
 				Log("Setting Slice")
 				if opt.Type() != reflect.Slice && opt.Type() != reflect.Array {
