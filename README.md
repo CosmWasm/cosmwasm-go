@@ -1,60 +1,120 @@
 ## Overview
-This is a demo for cosmwasm-go build, it only run as an mvp, now it support:
-* loaded by cosmwasm-simulate tool
-* compile byte code to instance
-* init & query & handle export
-* simple json marshal&unmarshal support in contract
-* simple db operation support in contract
-* simple but whole logic in contract code
 
-some code are very rough now, just a demo version
+This is a demo for cosmwasm-go build, it is in alpha state, but it is compatible
+with CosmWasm 0.11 and 0.12 (they use the same Wasm API).
 
-## Build
+This is currently in a **private pre-release**. This repo should only be shared
+with select developers who will work on improving it. When we are happy with
+the stability, we will publish this.
 
-Docker tool required     
-```sh
-make build-cosmwasm
+## Features
+
+The following areas have been tested, both in unit tests and in integration
+tests using `go-cosmwasm` to ensure compatibility. Please look at the 
+[`hackatom` contract](./example/hackatom) for a good example with test coverage.
+
+* Export `init`, `handle`, `query`, `migrate` and return success response or errors
+* Get and Set from persistent storage
+* Canonicalize and Humanize addresses with the Api
+* Query into the bank module (use querier)
+* Parse most json structs (see caveats below)
+* Simple API so you can focus on the business logic
+* Easy setup and similar format for unit test and integration tests, to allow
+  easy porting them.
+  
+The following areas have some code but have not been tested and *likely buggy*:
+
+* Remove from storage
+* Storage iterators
+* Querying staking/wasm modules
+
+These can be called, but will likely not function 100% and will require
+some debugging to get them working.
+
+## Caveats
+
+Beyond the "likely buggy" Apis above, the following "features" are 
+definitely not implemented:
+
+* Support for Uint128 (parsing strings, dealing with large integers)
+* Helper functions for creating messages or queries
+* Proper CI integration (so please run a full test suite locally before merging)
+
+## JSON
+
+There is a totally custom json lib that manages to (1) run inside
+a very limited reflect package of TinyGo, (2) contain no floating
+point ops or other code that would be rejected by CosmWasm VM and
+(3) produces a nice dev experience. In particular we want to support
+structs (and not just maps or some path based query language).
+
+On the high-level it looks just like "encoding/json", but many things are
+not possible. Even to get where we are was a very tough feat and an amazing
+engineering acheivement from the team of OkEx. These are known issues:
+
+* `[]byte` doesn't properly serialize. It looks like `[12, 65, 152, 4]`. It errors
+  when it receives a base64 encoded string. Don't use `[]byte` in any struct
+  that will be Serialized with JSON. You can use string an manually base64
+  encode/decode it for now.
+* `string` does not escape quotes (or anything else). In particular, that means
+  if you pass in some JSON as a string `"{"count": 123}"` this will break the
+  schema of the containing object. You need to encode JSON to a base64 string
+  and treat it as binary.
+* You cannot use pointers in any object that will be used by `ezjson`. 
+  The OkEx team spent quite some time on this one and so did I. 
+  Basically, you cannot do `reflect.New()` in TinyGo, thus you cannot
+  create new objects. When you don't use pointers, the objects passed into
+  the `Unmarshal` function has an existent, zeroed object to fill with
+  data and everything works. We use a lot of `omitempty` to keep these
+  from serializing (which omits more objects in ezjson than encoding/json)
+* Arrays of structs are very buggy. The will Marshal, but in general, they 
+  will fail to Unmashal unless you follow some work-arounds. This is due
+  to the same issue with pointers - we cannot create new structs with reflect
+  inside of TinyGo. Thus, we cannot dynamically add new items to the slice.
+  If you look at how we
+  [parse multiple coins in queries](https://github.com/CosmWasm/cosmwasm-go/blob/master/std/query.go#L69-L76),
+  you can see we first create an array with the maximum size we accept (eg. 8).
+  Then we unmarshal into these existing objects. Then we trim off all objects
+  that are still empty (received no data).
+  
+We plan to improve `[]byte` and `string` support. The other issues are
+tied to the `reflect` support in TinyGo and would probably need a
+custom code-gen JSON solution in order to avoid those issues. That is very
+much out of scope in the near future. 
+  
+### Usage
+
+We require `docker` installed and executable by the current user. This
+is used to compile the contracts to Wasm. You can code contracts and
+write unit test with only a normal Golang installation (requires 1.14+)
+
+You can try the following top-level commands:
+
+```
+# Run unit tests on the standard library as well as `erc20` and `hackatom` contracts.
+# Also compiles the contracts to wasm and runs integration tests
+make test
+
+# This will compile wasm binaries for all contracts and leave them in this directory
+make examples
 ```
 
-## Run
-* Prepare   
-Clone cosmwasm-simulate tool from https://github.com/CosmWasm/cosmwasm-simulate/tree/debug-cosmwasm-go 
-```sh
-git clone git@github.com:CosmWasm/cosmwasm-simulate.git
-git checkout debug-cosmwasm-go
-```
-The file `wasm_go_poc/contract.wasm` was built by `make build-cosmwasm`, you can build it by self and replace it~ 
-* Run   
-```sh
-./run-go.sh
-```
-## Test
-Now, `go test` are unusable, because of that some imported interface can not running in go environment, if you run test, you will get message as follow:
-```sh
-go test ./src
-# github.com/cosmwasm/cosmwasm-go/poc/std/ezdb
-Undefined symbols for architecture x86_64:
-  "_db_read", referenced from:
-      __cgo_f15e86382161_Cfunc_db_read in _x002.o
-     (maybe you meant: __cgo_f15e86382161_Cfunc_db_read)
-  "_db_write", referenced from:
-      __cgo_f15e86382161_Cfunc_db_write in _x002.o
-     (maybe you meant: __cgo_f15e86382161_Cfunc_db_write)
-ld: symbol(s) not found for architecture x86_64
-```
-Ethan will fix this error by using  techniques from the rust contract libs
+To try out a contract, either check out [hackatom](./example/hackatom),
+running the tests and editing the code. Or start your own contract
+by going to the [template](./example/template) directory and follow the
+instructions on how to get started.
 
-## What's stuff in contract
-* init
-   * function : init an account and money, set account name and password, init money balance
-   * json args : {"UserName":"useraccount","Password":"111222","Money":100}
-* handle
-   * brun : burn money from account, password required, balance will reduce 10 during every call
-      - json: {"Operation":"burn","Password":"111222"}
-   * save : save money to account, password required, balance will increase 10 during every call
-      - json: {"Operation":"save","Password":"111222"}
-* query
-   * balance : query balance of account, just return a string to show it
-      - json: {"QueryType":"balance"}
-   * user : query user name of account, just return a string to show it
-      - json: {"QueryType":"user"}
+Both of these support the following commands: `make unit-test`, `make build`, 
+and `make test`.
+
+## Build system
+
+We use docker tooling to get consistent builds acorss dev machines.
+In my minimal experience, these seem to also produce deterministic
+builds, but I would like others to try this out on other machines.
+The following produces the same sha256 hash everytime I run it:
+
+```
+cd example/hackatom
+make build && sha256sum hackatom.wasm 
+```

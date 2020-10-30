@@ -13,9 +13,14 @@ test-contracts:
 	cd example/erc20 && $(MAKE) test
 	cd example/hackatom && $(MAKE) test
 
-examples: erc20
+examples: erc20 hackatom
 
 erc20:
 	./scripts/compile.sh erc20
 	@ wasm-nm -e erc20.wasm
 	@ wasm-nm -i erc20.wasm
+
+hackatom:
+	./scripts/compile.sh hackatom
+	@ wasm-nm -e hackatom.wasm
+	@ wasm-nm -i hackatom.wasm
