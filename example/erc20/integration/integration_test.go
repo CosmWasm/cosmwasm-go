@@ -163,5 +163,5 @@ func TestWorkflowWithFunds(t *testing.T) {
 	)
 	require.NoError(t, err)
 	require.NotNil(t, res)
-	require.Equal(t, uint64(0xe653a), gas)
+	require.Equal(t, uint64(0xe65d1), gas)
 }
