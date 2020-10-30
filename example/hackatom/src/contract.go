@@ -103,6 +103,7 @@ func handleRelease(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.Ha
 		return nil, err
 	}
 	deps.Api.Debug("THREE")
+	deps.Api.Debug(string(data))
 	var qres std.AllBalancesResponse
 	err = ezjson.Unmarshal(data, &qres)
 	if err != nil {

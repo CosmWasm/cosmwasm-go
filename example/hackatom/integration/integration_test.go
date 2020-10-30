@@ -22,6 +22,11 @@ func mustEncode(t *testing.T, msg interface{}) []byte {
 	return bz
 }
 
+// TODO: add this somewhere else
+func NewCoins(amount uint64, denom string) []types.Coin {
+	return []types.Coin{types.NewCoin(amount, denom)}
+}
+
 const VERIFIER = "verifies"
 const BENEFICIARY = "benefits"
 const FUNDER = "creator"
@@ -78,28 +83,42 @@ func TestPanic(t *testing.T) {
 	require.Error(t, err)
 }
 
-//
-//func TestWorkflow(t *testing.T) {
-//	instance := integration.NewInstance(t, CONTRACT, 100_000_000, nil)
-//
-//	env := mocks.MockEnv()
-//	info := mocks.MockInfo("coral1e86v774dch5uwkks0cepw8mdz8a9flhhapvf6w", nil)
-//	initMsg := []byte(`{"count":1234}`)
-//	res, _, err := instance.Init(env, info, initMsg)
-//	require.NoError(t, err)
-//	require.NotNil(t, res)
-//
-//	// both work, let's test that
-//	//queryMsg := []byte(`{"get_count":{"b": "c"}}`)
-//	queryMsg := []byte(`{"get_count":{}}`)
-//	qres, _, err := instance.Query(env, queryMsg)
-//	require.NoError(t, err)
-//	require.NotNil(t, res)
-//	//require.Equal(t, uint64(0xb00c7), _)
-//
-//	// let us parse the query??
-//	var count src.CountResponse
-//	err = json.Unmarshal(qres, &count)
-//	require.NoError(t, err)
-//	require.Equal(t, uint64(1234), count.Count)
-//}
+func TestRelease(t *testing.T) {
+	cases := map[string]struct {
+		signer string
+		funds  []types.Coin
+		valid  bool
+	}{
+		"verifier releases": {VERIFIER, NewCoins(765432, "wei"), true},
+		"random fails":      {BENEFICIARY, NewCoins(765432, "wei"), false},
+	}
+
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			// TODO: figure out how to set query value and then query from the contract
+			deps := defaultInit(t, tc.funds)
+			env := mocks.MockEnv()
+			info := mocks.MockInfo(tc.signer, nil)
+			handleMsg := []byte(`{"release":{}}`)
+			res, _, err := deps.Handle(env, info, handleMsg)
+			if !tc.valid {
+				require.Error(t, err)
+				require.Equal(t, "Handle: Unauthorized", err.Error())
+			} else {
+				require.NoError(t, err)
+				require.NotNil(t, res)
+
+				require.Equal(t, 1, len(res.Messages))
+				msg := res.Messages[0]
+				expected := types.CosmosMsg{Bank: &types.BankMsg{Send: &types.SendMsg{
+					FromAddress: mocks.MOCK_CONTRACT_ADDR,
+					ToAddress:   BENEFICIARY,
+					Amount:      tc.funds,
+				}}}
+				assert.Equal(t, expected, msg)
+				assert.Equal(t, 2, len(res.Attributes))
+				assert.Equal(t, []types.EventAttribute{{"action", "release"}, {"destination", BENEFICIARY}}, res.Attributes)
+			}
+		})
+	}
+}
