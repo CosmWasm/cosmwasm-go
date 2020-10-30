@@ -27,12 +27,12 @@ func TestWrapperUnmarshal(t *testing.T) {
 		optA bool
 		optB bool
 	}{
-		"both missing": {"{}", false, false},
-		"opt a":        {`{"opt_a": {}}`, true, false},
-		"opt b":        {`{"opt_b": {}}`, false, true},
-		"both":         {`{"opt_a": {}, "opt_b": {}}`, true, true},
-		// TODO: if we set some data here, this gets opts, same as if it was not there at all
-		"seen a, unseen b": {`{"opt_a": {"set_random_flag": true}, "opt_b": {}}`, false, true},
+		"both missing":     {"{}", false, false},
+		"opt a":            {`{"opt_a": {}}`, true, false},
+		"opt b":            {`{"opt_b": {}}`, false, true},
+		"both":             {`{"opt_a": {}, "opt_b": {}}`, true, true},
+		"seen a, unseen b": {`{"opt_a": {"set_random_flag": true}, "opt_b": {}}`, true, true},
+		"random data":      {`{"opt_a": {"some": 1, "more": "stuff"}}`, true, false},
 	}
 
 	for name, tc := range cases {

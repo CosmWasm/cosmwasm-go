@@ -13,10 +13,10 @@ var _ ezjson.EzJsonUnmarshaller = EmptyStruct{}
 
 func (e EmptyStruct) UnmarshalEzJson(opts []ezjson.BaseOpt) (interface{}, error) {
 	// Odd but true - if struct was seen with no data, len(opts) == 0
-	// If it was not seen, len(opts) == 1
-	// If it was a struct with some data, len(opts) == 1
-	seen := len(opts) == 0
-	return EmptyStruct{Seen: seen}, nil
+	// If it was not seen, len(opts) == 1, tagged with the default name ("do_not_set_this_field")
+	// If it was a struct with some data, len(opts) >= 1, tagged with the actual data present eg ({"a": 1} => "a")
+	unseen := len(opts) == 1 && opts[0].Tag() == "do_not_set_this_field"
+	return EmptyStruct{Seen: !unseen}, nil
 }
 
 func (e EmptyStruct) WasSet() bool {
