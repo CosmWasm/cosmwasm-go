@@ -117,7 +117,7 @@ func DoHandler(handlerFn func(*Deps, Env, MessageInfo, []byte) (*HandleResultOk,
 }
 
 // =========== query ===================
-func DoQuery(queryFn func(*Deps, Env, []byte) (*QueryResponseOk, error), envPtr, msgPtr uint32) unsafe.Pointer {
+func DoQuery(queryFn func(*Deps, Env, []byte) (*QueryResponse, error), envPtr, msgPtr uint32) unsafe.Pointer {
 	msgData := Translate_range_custom(uintptr(msgPtr))
 	env := Env{}
 	envData := TranslateToSlice(uintptr(envPtr))

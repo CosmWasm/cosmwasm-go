@@ -22,8 +22,11 @@ extern int display_message(void* str);
 import "C"
 
 import (
+	"encoding/base64"
 	"errors"
 	"unsafe"
+
+	"github.com/cosmwasm/cosmwasm-go/std/ezjson"
 )
 
 const (
@@ -237,7 +240,19 @@ func (querier ExternalQuerier) RawQuery(request []byte) ([]byte, error) {
 
 	response := TranslateToSlice(uintptr(ret))
 	// TODO: parse this into the proper structure
-	return response, nil
+	// success looks like: {"ok":{"ok":"eyJhbW91bnQiOlt7ImRlbm9tIjoid2VpIiwiYW1vdW50IjoiNzY1NDMyIn1dfQ=="}}
+	var qres QuerierResult
+	err := ezjson.Unmarshal(response, &qres)
+	if err != nil {
+		return nil, err
+	}
+	if qres.Error != "" {
+		return nil, errors.New(qres.Error)
+	}
+	if qres.Ok.Error != "" {
+		return nil, errors.New(qres.Ok.Error)
+	}
+	return base64.StdEncoding.DecodeString(qres.Ok.Ok)
 }
 
 // use for ezjson Logging

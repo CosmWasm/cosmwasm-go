@@ -55,7 +55,9 @@ func TestInitAndQuery(t *testing.T) {
 	data, err := Query(deps, env, qmsg)
 	require.NoError(t, err)
 	var qres VerifierResponse
-	err = json.Unmarshal(data.Ok, &qres)
+	bin, err := data.Data()
+	require.NoError(t, err)
+	err = json.Unmarshal(bin, &qres)
 	require.NoError(t, err)
 	assert.Equal(t, VERIFIER, qres.Verifier)
 }

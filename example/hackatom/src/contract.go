@@ -104,7 +104,9 @@ func handleRelease(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.Ha
 	}
 	deps.Api.Debug("THREE")
 	deps.Api.Debug(string(data))
-	var qres std.AllBalancesResponse
+	qres := std.AllBalancesResponse{
+		Amount: make([]std.Coin, 1),
+	}
 	err = ezjson.Unmarshal(data, &qres)
 	if err != nil {
 		return nil, err
@@ -165,7 +167,7 @@ func handlePanic(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.Hand
 	panic("This page intentionally faulted")
 }
 
-func Query(deps *std.Deps, env std.Env, data []byte) (*std.QueryResponseOk, error) {
+func Query(deps *std.Deps, env std.Env, data []byte) (*std.QueryResponse, error) {
 	msg := QueryMsg{}
 	err := ezjson.Unmarshal(data, &msg)
 	if err != nil {
@@ -185,7 +187,7 @@ func Query(deps *std.Deps, env std.Env, data []byte) (*std.QueryResponseOk, erro
 	}
 }
 
-func queryVerifier(deps *std.Deps, env *std.Env) (*std.QueryResponseOk, error) {
+func queryVerifier(deps *std.Deps, env *std.Env) (*std.QueryResponse, error) {
 	state, err := LoadState(deps.Storage)
 	if err != nil {
 		return nil, err
@@ -199,5 +201,5 @@ func queryVerifier(deps *std.Deps, env *std.Env) (*std.QueryResponseOk, error) {
 		return nil, err
 	}
 
-	return &std.QueryResponseOk{Ok: bz}, nil
+	return std.BuildQueryResponseBinary(bz), nil
 }

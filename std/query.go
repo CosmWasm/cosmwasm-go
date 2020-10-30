@@ -1,21 +1,41 @@
 package std
 
 import (
+	"encoding/base64"
+	"errors"
 	"github.com/cosmwasm/cosmwasm-go/std/ezjson"
 )
 
 // ------- query detail types ---------
-type QueryResponseOk struct {
-	Ok []byte `json:"Ok,omitempty,rust_option"`
+type QueryResponse struct {
+	// this must be base64 encoded
+	Ok string `json:"ok,omitempty,rust_option"`
+	// TODO: what is this format actually?
+	Error string `json:"error,omitempty"`
 }
 
 // This is a 2-level result
 type QuerierResult struct {
-	Ok QueryResponseOk `json:"Ok,omitempty"`
+	Ok QueryResponse `json:"ok,omitempty"`
+	// TODO: what is this format actually?
+	Error string `json:"error,omitempty"`
 }
 
-func BuildQueryResponse(msg string) *QueryResponseOk {
-	return &QueryResponseOk{Ok: []byte(msg)}
+func BuildQueryResponse(msg string) *QueryResponse {
+	encoded := base64.StdEncoding.EncodeToString([]byte(msg))
+	return &QueryResponse{Ok: encoded}
+}
+
+func BuildQueryResponseBinary(msg []byte) *QueryResponse {
+	encoded := base64.StdEncoding.EncodeToString(msg)
+	return &QueryResponse{Ok: encoded}
+}
+
+func (q QueryResponse) Data() ([]byte, error) {
+	if q.Error != "" {
+		return nil, errors.New(q.Error)
+	}
+	return base64.StdEncoding.DecodeString(q.Ok)
 }
 
 //
