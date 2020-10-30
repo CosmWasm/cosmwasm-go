@@ -1,6 +1,6 @@
 package src
 
-import "github.com/cosmwasm/cosmwasm-go/std"
+import "github.com/cosmwasm/cosmwasm-go/std/ezjson"
 
 //all message type define here
 type InitMsg struct {
@@ -21,7 +21,7 @@ type Reset struct {
 }
 
 type QueryMsg struct {
-	Count std.EmptyStruct `json:"get_count"`
+	Count ezjson.EmptyStruct `json:"get_count,opt_seen"`
 }
 
 type CountResponse struct {
