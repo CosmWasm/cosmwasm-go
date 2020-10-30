@@ -116,3 +116,47 @@ func TestRelease(t *testing.T) {
 		})
 	}
 }
+
+func TestQueryOther(t *testing.T) {
+	contractFunds := []types.Coin{
+		types.NewCoin(1000, "wei"),
+		types.NewCoin(555, "uatom"),
+	}
+	deps := defaultInit(t, contractFunds)
+	env := mocks.MockEnv()
+
+	// TODO: set some balances
+	richFunds := []types.Coin{
+		types.NewCoin(123456789, "uatom"),
+		types.NewCoin(9876542, "satoshi"),
+		types.NewCoin(557755, "utgd"),
+	}
+	deps.SetQuerierBalance("rich", richFunds)
+
+	cases := map[string]struct {
+		account string
+		balance []types.Coin
+	}{
+		"contract self": {mocks.MOCK_CONTRACT_ADDR, contractFunds},
+		"random":        {"random", nil},
+		"rich":          {"rich", richFunds},
+	}
+
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			// json encoding makes invalid QueryMsg... look into this later (only ezjson works?)
+			queryMsg := []byte(`{"other_balance":{"address":"` + tc.account + `"}}`)
+
+			raw, _, err := deps.Query(env, queryMsg)
+			require.NoError(t, err)
+			var res types.AllBalancesResponse
+			err = json.Unmarshal(raw, &res)
+			require.NoError(t, err)
+			require.Equal(t, types.Coins(tc.balance), res.Amount)
+		})
+	}
+}
+
+//let rich_addr = HumanAddr::from("foobar");
+//let rich_balance = coins(10000, "gold");
+//let deps = mock_dependencies_with_balances(&[(&rich_addr, &rich_balance)]);

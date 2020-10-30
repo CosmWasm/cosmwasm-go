@@ -55,6 +55,11 @@ type Instance struct {
 	Querier  mocks.Querier
 }
 
+func (i *Instance) SetQuerierBalance(addr string, balance []types.Coin) {
+	mq := i.Querier.(mocks.MockQuerier)
+	mq.Bank.Balances[addr] = balance
+}
+
 func NewInstance(t *testing.T, contractPath string, gasLimit uint64, funds []types.Coin) Instance {
 	wasmer, codeID := SetupWasmer(t, contractPath)
 	gasMeter := mocks.NewMockGasMeter(gasLimit)

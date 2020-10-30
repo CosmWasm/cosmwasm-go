@@ -7,7 +7,6 @@ import (
 	"github.com/cosmwasm/cosmwasm-go/std/ezjson"
 )
 
-// TODO: fix querier
 // TODO: add migration support
 // TODO: last functions
 
@@ -83,8 +82,6 @@ func handleRelease(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.Ha
 	if info.Sender != state.Verifier {
 		return nil, errors.New("Unauthorized")
 	}
-
-	// TODO: pull this out into a helper
 	amount, err := std.QuerierWrapper{deps.Querier}.QueryAllBalances(env.Contract.Address)
 	if err != nil {
 		return nil, err
@@ -152,31 +149,48 @@ func Query(deps *std.Deps, env std.Env, data []byte) (*std.QueryResponse, error)
 	}
 
 	// we need to find which one is non-empty
+	var res interface{}
 	switch {
 	case msg.Verifier.WasSet():
-		return queryVerifier(deps, &env)
+		res, err = queryVerifier(deps, &env)
 	case msg.OtherBalance.Address != "":
-		return nil, errors.New("Not implemented: OtherBalance")
+		res, err = queryOtherBalance(deps, &env, msg.OtherBalance)
 	case msg.Recurse.Work != 0 || msg.Recurse.Depth != 0:
-		return nil, errors.New("Not implemented: Recurse")
+		err = errors.New("Not implemented: Recurse")
 	default:
-		return nil, errors.New("Unknown QueryMsg")
+		err = errors.New("Unknown QueryMsg")
 	}
+	if err != nil {
+		return nil, err
+	}
+
+	// if we got a result above, encode it
+	bz, err := ezjson.Marshal(res)
+	if err != nil {
+		return nil, err
+	}
+	return std.BuildQueryResponseBinary(bz), nil
+
 }
 
-func queryVerifier(deps *std.Deps, env *std.Env) (*std.QueryResponse, error) {
+func queryVerifier(deps *std.Deps, env *std.Env) (interface{}, error) {
 	state, err := LoadState(deps.Storage)
 	if err != nil {
 		return nil, err
 	}
 
-	res := VerifierResponse{
+	return VerifierResponse{
 		Verifier: state.Verifier,
-	}
-	bz, err := ezjson.Marshal(res)
+	}, nil
+}
+
+func queryOtherBalance(deps *std.Deps, env *std.Env, msg OtherBalance) (interface{}, error) {
+	amount, err := std.QuerierWrapper{deps.Querier}.QueryAllBalances(msg.Address)
 	if err != nil {
 		return nil, err
 	}
 
-	return std.BuildQueryResponseBinary(bz), nil
+	return std.AllBalancesResponse{
+		Amount: amount,
+	}, err
 }

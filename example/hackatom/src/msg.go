@@ -28,12 +28,12 @@ type QueryMsg struct {
 }
 
 type OtherBalance struct {
-	Address string `json:"address"`
+	Address string `json:"address,omitempty"`
 }
 
 type Recurse struct {
-	Depth uint32 `json:"depth"`
-	Work  uint32 `json:"work"`
+	Depth uint32 `json:"depth,omitempty"`
+	Work  uint32 `json:"work,omitempty"`
 }
 
 type VerifierResponse struct {
