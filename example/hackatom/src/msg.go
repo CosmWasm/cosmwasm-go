@@ -8,8 +8,8 @@ type InitMsg struct {
 }
 
 type HandleMsg struct {
-	Increment Increment `json:"increment,omitempty"`
-	Reset     Reset     `json:"reset,omitempty"`
+	Increment ezjson.EmptyStruct `json:"increment,opt_seen"`
+	Reset     Reset     `json:"reset"`
 }
 
 type Increment struct {

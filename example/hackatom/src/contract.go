@@ -35,8 +35,8 @@ func Handle(deps *std.Deps, env std.Env, info std.MessageInfo, data []byte) (*st
 
 	// we need to find which one is non-empty
 	switch {
-	case msg.Increment.Delta != 0:
-		return handleIncrement(deps, &env, &info, msg.Increment)
+	case msg.Increment.WasSet():
+		return handleIncrement(deps, &env, &info)
 	case msg.Reset.Value != 0:
 		return handleReset(deps, &env, &info, msg.Reset)
 	default:
@@ -44,13 +44,13 @@ func Handle(deps *std.Deps, env std.Env, info std.MessageInfo, data []byte) (*st
 	}
 }
 
-func handleIncrement(deps *std.Deps, env *std.Env, info *std.MessageInfo, msg Increment) (*std.HandleResultOk, error) {
+func handleIncrement(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.HandleResultOk, error) {
 	state, err := LoadState(deps.Storage)
 	if err != nil {
 		return nil, err
 	}
 
-	state.Count += msg.Delta
+	state.Count += 1
 
 	err = SaveState(deps.Storage, state)
 	if err != nil {
