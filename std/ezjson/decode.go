@@ -5,6 +5,7 @@ package ezjson
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 
 	"github.com/cosmwasm/jsonparser"
@@ -277,7 +278,18 @@ func doAssign(opts []BaseOpt, vals reflect.Value, tps reflect.Type) error {
 		return nil
 	}
 	// this is the struct case. let's allow custom callbacks here
+	Log("**struct check**")
+	switch len(opts) {
+	case 0:
+		Log("opts: 0")
+	case 1:
+		Log("opts: " + opts[0].Name() + " / " + opts[0].Tag())
+	default:
+		Log("opts: 2+")
+	}
+
 	if mar, ok := vals.Interface().(EzJsonUnmarshaller); ok {
+		Log("--> is unmarshaller")
 		parsed, err := mar.UnmarshalEzJson(opts)
 		if err != nil {
 			return err
@@ -289,7 +301,8 @@ func doAssign(opts []BaseOpt, vals reflect.Value, tps reflect.Type) error {
 	FieldLen := vals.NumField()
 	for i := 0; i < FieldLen; i++ {
 		tp := tps.Field(i)
-		realName, _, _ := getTag(string(tp.Tag))
+		realName, _, _, _ := getTag(string(tp.Tag))
+
 		if len(realName) <= 0 {
 			realName = tps.Field(i).Name
 		}
@@ -321,6 +334,11 @@ func doAssign(opts []BaseOpt, vals reflect.Value, tps reflect.Type) error {
 				val.SetString(opt.Value().(string))
 			case reflect.Struct:
 				Log("Setting Struct")
+				if opt.IsOptSeen() {
+					fmt.Println("OptSeen")
+				} else {
+					Log("Not OptSeen")
+				}
 				doAssign(opt.Value().([]BaseOpt), val, tps.Field(i).Type)
 			case reflect.Slice, reflect.Array:
 				Log("Setting Slice")

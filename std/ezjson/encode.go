@@ -51,7 +51,7 @@ func prepare(in interface{}, isDecoding bool) ([]BaseOpt, error) {
 		for i := 0; i < t.NumField(); i++ {
 			field := vals.Field(i)
 			if field.CanInterface() {
-				tag, isOmit, isOption := getTag(string(t.Field(i).Tag))
+				tag, isOmit, isOption, optSeen := getTag(string(t.Field(i).Tag))
 				name := t.Field(i).Name
 				vi := field.Interface()
 				opt := Generate(name, tag, vi, isDecoding)
@@ -63,6 +63,7 @@ func prepare(in interface{}, isDecoding bool) ([]BaseOpt, error) {
 				}
 				opt.Attribute(OmitEmpty, isOmit)
 				opt.Attribute(RustOption, isOption)
+				opt.Attribute(OptSeen, optSeen)
 				opts = append(opts, opt)
 			} else {
 				//is ptr?

@@ -11,26 +11,26 @@ var tinygo_typeof = []string{
 const (
 	OmitEmpty  = "omitempty"
 	RustOption = "rust_option"
+	OptSeen    = "opt_seen"
 )
 
 //support flag:
 //json:"xxx"
 //json:"omitempty"
 //json:"xxx,omitempty"
-//return name and isOmitEmpty,rust_option
-func getTag(orgTags string) (string, bool, bool) {
+//return name and isOmitEmpty,rust_option,op_seen
+func getTag(orgTags string) (string, bool, bool, bool) {
 	if len(orgTags) < 6 {
-		return orgTags, false, false
+		return orgTags, false, false, false
 	}
 
 	prefix := orgTags[0:6]
 	if prefix != "json:\"" {
-		return orgTags, false, false
+		return orgTags, false, false, false
 	}
 	begin := 6
 	name := ""
-	omit := false
-	rustOption := false
+	omit, rustOption, optSeen := false, false, false
 	for i, c := range orgTags[6:] {
 		if c == 34 { //"
 			str := orgTags[begin : i+6]
@@ -38,6 +38,8 @@ func getTag(orgTags string) (string, bool, bool) {
 				omit = true
 			} else if str == RustOption {
 				rustOption = true
+			} else if str == OptSeen {
+				optSeen = true
 			} else if len(name) <= 0 {
 				name = str
 			}
@@ -49,11 +51,13 @@ func getTag(orgTags string) (string, bool, bool) {
 				omit = true
 			} else if str == RustOption {
 				rustOption = true
+			} else if str == OptSeen {
+				optSeen = true
 			} else {
 				name = str
 			}
 			begin = i + 7 //skip `,`
 		}
 	}
-	return name, omit, rustOption
+	return name, omit, rustOption, optSeen
 }

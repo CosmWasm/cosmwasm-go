@@ -1,10 +1,8 @@
-package std
+package ezjson
 
 import (
-	//"encoding/json"
 	"testing"
 
-	"github.com/cosmwasm/cosmwasm-go/std/ezjson"
 	"github.com/stretchr/testify/require"
 )
 
@@ -16,7 +14,7 @@ type Wrapper struct {
 func TestEmptyStructSerialization(t *testing.T) {
 	t.Skip("this only seems to work with wrapper?")
 	var parsed EmptyStruct
-	err := ezjson.Unmarshal([]byte("{}"), &parsed)
+	err := Unmarshal([]byte("{}"), &parsed)
 	require.NoError(t, err)
 	require.Equal(t, parsed.WasSet(), true)
 }
@@ -38,7 +36,7 @@ func TestWrapperUnmarshal(t *testing.T) {
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
 			var wrap Wrapper
-			err := ezjson.Unmarshal([]byte(tc.data), &wrap)
+			err := Unmarshal([]byte(tc.data), &wrap)
 			require.NoError(t, err)
 			require.Equal(t, tc.optA, wrap.OptA.WasSet())
 			require.Equal(t, tc.optB, wrap.OptB.WasSet())
