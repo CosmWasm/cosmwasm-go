@@ -22,11 +22,6 @@ func mustEncode(t *testing.T, msg interface{}) []byte {
 	return bz
 }
 
-// TODO: add this somewhere else
-func NewCoins(amount uint64, denom string) []types.Coin {
-	return []types.Coin{types.NewCoin(amount, denom)}
-}
-
 const VERIFIER = "verifies"
 const BENEFICIARY = "benefits"
 const FUNDER = "creator"
@@ -89,13 +84,12 @@ func TestRelease(t *testing.T) {
 		funds  []types.Coin
 		valid  bool
 	}{
-		"verifier releases": {VERIFIER, NewCoins(765432, "wei"), true},
-		"random fails":      {BENEFICIARY, NewCoins(765432, "wei"), false},
+		"verifier releases": {VERIFIER, integration.NewCoins(765432, "wei"), true},
+		"random fails":      {BENEFICIARY, integration.NewCoins(123456, "wei"), false},
 	}
 
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
-			// TODO: figure out how to set query value and then query from the contract
 			deps := defaultInit(t, tc.funds)
 			env := mocks.MockEnv()
 			info := mocks.MockInfo(tc.signer, nil)

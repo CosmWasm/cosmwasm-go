@@ -50,13 +50,7 @@ func parseInfo(infoPtr uint32) (MessageInfo, error) {
 	if err != nil {
 		return info, err
 	}
-
-	// now we trim off the ones that we not filled above
-	var i = 0
-	for info.SentFunds[i].Denom != "" {
-		i++
-	}
-	info.SentFunds = info.SentFunds[:i]
+	info.SentFunds = TrimCoins(info.SentFunds)
 	return info, nil
 }
 

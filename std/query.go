@@ -3,6 +3,7 @@ package std
 import (
 	"encoding/base64"
 	"errors"
+
 	"github.com/cosmwasm/cosmwasm-go/std/ezjson"
 )
 
@@ -38,15 +39,56 @@ func (q QueryResponse) Data() ([]byte, error) {
 	return base64.StdEncoding.DecodeString(q.Ok)
 }
 
-//
-//// Query will handle most of the marshalling/unmarshalling. You need to parse the final result
-//func Query(querier Querier, request QueryRequest) ([]byte, error) {
-//	raw, err := ezjson.Marshal(request)
-//	if err != nil {
-//		return nil, err
-//	}
-//	querier.RawQuery(raw)
-//}
+// random constant for the size to preallocate arrays before parsing
+const MAX_ARRAY_SIZE = 8
+
+type QuerierWrapper struct {
+	Querier
+}
+
+func (q QuerierWrapper) doQuery(query QueryRequest, result interface{}) error {
+	binQuery, err := ezjson.Marshal(query)
+	if err != nil {
+		return err
+	}
+	data, err := q.Querier.RawQuery(binQuery)
+	if err != nil {
+		return err
+	}
+	return ezjson.Unmarshal(data, result)
+}
+
+func (q QuerierWrapper) QueryAllBalances(addr string) ([]Coin, error) {
+	query := QueryRequest{
+		Bank: BankQuery{
+			AllBalances: AllBalancesQuery{
+				Address: addr,
+			},
+		},
+	}
+	qres := AllBalancesResponse{
+		Amount: make([]Coin, MAX_ARRAY_SIZE),
+	}
+	err := q.doQuery(query, &qres)
+	if err != nil {
+		return nil, err
+	}
+	return TrimCoins(qres.Amount), err
+}
+
+func (q QuerierWrapper) QueryBalance(addr string, denom string) (Coin, error) {
+	query := QueryRequest{
+		Bank: BankQuery{
+			Balance: BalanceQuery{
+				Address: addr,
+				Denom:   denom,
+			},
+		},
+	}
+	qres := BalanceResponse{}
+	err := q.doQuery(query, &qres)
+	return qres.Amount, err
+}
 
 // QueryRequest is an rust enum and only (exactly) one of the fields should be set
 // Should we do a cleaner approach in Go? (type/data?)

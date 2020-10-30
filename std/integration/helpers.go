@@ -14,6 +14,13 @@ import (
 
 const FEATURES = "staking"
 
+// TODO: move this into go-cosmwasm at some point
+func NewCoins(amount uint64, denom string) []types.Coin {
+	return []types.Coin{types.NewCoin(amount, denom)}
+}
+
+// End transient code
+
 func SetupWasmer(t *testing.T, contractPath string) (*cosmwasm.Wasmer, []byte) {
 	// setup wasmer instance
 	tmpdir, err := ioutil.TempDir("", "wasmer")

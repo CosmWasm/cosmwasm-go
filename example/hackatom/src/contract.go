@@ -7,7 +7,7 @@ import (
 	"github.com/cosmwasm/cosmwasm-go/std/ezjson"
 )
 
-// TODO: use querier
+// TODO: fix querier
 // TODO: add migration support
 // TODO: last functions
 
@@ -83,42 +83,19 @@ func handleRelease(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.Ha
 	if info.Sender != state.Verifier {
 		return nil, errors.New("Unauthorized")
 	}
+
 	// TODO: pull this out into a helper
-	query := std.QueryRequest{
-		Bank: std.BankQuery{
-			AllBalances: std.AllBalancesQuery{
-				Address: env.Contract.Address,
-			},
-		},
-	}
-	deps.Api.Debug("ONE")
-	binQuery, err := ezjson.Marshal(query)
+	amount, err := std.QuerierWrapper{deps.Querier}.QueryAllBalances(env.Contract.Address)
 	if err != nil {
 		return nil, err
 	}
-	deps.Api.Debug("TWO")
-	deps.Api.Debug(string(binQuery))
-	data, err := deps.Querier.RawQuery(binQuery)
-	if err != nil {
-		return nil, err
-	}
-	deps.Api.Debug("THREE")
-	deps.Api.Debug(string(data))
-	qres := std.AllBalancesResponse{
-		Amount: make([]std.Coin, 1),
-	}
-	err = ezjson.Unmarshal(data, &qres)
-	if err != nil {
-		return nil, err
-	}
-	deps.Api.Debug("FOUR")
 
 	msg := []std.CosmosMsg{{
 		Bank: std.BankMsg{
 			Send: std.SendMsg{
 				FromAddress: env.Contract.Address,
 				ToAddress:   state.Beneficiary,
-				Amount:      qres.Amount,
+				Amount:      amount,
 			},
 		},
 	}}

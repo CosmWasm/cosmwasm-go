@@ -19,12 +19,26 @@ func NewCoin(amount uint64, denom string) Coin {
 	}
 }
 
-func NewCoins(amount uint64, denom string) []Coin {
-	return []Coin{NewCoin(amount, denom)}
+func (c Coin) IsEmpty() bool {
+	return c.Denom == "" && c.Amount == ""
+}
+
+// We preallocate empty elements at the end for parsing.
+// This will remove the ones that were not filled
+func TrimCoins(parsed []Coin) []Coin {
+	i := 0
+	for !parsed[i].IsEmpty() {
+		i++
+	}
+	return parsed[:i]
 }
 
 // Coins handles properly serializing empty amounts
 type Coins []Coin
+
+func NewCoins(amount uint64, denom string) Coins {
+	return Coins{NewCoin(amount, denom)}
+}
 
 // MarshalJSON ensures that we get [] for empty arrays
 func (c Coins) MarshalJSON() ([]byte, error) {
