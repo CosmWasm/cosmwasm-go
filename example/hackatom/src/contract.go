@@ -52,18 +52,17 @@ func Handle(deps *std.Deps, env std.Env, info std.MessageInfo, data []byte) (*st
 	// we need to find which one is non-empty
 	switch {
 	case msg.Release.WasSet():
-		return nil, errors.New("Not implemented: Release")
-		//return handleIncrement(deps, &env, &info)
+		return handleRelease(deps, &env, &info)
 	case msg.CpuLoop.WasSet():
-		return nil, errors.New("Not implemented: CpuLoop")
+		return handleCpuLoop(deps, &env, &info)
 	case msg.StorageLoop.WasSet():
-		return nil, errors.New("Not implemented: StorageLoop")
+		return handleStorageLoop(deps, &env, &info)
 	case msg.MemoryLoop.WasSet():
-		return nil, errors.New("Not implemented: MemoryLoop")
+		return handleMemoryLoop(deps, &env, &info)
 	case msg.AllocateLargeMemory.WasSet():
 		return nil, errors.New("Not implemented: AllocateLargeMemory")
 	case msg.Panic.WasSet():
-		return nil, errors.New("Not implemented: Panic")
+		return handlePanic(deps, &env, &info)
 	case msg.UserErrorsInApiCalls.WasSet():
 		return nil, errors.New("Not implemented: UserErrorInApiCalls")
 	default:
@@ -71,39 +70,72 @@ func Handle(deps *std.Deps, env std.Env, info std.MessageInfo, data []byte) (*st
 	}
 }
 
-//
-//func handleIncrement(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.HandleResultOk, error) {
-//	state, err := LoadState(deps.Storage)
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	state.Count += 1
-//
-//	err = SaveState(deps.Storage, state)
-//	if err != nil {
-//		return nil, err
-//	}
-//	return &std.HandleResultOk{}, nil
-//}
-//
-//func handleReset(deps *std.Deps, env *std.Env, info *std.MessageInfo, msg Reset) (*std.HandleResultOk, error) {
-//	state, err := LoadState(deps.Storage)
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	if info.Sender != state.Owner {
-//		return nil, errors.New("Unauthorized")
-//	}
-//	state.Count = msg.Value
-//
-//	err = SaveState(deps.Storage, state)
-//	if err != nil {
-//		return nil, err
-//	}
-//	return &std.HandleResultOk{}, nil
-//}
+func handleRelease(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.HandleResultOk, error) {
+	state, err := LoadState(deps.Storage)
+	if err != nil {
+		return nil, err
+	}
+
+	if info.Sender != state.Verifier {
+		return nil, errors.New("Unauthorized")
+	}
+	// TODO: query all balances
+	//balance := deps.Querier.Query()
+	balance := []std.Coin{{"ATOM", "1000"}}
+
+	msg := []std.CosmosMsg{{
+		Bank: std.BankMsg{
+			Send: std.SendMsg{
+				FromAddress: env.Contract.Address,
+				ToAddress:   state.Beneficiary,
+				Amount:      balance,
+			},
+		},
+	}}
+
+	res := std.HandleResponse{
+		Attributes: []std.Attribute{
+			{"action", "release"},
+			{"destination", state.Beneficiary},
+		},
+		Messages: msg,
+	}
+	return &std.HandleResultOk{Ok: res}, nil
+}
+
+func handleCpuLoop(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.HandleResultOk, error) {
+	var counter uint64 = 0
+	for {
+		counter += 1
+		if counter >= 9_000_000_000 {
+			counter = 0
+		}
+	}
+	return &std.HandleResultOk{}, nil
+}
+
+func handleMemoryLoop(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.HandleResultOk, error) {
+	counter := 1
+	data := []int{1}
+	for {
+		counter += 1
+		data = append(data, counter)
+	}
+	return &std.HandleResultOk{}, nil
+}
+
+func handleStorageLoop(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.HandleResultOk, error) {
+	var counter uint64 = 0
+	for {
+		data := []byte{0, 0, 0, 0, 0, 0, byte(counter / 256), byte(counter % 256)}
+		deps.Storage.Set([]byte("test.key"), data)
+	}
+	return &std.HandleResultOk{}, nil
+}
+
+func handlePanic(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.HandleResultOk, error) {
+	panic("This page intentionally faulted")
+}
 
 func Query(deps *std.Deps, env std.Env, data []byte) (*std.QueryResponseOk, error) {
 	msg := QueryMsg{}
