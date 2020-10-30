@@ -51,7 +51,7 @@ func TestInitAndQuery(t *testing.T) {
 	assert.Equal(t, "Let the", attr.Key)
 	assert.Equal(t, "hacking begin", attr.Value)
 
-	qmsg := []byte(`{"VERIFIER":{}}`)
+	qmsg := []byte(`{"verifier":{}}`)
 	data, err := Query(deps, env, qmsg)
 	require.NoError(t, err)
 	var qres VerifierResponse
