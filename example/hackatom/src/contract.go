@@ -83,7 +83,7 @@ func handleRelease(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.Ha
 	if info.Sender != state.Verifier {
 		return nil, errors.New("Unauthorized")
 	}
-	// TODO: query all balances
+	// TODO: pull this out into a helper
 	query := std.QueryRequest{
 		Bank: std.BankQuery{
 			AllBalances: std.AllBalancesQuery{

@@ -90,8 +90,7 @@ type BoolOpt struct {
 }
 
 func (b BoolOpt) IsEmpty() bool {
-	//boolean always return false
-	return false
+	return !b.realValue
 }
 
 func (b BoolOpt) Value() interface{} {
@@ -134,8 +133,7 @@ type IntOpt struct {
 }
 
 func (i IntOpt) IsEmpty() bool {
-	//int always return false
-	return false
+	return i.realValue == 0
 }
 
 func (i IntOpt) Value() interface{} {
@@ -174,8 +172,7 @@ type UintOpt struct {
 }
 
 func (u UintOpt) IsEmpty() bool {
-	//uint always return false
-	return false
+	return u.realValue == 0
 }
 
 func (u UintOpt) Value() interface{} {

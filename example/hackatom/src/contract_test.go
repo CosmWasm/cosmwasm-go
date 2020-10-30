@@ -73,11 +73,11 @@ func TestPanic(t *testing.T) {
 func TestRelease(t *testing.T) {
 	cases := map[string]struct {
 		signer string
-		funds []std.Coin
+		funds  []std.Coin
 		valid  bool
 	}{
 		"verifier releases": {VERIFIER, std.NewCoins(765432, "wei"), true},
-		"random fails":      {BENEFICIARY, std.NewCoins(765432, "wei"),false},
+		"random fails":      {BENEFICIARY, std.NewCoins(765432, "wei"), false},
 	}
 
 	for name, tc := range cases {
@@ -100,7 +100,7 @@ func TestRelease(t *testing.T) {
 				expected := std.CosmosMsg{Bank: std.BankMsg{Send: std.SendMsg{
 					FromAddress: std.MOCK_CONTRACT_ADDR,
 					ToAddress:   BENEFICIARY,
-					Amount: tc.funds,
+					Amount:      tc.funds,
 				}}}
 				assert.Equal(t, expected, msg)
 				assert.Equal(t, 2, len(res.Ok.Attributes))
