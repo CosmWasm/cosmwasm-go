@@ -19,6 +19,11 @@ func handle(env_ptr, info_ptr, msg_ptr uint32) unsafe.Pointer {
 	return std.DoHandler(src.Handle, env_ptr, info_ptr, msg_ptr)
 }
 
+//export migrate
+func migrate(env_ptr, info_ptr, msg_ptr uint32) unsafe.Pointer {
+	return std.DoMigrate(src.Migrate, env_ptr, info_ptr, msg_ptr)
+}
+
 //export query
 func query(env_ptr, msg_ptr uint32) unsafe.Pointer {
 	return std.DoQuery(src.Query, env_ptr, msg_ptr)

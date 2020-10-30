@@ -106,6 +106,30 @@ func HandleResultOkDefault() *HandleResultOk {
 	}
 }
 
+// MigrateResponse defines the return value on a successful handle
+type MigrateResponse struct {
+	// Messages comes directly from the contract and is it's request for action
+	Messages []CosmosMsg `json:"messages"`
+	// base64-encoded bytes to return as ABCI.Data field
+	Data string `json:"data,rust_option"`
+	// log message to return over abci interface
+	Attributes []Attribute `json:"attributes"`
+}
+
+type MigrateResultOk struct {
+	Ok MigrateResponse `json:"ok"`
+}
+
+func MigrateResultOkDefault() *MigrateResultOk {
+	return &MigrateResultOk{
+		Ok: MigrateResponse{
+			Messages:   []CosmosMsg{},
+			Attributes: []Attribute{},
+			Data:       "",
+		},
+	}
+}
+
 type Attribute struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`

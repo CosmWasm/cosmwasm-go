@@ -7,9 +7,6 @@ import (
 	"github.com/cosmwasm/cosmwasm-go/std/ezjson"
 )
 
-// TODO: add migration support
-// TODO: last functions
-
 func Init(deps *std.Deps, env std.Env, info std.MessageInfo, msg []byte) (*std.InitResultOk, error) {
 	deps.Api.Debug("here we go 🚀")
 
@@ -43,6 +40,26 @@ func Init(deps *std.Deps, env std.Env, info std.MessageInfo, msg []byte) (*std.I
 		Attributes: []std.Attribute{{"Let the", "hacking begin"}},
 	}
 	return &std.InitResultOk{Ok: res}, nil
+}
+
+func Migrate(deps *std.Deps, env std.Env, info std.MessageInfo, msg []byte) (*std.MigrateResultOk, error) {
+	migrateMsg := MigrateMsg{}
+	err := ezjson.Unmarshal(msg, &migrateMsg)
+	if err != nil {
+		return nil, err
+	}
+
+	state, err := LoadState(deps.Storage)
+	if err != nil {
+		return nil, err
+	}
+	state.Verifier = migrateMsg.Verifier
+	err = SaveState(deps.Storage, state)
+	if err != nil {
+		return nil, err
+	}
+
+	return std.MigrateResultOkDefault(), nil
 }
 
 func Handle(deps *std.Deps, env std.Env, info std.MessageInfo, data []byte) (*std.HandleResultOk, error) {
