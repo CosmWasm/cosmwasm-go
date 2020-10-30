@@ -1,10 +1,10 @@
 package std
 
-// =========== Extern --> context =======
-type Extern struct {
-	EStorage Storage
-	EApi     Api
-	EQuerier Querier
+// =========== Deps --> context =======
+type Deps struct {
+	Storage Storage
+	Api     Api
+	Querier Querier
 }
 
 type Order uint32

@@ -1,6 +1,6 @@
 .PHONY: test build unit-test integration-test
 
-PACKAGE=erc20
+PACKAGE=hackatom
 
 # Set on the command line for verbose output, eg.
 # TEST_FLAG=-v make test

@@ -5,7 +5,7 @@ import (
 	"github.com/cosmwasm/cosmwasm-go/std/ezjson"
 )
 
-func Init(deps *std.Extern, env std.Env, info std.MessageInfo, msg []byte) (*std.InitResultOk, error) {
+func Init(deps *std.Deps, env std.Env, info std.MessageInfo, msg []byte) (*std.InitResultOk, error) {
 	initMsg := InitMsg{}
 
 	ownerShip := NewOwnership(deps)
@@ -16,7 +16,7 @@ func Init(deps *std.Extern, env std.Env, info std.MessageInfo, msg []byte) (*std
 	if err = initMsg.Validate(); err != nil {
 		return nil, err
 	}
-	deps.EApi.Debug("*** Init Called ***")
+	deps.Api.Debug("*** Init Called ***")
 
 	erc20Protocol := NewErc20Protocol(State{
 		NameOfToken:   initMsg.Name,
@@ -25,7 +25,7 @@ func Init(deps *std.Extern, env std.Env, info std.MessageInfo, msg []byte) (*std
 		TotalSupplyOf: initMsg.TotalSupply,
 	}, deps, &info)
 
-	owner, err := deps.EApi.CanonicalAddress(info.Sender)
+	owner, err := deps.Api.CanonicalAddress(info.Sender)
 	if err != nil {
 		return nil, err
 	}
@@ -42,10 +42,10 @@ func Init(deps *std.Extern, env std.Env, info std.MessageInfo, msg []byte) (*std
 	}, nil
 }
 
-func Invoke(deps *std.Extern, env std.Env, info std.MessageInfo, msg []byte) (*std.HandleResultOk, error) {
+func Invoke(deps *std.Deps, env std.Env, info std.MessageInfo, msg []byte) (*std.HandleResultOk, error) {
 	return handleInvokeMessage(deps, env, info, msg)
 }
 
-func Query(deps *std.Extern, env std.Env, msg []byte) (*std.QueryResponseOk, error) {
+func Query(deps *std.Deps, env std.Env, msg []byte) (*std.QueryResponseOk, error) {
 	return handleQuery(deps, env, msg)
 }

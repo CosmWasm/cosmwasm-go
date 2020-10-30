@@ -53,7 +53,7 @@ type Ownership struct {
 	owner    []byte
 	newOwner []byte
 
-	apis *std.Extern
+	apis *std.Deps
 }
 
 func (o *Ownership) Owned(ownerAddr []byte) {
@@ -97,11 +97,11 @@ func (o *Ownership) AcceptTransfer(sender, to []byte) {
 func (o Ownership) SaveOwner() bool {
 	//unhandled error
 	if o.owner != nil {
-		o.apis.EStorage.Set([]byte("owner"), o.owner)
+		o.apis.Storage.Set([]byte("owner"), o.owner)
 	}
 
 	if o.newOwner != nil {
-		o.apis.EStorage.Set([]byte("newOwner"), o.newOwner)
+		o.apis.Storage.Set([]byte("newOwner"), o.newOwner)
 	}
 
 	return true
@@ -109,8 +109,8 @@ func (o Ownership) SaveOwner() bool {
 
 func (o *Ownership) LoadOwner() bool {
 	//unhandled error
-	o.owner, _ = o.apis.EStorage.Get([]byte("owner"))
-	o.newOwner, _ = o.apis.EStorage.Get([]byte("newOwner"))
+	o.owner, _ = o.apis.Storage.Get([]byte("owner"))
+	o.newOwner, _ = o.apis.Storage.Get([]byte("newOwner"))
 
 	return true
 }
@@ -124,7 +124,7 @@ type State struct {
 
 type implErc20 struct {
 	State
-	apis *std.Extern
+	apis *std.Deps
 	info *std.MessageInfo
 }
 
@@ -153,7 +153,7 @@ func (i implErc20) TotalSupply() uint64 {
 }
 
 func (i implErc20) BalanceOf(addr []byte) uint64 {
-	v, e := i.apis.EStorage.Get(amountPrefix(addr))
+	v, e := i.apis.Storage.Get(amountPrefix(addr))
 	if e != nil || len(v) == 0 {
 		return 0
 	}
@@ -161,7 +161,7 @@ func (i implErc20) BalanceOf(addr []byte) uint64 {
 }
 
 func (i implErc20) getApproval(addr []byte) uint64 {
-	v, e := i.apis.EStorage.Get(approvalPrefix(addr))
+	v, e := i.apis.Storage.Get(approvalPrefix(addr))
 	if e != nil || len(v) == 0 {
 		return 0
 	}
@@ -169,7 +169,7 @@ func (i implErc20) getApproval(addr []byte) uint64 {
 }
 
 func (i implErc20) setApproval(addr []byte, value uint64) bool {
-	ea := i.apis.EStorage.Set(approvalPrefix(addr), std.Uint64toBytes(value))
+	ea := i.apis.Storage.Set(approvalPrefix(addr), std.Uint64toBytes(value))
 	if ea != nil {
 		return false
 	}
@@ -177,7 +177,7 @@ func (i implErc20) setApproval(addr []byte, value uint64) bool {
 }
 
 func (i implErc20) Assign(addr []byte, value uint64) {
-	i.apis.EStorage.Set(amountPrefix(addr), std.Uint64toBytes(value))
+	i.apis.Storage.Set(amountPrefix(addr), std.Uint64toBytes(value))
 }
 
 func (i implErc20) transfer(from, to []byte, value uint64) bool {
@@ -192,8 +192,8 @@ func (i implErc20) transfer(from, to []byte, value uint64) bool {
 		return false
 	}
 
-	es = i.apis.EStorage.Set(amountPrefix(from), std.Uint64toBytes(sender_money))
-	er = i.apis.EStorage.Set(amountPrefix(to), std.Uint64toBytes(reciver_money))
+	es = i.apis.Storage.Set(amountPrefix(from), std.Uint64toBytes(sender_money))
+	er = i.apis.Storage.Set(amountPrefix(to), std.Uint64toBytes(reciver_money))
 
 	m = i.BalanceOf(to)
 	if es != nil || er != nil {
@@ -203,7 +203,7 @@ func (i implErc20) transfer(from, to []byte, value uint64) bool {
 }
 
 func (i implErc20) Transfer(toAddr []byte, value uint64) bool {
-	sender, err := i.apis.EApi.CanonicalAddress(i.info.Sender)
+	sender, err := i.apis.Api.CanonicalAddress(i.info.Sender)
 	if err != nil {
 		// TODO: use an error
 		//return nil, std.GenerateError(std.GenericError, "Invalid Sender: " + err.Error(), "")
@@ -241,13 +241,13 @@ func (i implErc20) SaveState() bool {
 	if e != nil {
 		return false
 	}
-	e = i.apis.EStorage.Set([]byte("State"), b)
+	e = i.apis.Storage.Set([]byte("State"), b)
 	return e == nil
 }
 
-func LoadState(extern *std.Extern) (State, error) {
+func LoadState(Deps *std.Deps) (State, error) {
 	state := State{}
-	v, e := extern.EStorage.Get([]byte("State"))
+	v, e := Deps.Storage.Get([]byte("State"))
 	if e != nil {
 		return state, e
 	}
@@ -255,14 +255,14 @@ func LoadState(extern *std.Extern) (State, error) {
 	return state, e
 }
 
-func NewErc20Protocol(state State, extern *std.Extern, info *std.MessageInfo) Erc20 {
+func NewErc20Protocol(state State, Deps *std.Deps, info *std.MessageInfo) Erc20 {
 	return implErc20{
 		State: state,
-		apis:  extern,
+		apis:  Deps,
 		info:  info,
 	}
 }
 
-func NewOwnership(extern *std.Extern) Owner {
-	return &Ownership{owner: nil, newOwner: nil, apis: extern}
+func NewOwnership(Deps *std.Deps) Owner {
+	return &Ownership{owner: nil, newOwner: nil, apis: Deps}
 }

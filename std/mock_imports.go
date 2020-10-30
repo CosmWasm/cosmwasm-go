@@ -8,11 +8,11 @@ import (
 	dbm "github.com/tendermint/tm-db"
 )
 
-func MockExtern() *Extern {
-	return &Extern{
-		EStorage: NewMockStorage(),
-		EApi:     MockApi{},
-		EQuerier: MockQuerier{},
+func MockDeps() *Deps {
+	return &Deps{
+		Storage: NewMockStorage(),
+		Api:     MockApi{},
+		Querier: MockQuerier{},
 	}
 }
 
