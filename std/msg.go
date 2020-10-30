@@ -1,32 +1,29 @@
 package std
 
 import (
-	"fmt"
 	"github.com/cosmwasm/cosmwasm-go/std/ezjson"
 )
 
 // Set this as EmptyStruct{Seen: true} so it will serialize, otherwise it is missing
 type EmptyStruct struct {
-	Seen bool `json:"seen,omitempty"`
+	Seen bool `json:"do_not_set_this_field,omitempty"`
 }
 
 var _ ezjson.EzJsonUnmarshaller = EmptyStruct{}
 
 func (e EmptyStruct) UnmarshalEzJson(opts []ezjson.BaseOpt) (interface{}, error) {
-	fmt.Printf("Opts: %d\n", len(opts))
-	for _, opt := range opts {
-		fmt.Printf("Opt: %#v\n", opt)
-	}
-	return EmptyStruct{Seen: true}, nil
+	// Odd but true - if struct was seen with no data, len(opts) == 0
+	// If it was not seen, len(opts) == 1
+	// If it was a struct with some data, len(opts) == 1
+	seen := len(opts) == 0
+	return EmptyStruct{Seen: seen}, nil
 }
 
-// always serialize as an empty struct
-func (e EmptyStruct) MarshalJSON() ([]byte, error) {
-	return []byte(`{}`), nil
+func (e EmptyStruct) WasSet() bool {
+	return e.Seen
 }
 
-// we store seen
-func (e *EmptyStruct) UnmarshalJSON(data []byte) error {
-	e.Seen = true
-	return nil
-}
+//// always serialize as an empty struct
+//func (e EmptyStruct) MarshalJSON() ([]byte, error) {
+//	return []byte(`{}`), nil
+//}
