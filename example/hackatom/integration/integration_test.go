@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	cosmwasm "github.com/CosmWasm/go-cosmwasm/api"
+	mocks "github.com/CosmWasm/go-cosmwasm/api"
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmwasm/cosmwasm-go/example/hackatom/src"
@@ -15,44 +15,21 @@ import (
 var CONTRACT = filepath.Join("..", "hackatom.wasm")
 
 func TestWorkflow(t *testing.T) {
-	wasmer, codeID := integration.SetupWasmer(t, CONTRACT)
+	instance := integration.NewInstance(t, CONTRACT, 100_000_000, nil)
 
-	// a whole lot of setup object using go-cosmwasm mock/test code
-	var gasLimit uint64 = 100_000_000
-	gasMeter := cosmwasm.NewMockGasMeter(gasLimit)
-	store := cosmwasm.NewLookup(gasMeter)
-	api := cosmwasm.NewMockAPI()
-	querier := cosmwasm.DefaultQuerier(cosmwasm.MOCK_CONTRACT_ADDR, nil)
-
-	info := cosmwasm.MockInfo("coral1e86v774dch5uwkks0cepw8mdz8a9flhhapvf6w", nil)
+	env := mocks.MockEnv()
+	info := mocks.MockInfo("coral1e86v774dch5uwkks0cepw8mdz8a9flhhapvf6w", nil)
 	initMsg := []byte(`{"count":1234}`)
-	res, _, err := wasmer.Instantiate(codeID,
-		cosmwasm.MockEnv(),
-		info,
-		initMsg,
-		store,
-		*api,
-		querier,
-		gasMeter,
-		gasLimit,
-	)
+	res, _, err := instance.Init(env, info, initMsg)
 	require.NoError(t, err)
 	require.NotNil(t, res)
 
 	// both work, let's test that
 	//queryMsg := []byte(`{"get_count":{"b": "c"}}`)
 	queryMsg := []byte(`{"get_count":{}}`)
-	qres, _, err := wasmer.Query(codeID,
-		cosmwasm.MockEnv(),
-		queryMsg,
-		store,
-		*api,
-		querier,
-		gasMeter,
-		gasLimit,
-	)
+	qres, _, err := instance.Query(env, queryMsg)
 	require.NoError(t, err)
-	require.NotEmpty(t, qres)
+	require.NotNil(t, res)
 	//require.Equal(t, uint64(0xb00c7), _)
 
 	// let us parse the query??
