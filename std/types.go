@@ -19,6 +19,10 @@ func NewCoin(amount uint64, denom string) Coin {
 	}
 }
 
+func NewCoins(amount uint64, denom string) []Coin {
+	return []Coin{NewCoin(amount, denom)}
+}
+
 // Coins handles properly serializing empty amounts
 type Coins []Coin
 

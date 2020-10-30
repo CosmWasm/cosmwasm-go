@@ -18,6 +18,16 @@ func BuildQueryResponse(msg string) *QueryResponseOk {
 	return &QueryResponseOk{Ok: []byte(msg)}
 }
 
+//
+//// Query will handle most of the marshalling/unmarshalling. You need to parse the final result
+//func Query(querier Querier, request QueryRequest) ([]byte, error) {
+//	raw, err := ezjson.Marshal(request)
+//	if err != nil {
+//		return nil, err
+//	}
+//	querier.RawQuery(raw)
+//}
+
 // QueryRequest is an rust enum and only (exactly) one of the fields should be set
 // Should we do a cleaner approach in Go? (type/data?)
 type QueryRequest struct {

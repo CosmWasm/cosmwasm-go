@@ -236,6 +236,7 @@ func (querier ExternalQuerier) RawQuery(request []byte) ([]byte, error) {
 	}
 
 	response := TranslateToSlice(uintptr(ret))
+	// TODO: parse this into the proper structure
 	return response, nil
 }
 
