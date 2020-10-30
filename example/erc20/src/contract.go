@@ -46,6 +46,6 @@ func Invoke(deps *std.Deps, env std.Env, info std.MessageInfo, msg []byte) (*std
 	return handleInvokeMessage(deps, env, info, msg)
 }
 
-func Query(deps *std.Deps, env std.Env, msg []byte) (*std.QueryResponseOk, error) {
+func Query(deps *std.Deps, env std.Env, msg []byte) (*std.QueryResponse, error) {
 	return handleQuery(deps, env, msg)
 }

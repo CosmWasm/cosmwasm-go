@@ -1,35 +1,111 @@
 package std
 
 import (
+	"encoding/base64"
+	"errors"
+
 	"github.com/cosmwasm/cosmwasm-go/std/ezjson"
 )
 
 // ------- query detail types ---------
-type QueryResponseOk struct {
-	Ok []byte `json:"Ok,omitempty,rust_option"`
+type QueryResponse struct {
+	// this must be base64 encoded
+	Ok string `json:"ok,omitempty,rust_option"`
+	// TODO: what is this format actually?
+	Error string `json:"error,omitempty"`
 }
 
 // This is a 2-level result
 type QuerierResult struct {
-	Ok QueryResponseOk `json:"Ok,omitempty"`
+	Ok QueryResponse `json:"ok,omitempty"`
+	// TODO: what is this format actually?
+	Error string `json:"error,omitempty"`
 }
 
-func BuildQueryResponse(msg string) *QueryResponseOk {
-	return &QueryResponseOk{Ok: []byte(msg)}
+func BuildQueryResponse(msg string) *QueryResponse {
+	encoded := base64.StdEncoding.EncodeToString([]byte(msg))
+	return &QueryResponse{Ok: encoded}
+}
+
+func BuildQueryResponseBinary(msg []byte) *QueryResponse {
+	encoded := base64.StdEncoding.EncodeToString(msg)
+	return &QueryResponse{Ok: encoded}
+}
+
+func (q QueryResponse) Data() ([]byte, error) {
+	if q.Error != "" {
+		return nil, errors.New(q.Error)
+	}
+	return base64.StdEncoding.DecodeString(q.Ok)
+}
+
+// random constant for the size to preallocate arrays before parsing
+const MAX_ARRAY_SIZE = 8
+
+type QuerierWrapper struct {
+	Querier
+}
+
+func (q QuerierWrapper) doQuery(query QueryRequest, result interface{}) error {
+	binQuery, err := ezjson.Marshal(query)
+	if err != nil {
+		return err
+	}
+	data, err := q.Querier.RawQuery(binQuery)
+	if err != nil {
+		return err
+	}
+	return ezjson.Unmarshal(data, result)
+}
+
+func (q QuerierWrapper) QueryAllBalances(addr string) ([]Coin, error) {
+	query := QueryRequest{
+		Bank: BankQuery{
+			AllBalances: AllBalancesQuery{
+				Address: addr,
+			},
+		},
+	}
+	qres := AllBalancesResponse{
+		Amount: make([]Coin, MAX_ARRAY_SIZE),
+	}
+	err := q.doQuery(query, &qres)
+	if err != nil {
+		return nil, err
+	}
+	return TrimCoins(qres.Amount), err
+}
+
+func (q QuerierWrapper) QueryBalance(addr string, denom string) (Coin, error) {
+	query := QueryRequest{
+		Bank: BankQuery{
+			Balance: BalanceQuery{
+				Address: addr,
+				Denom:   denom,
+			},
+		},
+	}
+	qres := BalanceResponse{}
+	err := q.doQuery(query, &qres)
+	return qres.Amount, err
 }
 
 // QueryRequest is an rust enum and only (exactly) one of the fields should be set
 // Should we do a cleaner approach in Go? (type/data?)
 type QueryRequest struct {
-	Bank    *BankQuery    `json:"bank,omitempty"`
-	Custom  RawMessage    `json:"custom,omitempty"`
-	Staking *StakingQuery `json:"staking,omitempty"`
-	Wasm    *WasmQuery    `json:"wasm,omitempty"`
+	Bank    BankQuery    `json:"bank,omitempty"`
+	Custom  RawMessage   `json:"custom,omitempty"`
+	Staking StakingQuery `json:"staking,omitempty"`
+	Wasm    WasmQuery    `json:"wasm,omitempty"`
 }
 
 type BankQuery struct {
-	Balance     *BalanceQuery     `json:"balance,omitempty"`
-	AllBalances *AllBalancesQuery `json:"all_balances,omitempty"`
+	Balance     BalanceQuery     `json:"balance,omitempty"`
+	AllBalances AllBalancesQuery `json:"all_balances,omitempty"`
+}
+
+func (b BankQuery) IsEmpty() bool {
+	return b.Balance.Address == "" && b.AllBalances.Address == ""
 }
 
 type BalanceQuery struct {
@@ -52,13 +128,18 @@ type AllBalancesResponse struct {
 }
 
 type StakingQuery struct {
-	Validators     ValidatorsQuery     `json:"validators,omitempty"`
+	Validators     ezjson.EmptyStruct  `json:"validators,omitempty,opt_seen"`
 	AllDelegations AllDelegationsQuery `json:"all_delegations,omitempty"`
 	Delegation     DelegationQuery     `json:"delegation,omitempty"`
-	BondedDenom    struct{}            `json:"bonded_denom,omitempty"`
+	BondedDenom    ezjson.EmptyStruct  `json:"bonded_denom,omitempty,opt_seen"`
 }
 
-type ValidatorsQuery struct{}
+func (s StakingQuery) IsEmpty() bool {
+	return !s.Validators.WasSet() &&
+		s.AllDelegations.Delegator == "" &&
+		s.Delegation.Delegator == "" &&
+		!s.BondedDenom.WasSet()
+}
 
 // ValidatorsResponse is the expected response to ValidatorsQuery
 type ValidatorsResponse struct {
@@ -164,8 +245,13 @@ type BondedDenomResponse struct {
 }
 
 type WasmQuery struct {
-	Smart *SmartQuery `json:"smart,omitempty"`
-	Raw   *RawQuery   `json:"raw,omitempty"`
+	Smart SmartQuery `json:"smart,omitempty"`
+	Raw   RawQuery   `json:"raw,omitempty"`
+}
+
+func (w WasmQuery) IsEmpty() bool {
+	return w.Smart.ContractAddr == "" &&
+		w.Raw.ContractAddr == ""
 }
 
 // SmartQuery respone is raw bytes ([]byte)

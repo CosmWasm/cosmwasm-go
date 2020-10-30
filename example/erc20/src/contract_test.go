@@ -28,7 +28,7 @@ func TestInit(t *testing.T) {
 
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
-			deps := std.MockDeps()
+			deps := std.MockDeps(nil)
 			env := std.MockEnv()
 			info := std.MockInfo("creator", tc.funds)
 			res, err := Init(deps, env, info, tc.initMsg)
@@ -53,7 +53,7 @@ func TestInit(t *testing.T) {
 
 // This demos unit testing state objects
 func TestOwner(t *testing.T) {
-	deps := std.MockDeps()
+	deps := std.MockDeps(nil)
 	ownership := NewOwnership(deps)
 
 	// write some data
@@ -107,7 +107,7 @@ func TestOwner(t *testing.T) {
 
 // This runs the same path we do in cosmwasm-simulate
 func TestWorkflow(t *testing.T) {
-	deps := std.MockDeps()
+	deps := std.MockDeps(nil)
 	env := std.MockEnv()
 	info := std.MockInfo("original_owner_addr", nil)
 
@@ -128,7 +128,9 @@ func TestWorkflow(t *testing.T) {
 
 	// let us parse the query??
 	var bal BalanceResponse
-	jerr := json.Unmarshal(qres.Ok, &bal)
+	data, err := qres.Data()
+	require.NoError(t, err)
+	jerr := json.Unmarshal(data, &bal)
 	require.NoError(t, jerr)
 	require.Equal(t, uint64(2000), bal.Value)
 }

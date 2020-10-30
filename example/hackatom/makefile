@@ -4,7 +4,7 @@ PACKAGE=hackatom
 
 # Set on the command line for verbose output, eg.
 # TEST_FLAG=-v make test
-#TEST_FLAG=-v -count=1
+TEST_FLAG=-v -count=1
 
 test: unit-test integration-test
 

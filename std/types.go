@@ -19,8 +19,26 @@ func NewCoin(amount uint64, denom string) Coin {
 	}
 }
 
+func (c Coin) IsEmpty() bool {
+	return c.Denom == "" && c.Amount == ""
+}
+
+// We preallocate empty elements at the end for parsing.
+// This will remove the ones that were not filled
+func TrimCoins(parsed []Coin) []Coin {
+	i := 0
+	for !parsed[i].IsEmpty() {
+		i++
+	}
+	return parsed[:i]
+}
+
 // Coins handles properly serializing empty amounts
 type Coins []Coin
+
+func NewCoins(amount uint64, denom string) Coins {
+	return Coins{NewCoin(amount, denom)}
+}
 
 // MarshalJSON ensures that we get [] for empty arrays
 func (c Coins) MarshalJSON() ([]byte, error) {
@@ -81,6 +99,30 @@ type HandleResultOk struct {
 func HandleResultOkDefault() *HandleResultOk {
 	return &HandleResultOk{
 		Ok: HandleResponse{
+			Messages:   []CosmosMsg{},
+			Attributes: []Attribute{},
+			Data:       "",
+		},
+	}
+}
+
+// MigrateResponse defines the return value on a successful handle
+type MigrateResponse struct {
+	// Messages comes directly from the contract and is it's request for action
+	Messages []CosmosMsg `json:"messages"`
+	// base64-encoded bytes to return as ABCI.Data field
+	Data string `json:"data,rust_option"`
+	// log message to return over abci interface
+	Attributes []Attribute `json:"attributes"`
+}
+
+type MigrateResultOk struct {
+	Ok MigrateResponse `json:"ok"`
+}
+
+func MigrateResultOkDefault() *MigrateResultOk {
+	return &MigrateResultOk{
+		Ok: MigrateResponse{
 			Messages:   []CosmosMsg{},
 			Attributes: []Attribute{},
 			Data:       "",

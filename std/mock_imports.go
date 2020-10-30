@@ -3,16 +3,17 @@
 package std
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	dbm "github.com/tendermint/tm-db"
 )
 
-func MockDeps() *Deps {
+func MockDeps(funds []Coin) *Deps {
 	return &Deps{
 		Storage: NewMockStorage(),
 		Api:     MockApi{},
-		Querier: MockQuerier{},
+		Querier: NewMockQuerier(funds),
 	}
 }
 
@@ -151,10 +152,82 @@ var (
 	_ Querier = (*MockQuerier)(nil)
 )
 
-type MockQuerier struct{}
+type MockQuerier struct {
+	Balances map[string][]Coin
+}
 
-func (querier MockQuerier) RawQuery(request []byte) ([]byte, error) {
-	return []byte(""), nil
+func NewMockQuerier(funds []Coin) *MockQuerier {
+	q := MockQuerier{
+		Balances: make(map[string][]Coin),
+	}
+	if len(funds) > 0 {
+		q.SetBalance(MOCK_CONTRACT_ADDR, funds)
+	}
+	return &q
+}
+
+func (q *MockQuerier) RawQuery(raw []byte) ([]byte, error) {
+	var request QueryRequest
+	err := json.Unmarshal(raw, &request)
+	if err != nil {
+		return nil, err
+	}
+	res, err := q.HandleQuery(request)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(res)
+}
+
+func (q *MockQuerier) HandleQuery(request QueryRequest) (interface{}, error) {
+	switch {
+	case !request.Bank.IsEmpty():
+		return q.HandleBank(request.Bank)
+	case !request.Staking.IsEmpty():
+		return nil, errors.New("Staking queries not implemented")
+	case !request.Wasm.IsEmpty():
+		return nil, errors.New("Wasm queries not implemented")
+	case len(request.Custom) > 0:
+		return nil, errors.New("Custom queries not implemented")
+	default:
+		return nil, errors.New("Unknown QueryRequest variant")
+	}
+}
+
+func (q *MockQuerier) HandleBank(request BankQuery) (interface{}, error) {
+	switch {
+	case request.Balance.Address != "":
+		balances := q.GetBalance(request.Balance.Address)
+		coin := Coin{Denom: request.Balance.Denom, Amount: "0"}
+		for _, c := range balances {
+			if c.Denom == coin.Denom {
+				coin.Amount = c.Amount
+				break
+			}
+		}
+		return BalanceResponse{Amount: coin}, nil
+	case request.AllBalances.Address != "":
+		balances := q.GetBalance(request.AllBalances.Address)
+		return AllBalancesResponse{Amount: balances}, nil
+	default:
+		return nil, errors.New("Unknown BankQuery variant")
+	}
+}
+
+func (q *MockQuerier) SetBalance(addr string, balance []Coin) {
+	// clone coins so we don't accidentally edit them
+	var empty []Coin
+	q.Balances[addr] = append(empty, balance...)
+}
+
+func (q *MockQuerier) GetBalance(addr string) []Coin {
+	bal := q.Balances[addr]
+	if len(bal) == 0 {
+		return bal
+	}
+	// if not empty, clone data
+	var empty []Coin
+	return append(empty, bal...)
 }
 
 func DisplayMessage(msg []byte) int {

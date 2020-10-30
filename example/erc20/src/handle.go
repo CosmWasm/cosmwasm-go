@@ -121,7 +121,7 @@ func getNotEmptyQueryElem(q Querier) interface{} {
 	return nil
 }
 
-func handleQuery(deps *std.Deps, _env std.Env, msg []byte) (*std.QueryResponseOk, error) {
+func handleQuery(deps *std.Deps, _env std.Env, msg []byte) (*std.QueryResponse, error) {
 	querier := Querier{}
 	err := ezjson.Unmarshal(msg, &querier)
 	if err != nil {
@@ -141,7 +141,7 @@ func handleQuery(deps *std.Deps, _env std.Env, msg []byte) (*std.QueryResponseOk
 	return nil, errors.New("Unsupported query type")
 }
 
-func QueryBalance(b Balance, erc20 Erc20) (*std.QueryResponseOk, error) {
+func QueryBalance(b Balance, erc20 Erc20) (*std.QueryResponse, error) {
 	br := BalanceResponse{Value: erc20.BalanceOf(b.Address)}
 	v, err := ezjson.Marshal(br)
 	if err != nil {

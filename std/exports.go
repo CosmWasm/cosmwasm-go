@@ -50,13 +50,7 @@ func parseInfo(infoPtr uint32) (MessageInfo, error) {
 	if err != nil {
 		return info, err
 	}
-
-	// now we trim off the ones that we not filled above
-	var i = 0
-	for info.SentFunds[i].Denom != "" {
-		i++
-	}
-	info.SentFunds = info.SentFunds[:i]
+	info.SentFunds = TrimCoins(info.SentFunds)
 	return info, nil
 }
 
@@ -116,8 +110,36 @@ func DoHandler(handlerFn func(*Deps, Env, MessageInfo, []byte) (*HandleResultOk,
 	return Package_message(data)
 }
 
+// ========= migrate ============
+func DoMigrate(migrateFn func(*Deps, Env, MessageInfo, []byte) (*MigrateResultOk, error), envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
+	env := Env{}
+	envData := TranslateToSlice(uintptr(envPtr))
+	err := ezjson.Unmarshal(envData, &env)
+	if err != nil {
+		return StdErrResult(err, "Parse Env")
+	}
+
+	info, err := parseInfo(infoPtr)
+	if err != nil {
+		return StdErrResult(err, "Parse Info")
+	}
+
+	deps := make_dependencies()
+	msgData := Translate_range_custom(uintptr(msgPtr))
+	ok, err := migrateFn(&deps, env, info, msgData)
+	if ok == nil {
+		return StdErrResult(err, "Migrate")
+	}
+
+	data, err := ezjson.Marshal(*ok)
+	if err != nil {
+		return StdErrResult(err, "Marshal Response")
+	}
+	return Package_message(data)
+}
+
 // =========== query ===================
-func DoQuery(queryFn func(*Deps, Env, []byte) (*QueryResponseOk, error), envPtr, msgPtr uint32) unsafe.Pointer {
+func DoQuery(queryFn func(*Deps, Env, []byte) (*QueryResponse, error), envPtr, msgPtr uint32) unsafe.Pointer {
 	msgData := Translate_range_custom(uintptr(msgPtr))
 	env := Env{}
 	envData := TranslateToSlice(uintptr(envPtr))
