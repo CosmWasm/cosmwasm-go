@@ -1,14 +1,22 @@
 package ezjson
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
 
+func init() {
+	SetDisplay(func (msg []byte) int {
+		fmt.Println(string(msg))
+		return len(msg)
+	})
+}
+
 type Wrapper struct {
-	OptA EmptyStruct `json:"opt_a,omitempty"`
-	OptB EmptyStruct `json:"opt_b,omitempty"`
+	OptA EmptyStruct `json:"opt_a,opt_seen"`
+	OptB EmptyStruct `json:"opt_b,opt_seen"`
 }
 
 func TestEmptyStructSerialization(t *testing.T) {
