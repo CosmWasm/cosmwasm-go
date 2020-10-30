@@ -8,22 +8,38 @@ import (
 )
 
 func Init(deps *std.Deps, env std.Env, info std.MessageInfo, msg []byte) (*std.InitResultOk, error) {
+	deps.Api.Debug("here we go 🚀")
+
 	initMsg := InitMsg{}
 	err := ezjson.Unmarshal(msg, &initMsg)
 	if err != nil {
 		return nil, err
 	}
 
+	// just verify these (later we save like that)
+	_, err = deps.Api.CanonicalAddress(initMsg.Verifier)
+	if err != nil {
+		return nil, err
+	}
+	_, err = deps.Api.CanonicalAddress(initMsg.Beneficiary)
+	if err != nil {
+		return nil, err
+	}
+
 	state := State{
-		Count: initMsg.Count,
-		Owner: info.Sender,
+		Verifier:    initMsg.Verifier,
+		Beneficiary: initMsg.Beneficiary,
+		Funder:      info.Sender,
 	}
 
 	err = SaveState(deps.Storage, &state)
 	if err != nil {
 		return nil, err
 	}
-	return &std.InitResultOk{}, nil
+	res := std.InitResponse{
+		Attributes: []std.Attribute{{"Let the", "hacking begin"}},
+	}
+	return &std.InitResultOk{Ok: res}, nil
 }
 
 func Handle(deps *std.Deps, env std.Env, info std.MessageInfo, data []byte) (*std.HandleResultOk, error) {
@@ -35,47 +51,59 @@ func Handle(deps *std.Deps, env std.Env, info std.MessageInfo, data []byte) (*st
 
 	// we need to find which one is non-empty
 	switch {
-	case msg.Increment.WasSet():
-		return handleIncrement(deps, &env, &info)
-	case msg.Reset.Value != 0:
-		return handleReset(deps, &env, &info, msg.Reset)
+	case msg.Release.WasSet():
+		return nil, errors.New("Not implemented: Release")
+		//return handleIncrement(deps, &env, &info)
+	case msg.CpuLoop.WasSet():
+		return nil, errors.New("Not implemented: CpuLoop")
+	case msg.StorageLoop.WasSet():
+		return nil, errors.New("Not implemented: StorageLoop")
+	case msg.MemoryLoop.WasSet():
+		return nil, errors.New("Not implemented: MemoryLoop")
+	case msg.AllocateLargeMemory.WasSet():
+		return nil, errors.New("Not implemented: AllocateLargeMemory")
+	case msg.Panic.WasSet():
+		return nil, errors.New("Not implemented: Panic")
+	case msg.UserErrorsInApiCalls.WasSet():
+		return nil, errors.New("Not implemented: UserErrorInApiCalls")
 	default:
 		return nil, errors.New("Unknown HandleMsg")
 	}
 }
 
-func handleIncrement(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.HandleResultOk, error) {
-	state, err := LoadState(deps.Storage)
-	if err != nil {
-		return nil, err
-	}
-
-	state.Count += 1
-
-	err = SaveState(deps.Storage, state)
-	if err != nil {
-		return nil, err
-	}
-	return &std.HandleResultOk{}, nil
-}
-
-func handleReset(deps *std.Deps, env *std.Env, info *std.MessageInfo, msg Reset) (*std.HandleResultOk, error) {
-	state, err := LoadState(deps.Storage)
-	if err != nil {
-		return nil, err
-	}
-
-	if info.Sender != state.Owner {
-		return nil, errors.New("Unauthorized")
-	}
-	state.Count = msg.Value
-
-	err = SaveState(deps.Storage, state)
-	if err != nil {
-		return nil, err
-	}
-	return &std.HandleResultOk{}, nil
-}
+//
+//func handleIncrement(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.HandleResultOk, error) {
+//	state, err := LoadState(deps.Storage)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	state.Count += 1
+//
+//	err = SaveState(deps.Storage, state)
+//	if err != nil {
+//		return nil, err
+//	}
+//	return &std.HandleResultOk{}, nil
+//}
+//
+//func handleReset(deps *std.Deps, env *std.Env, info *std.MessageInfo, msg Reset) (*std.HandleResultOk, error) {
+//	state, err := LoadState(deps.Storage)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	if info.Sender != state.Owner {
+//		return nil, errors.New("Unauthorized")
+//	}
+//	state.Count = msg.Value
+//
+//	err = SaveState(deps.Storage, state)
+//	if err != nil {
+//		return nil, err
+//	}
+//	return &std.HandleResultOk{}, nil
+//}
 
 func Query(deps *std.Deps, env std.Env, data []byte) (*std.QueryResponseOk, error) {
 	msg := QueryMsg{}
@@ -86,29 +114,30 @@ func Query(deps *std.Deps, env std.Env, data []byte) (*std.QueryResponseOk, erro
 
 	// we need to find which one is non-empty
 	switch {
-	case msg.Count.WasSet():
-		// ignore this A field, it is just a placeholder for serialization
-		return queryCount(deps, &env)
+	case msg.Verifier.WasSet():
+		return queryVerifier(deps, &env)
+	case msg.OtherBalance.Address != "":
+		return nil, errors.New("Not implemented: OtherBalance")
+	case msg.Recurse.Work != 0 || msg.Recurse.Depth != 0:
+		return nil, errors.New("Not implemented: Recurse")
 	default:
 		return nil, errors.New("Unknown QueryMsg")
 	}
 }
 
-func queryCount(deps *std.Deps, env *std.Env) (*std.QueryResponseOk, error) {
+func queryVerifier(deps *std.Deps, env *std.Env) (*std.QueryResponseOk, error) {
 	state, err := LoadState(deps.Storage)
 	if err != nil {
 		return nil, err
 	}
 
-	res := CountResponse{
-		Count: state.Count,
+	res := VerifierResponse{
+		Verifier: state.Verifier,
 	}
 	bz, err := ezjson.Marshal(res)
 	if err != nil {
 		return nil, err
 	}
 
-	return &std.QueryResponseOk{
-		Ok: bz,
-	}, nil
+	return &std.QueryResponseOk{Ok: bz}, nil
 }
