@@ -69,6 +69,15 @@ func TestInitAndQuery(t *testing.T) {
 	assert.Equal(t, VERIFIER, qres.Verifier)
 }
 
+func TestPanic(t *testing.T) {
+	deps := defaultInit(t, nil)
+	env := mocks.MockEnv()
+	info := mocks.MockInfo(FUNDER, nil)
+	handleMsg := []byte(`{"panic":{}}`)
+	_, _, err := deps.Handle(env, info, handleMsg)
+	require.Error(t, err)
+}
+
 //
 //func TestWorkflow(t *testing.T) {
 //	instance := integration.NewInstance(t, CONTRACT, 100_000_000, nil)
