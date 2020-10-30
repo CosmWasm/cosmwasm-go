@@ -30,7 +30,7 @@ func TestInit(t *testing.T) {
 			// check any return value if needed
 
 			// placehold data in get_count... maybe we can remove one day?
-			qmsg := []byte(`{"get_count":{"a":"b"}}`)
+			qmsg := []byte(`{"get_count":{}}`)
 			data, err := Query(deps, env, qmsg)
 			require.NoError(t, err)
 			var qres CountResponse

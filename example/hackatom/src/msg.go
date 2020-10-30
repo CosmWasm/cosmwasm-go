@@ -1,5 +1,7 @@
 package src
 
+import "github.com/cosmwasm/cosmwasm-go/std"
+
 //all message type define here
 type InitMsg struct {
 	Count uint64 `json:"count"`
@@ -19,12 +21,7 @@ type Reset struct {
 }
 
 type QueryMsg struct {
-	Count Count `json:"get_count"`
-}
-
-// how to better handle empty values for enum? it must be different than default/zero
-type Count struct {
-	A string `json:"a"`
+	Count std.EmptyStruct `json:"get_count"`
 }
 
 type CountResponse struct {

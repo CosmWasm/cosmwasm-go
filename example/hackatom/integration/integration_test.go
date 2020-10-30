@@ -39,7 +39,7 @@ func TestWorkflow(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, res)
 
-	queryMsg := []byte(`{"get_count":{"a":"b"}}`)
+	queryMsg := []byte(`{"get_count":{}}`)
 	qres, _, err := wasmer.Query(codeID,
 		cosmwasm.MockEnv(),
 		queryMsg,

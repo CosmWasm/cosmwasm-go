@@ -86,7 +86,7 @@ func Query(deps *std.Deps, env std.Env, data []byte) (*std.QueryResponseOk, erro
 
 	// we need to find which one is non-empty
 	switch {
-	case msg.Count.A != "":
+	case msg.Count.WasSet():
 		// ignore this A field, it is just a placeholder for serialization
 		return queryCount(deps, &env)
 	default:
