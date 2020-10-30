@@ -29,8 +29,7 @@ func TestInit(t *testing.T) {
 			require.NotNil(t, res)
 			// check any return value if needed
 
-			// placehold data in get_count... maybe we can remove one day?
-			qmsg := []byte(`{"get_count":{"a":"b"}}`)
+			qmsg := []byte(`{"get_count":{}}`)
 			data, err := Query(deps, env, qmsg)
 			require.NoError(t, err)
 			var qres CountResponse
@@ -40,4 +39,27 @@ func TestInit(t *testing.T) {
 		})
 	}
 
+}
+
+func TestHandle(t *testing.T) {
+	deps := std.MockDeps()
+	env := std.MockEnv()
+	info := std.MockInfo("creator", nil)
+	initMsg := []byte(`{"count":123}`)
+	res, err := Init(deps, env, info, initMsg)
+	require.NoError(t, err)
+	require.NotNil(t, res)
+
+	info = std.MockInfo("random", nil)
+	handleMsg := []byte(`{"increment":{}}`)
+	_, err = Handle(deps, env, info, handleMsg)
+	require.NoError(t, err)
+
+	qmsg := []byte(`{"get_count":{}}`)
+	data, err := Query(deps, env, qmsg)
+	require.NoError(t, err)
+	var qres CountResponse
+	err = json.Unmarshal(data.Ok, &qres)
+	require.NoError(t, err)
+	require.Equal(t, uint64(124), qres.Count)
 }

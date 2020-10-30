@@ -78,7 +78,6 @@ func handleReset(deps *std.Deps, env *std.Env, info *std.MessageInfo, msg Reset)
 }
 
 func Query(deps *std.Deps, env std.Env, data []byte) (*std.QueryResponseOk, error) {
-	deps.Api.Debug("********** Query ****************")
 	msg := QueryMsg{}
 	err := ezjson.Unmarshal(data, &msg)
 	if err != nil {
