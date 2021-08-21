@@ -23,10 +23,7 @@ import "C"
 
 import (
 	"encoding/base64"
-	"errors"
 	"unsafe"
-
-	"github.com/cosmwasm/cosmwasm-go/std/ezjson"
 )
 
 const (
@@ -80,7 +77,7 @@ func (storage ExternalStorage) Get(key []byte) (value []byte, err error) {
 	C.free(unsafe.Pointer(keyPtr))
 
 	if read == nil {
-		return nil, errors.New("key not existed")
+		return nil, NewError("key not existed")
 	}
 
 	b := TranslateToSlice(uintptr(read))
@@ -101,7 +98,7 @@ func (storage ExternalStorage) Range(start, end []byte, order Order) (Iterator, 
 		C.free(ptrEnd)
 
 		if iterId < 0 {
-			return nil, errors.New("error creating iterator (via db_scan): " + string(int(iterId)))
+			return nil, NewError("error creating iterator (via db_scan): " + string(int(iterId)))
 		}
 
 		return ExternalIterator{uint32(iterId)}, nil
@@ -148,20 +145,20 @@ func (iterator ExternalIterator) Next() (key, value []byte, err error) {
 		ret := nil //C.db_next(C.uint(iterator.IteratorId))
 
 		if ret == nil {
-			return nil, nil, errors.New("unknown error from db_next ")
+			return nil, nil, NewError("unknown error from db_next ")
 		}
 
 		key = TranslateToSlice(uintptr(regionKey))
 		value = TranslateToSlice(uintptr(regionNextValue))
 
 		if len(key) == 0 {
-			return nil, nil, errors.New("empty key get from db_next")
+			return nil, nil, NewError("empty key get from db_next")
 		}
 
 		return key, value, nil
 
 	*/
-	return nil, nil, errors.New("unsupported for now")
+	return nil, nil, NewError("unsupported for now")
 }
 
 // ====== API ======
@@ -185,7 +182,7 @@ func (api ExternalApi) CanonicalAddress(human string) (CanonicalAddr, error) {
 	C.free(humanPtr)
 
 	if ret < 0 {
-		return nil, errors.New("canonicalize_address returned error")
+		return nil, NewError("canonicalize_address returned error")
 	}
 
 	canoAddress := TranslateToSlice(uintptr(regionCanon))
@@ -203,7 +200,7 @@ func (api ExternalApi) HumanAddress(canonical CanonicalAddr) (string, error) {
 	C.free(canonPtr)
 
 	if ret < 0 {
-		return "", errors.New("humanize_address returned error")
+		return "", NewError("humanize_address returned error")
 	}
 
 	humanAddress := TranslateToSlice(uintptr(regionHuman))
@@ -235,27 +232,28 @@ func (querier ExternalQuerier) RawQuery(request []byte) ([]byte, error) {
 	C.free(reqPtr)
 
 	if ret == nil {
-		return nil, errors.New("failed to query chain: unknown error")
+		return nil, NewError("failed to query chain: unknown error")
 	}
 
 	response := TranslateToSlice(uintptr(ret))
 	// TODO: parse this into the proper structure
 	// success looks like: {"ok":{"ok":"eyJhbW91bnQiOlt7ImRlbm9tIjoid2VpIiwiYW1vdW50IjoiNzY1NDMyIn1dfQ=="}}
 	var qres QuerierResult
-	err := ezjson.Unmarshal(response, &qres)
+	err := qres.UnmarshalJSON(response)
 	if err != nil {
 		return nil, err
 	}
 	if qres.Error != "" {
-		return nil, errors.New(qres.Error)
+		return nil, NewError(qres.Error)
 	}
 	if qres.Ok.Error != "" {
-		return nil, errors.New(qres.Ok.Error)
+		return nil, NewError(qres.Ok.Error)
 	}
 	return base64.StdEncoding.DecodeString(qres.Ok.Ok)
 }
 
 // use for ezjson Logging
+// TODO: remove????
 
 func Wasmlog(msg []byte) int {
 	msgPtr := C.malloc(C.ulong(len(msg)))

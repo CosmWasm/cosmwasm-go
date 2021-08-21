@@ -5,8 +5,6 @@ package std
 import (
 	"strings"
 	"unsafe"
-
-	"github.com/cosmwasm/cosmwasm-go/std/ezjson"
 )
 
 type ContractError struct {
@@ -21,14 +19,6 @@ func StdErrResult(err error, prefix string) unsafe.Pointer {
 	clean := strings.Replace(raw, `"`, `\"`, -1)
 	msg := `{"error":"` + clean + `"}`
 	return Package_message([]byte(msg))
-
-	//msg := err.Error()
-	//if prefix != "" {
-	//	msg = prefix + "- " + msg
-	//}
-	//e := ContractError{Err: msg}
-	//bz, _ := ezjson.Marshal(e)
-	//return Package_message(bz)
 }
 
 func make_dependencies() Deps {
@@ -41,24 +31,16 @@ func make_dependencies() Deps {
 
 func parseInfo(infoPtr uint32) (MessageInfo, error) {
 	infoData := TranslateToSlice(uintptr(infoPtr))
-	info := MessageInfo{
-		// we need to pre-allocate slices of structs due to ezjson limits
-		// this crashes if more than 5 native coins are sent
-		SentFunds: make([]Coin, 5),
-	}
-	err := ezjson.Unmarshal(infoData, &info)
-	if err != nil {
-		return info, err
-	}
-	info.SentFunds = TrimCoins(info.SentFunds)
-	return info, nil
+	var info MessageInfo
+	err := info.UnmarshalJSON(infoData)
+	return info, err
 }
 
 // ========== init ==============
 func DoInit(initFn func(*Deps, Env, MessageInfo, []byte) (*InitResultOk, error), envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
 	env := Env{}
 	envData := TranslateToSlice(uintptr(envPtr))
-	err := ezjson.Unmarshal(envData, &env)
+	err := env.UnmarshalJSON(envData)
 	if err != nil {
 		return StdErrResult(err, "Parse Env")
 	}
@@ -71,11 +53,11 @@ func DoInit(initFn func(*Deps, Env, MessageInfo, []byte) (*InitResultOk, error),
 	deps := make_dependencies()
 	msgData := Translate_range_custom(uintptr(msgPtr))
 	ok, err := initFn(&deps, env, info, msgData)
-	if ok == nil {
+	if ok == nil || err != nil {
 		return StdErrResult(err, "Init")
 	}
 
-	data, err := ezjson.Marshal(*ok)
+	data, err := ok.MarshalJSON()
 	if err != nil {
 		return StdErrResult(err, "Marshal Response")
 	}
@@ -86,7 +68,7 @@ func DoInit(initFn func(*Deps, Env, MessageInfo, []byte) (*InitResultOk, error),
 func DoHandler(handlerFn func(*Deps, Env, MessageInfo, []byte) (*HandleResultOk, error), envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
 	env := Env{}
 	envData := TranslateToSlice(uintptr(envPtr))
-	err := ezjson.Unmarshal(envData, &env)
+	err := env.UnmarshalJSON(envData)
 	if err != nil {
 		return StdErrResult(err, "Parse Env")
 	}
@@ -99,11 +81,11 @@ func DoHandler(handlerFn func(*Deps, Env, MessageInfo, []byte) (*HandleResultOk,
 	deps := make_dependencies()
 	msgData := Translate_range_custom(uintptr(msgPtr))
 	ok, err := handlerFn(&deps, env, info, msgData)
-	if ok == nil {
+	if ok == nil || err != nil {
 		return StdErrResult(err, "Handle")
 	}
 
-	data, err := ezjson.Marshal(*ok)
+	data, err := ok.MarshalJSON()
 	if err != nil {
 		return StdErrResult(err, "Marshal Response")
 	}
@@ -114,7 +96,7 @@ func DoHandler(handlerFn func(*Deps, Env, MessageInfo, []byte) (*HandleResultOk,
 func DoMigrate(migrateFn func(*Deps, Env, MessageInfo, []byte) (*MigrateResultOk, error), envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
 	env := Env{}
 	envData := TranslateToSlice(uintptr(envPtr))
-	err := ezjson.Unmarshal(envData, &env)
+	err := env.UnmarshalJSON(envData)
 	if err != nil {
 		return StdErrResult(err, "Parse Env")
 	}
@@ -131,7 +113,7 @@ func DoMigrate(migrateFn func(*Deps, Env, MessageInfo, []byte) (*MigrateResultOk
 		return StdErrResult(err, "Migrate")
 	}
 
-	data, err := ezjson.Marshal(*ok)
+	data, err := ok.MarshalJSON()
 	if err != nil {
 		return StdErrResult(err, "Marshal Response")
 	}
@@ -143,7 +125,7 @@ func DoQuery(queryFn func(*Deps, Env, []byte) (*QueryResponse, error), envPtr, m
 	msgData := Translate_range_custom(uintptr(msgPtr))
 	env := Env{}
 	envData := TranslateToSlice(uintptr(envPtr))
-	err := ezjson.Unmarshal(envData, &env)
+	err := env.UnmarshalJSON(envData)
 	if err != nil {
 		return StdErrResult(err, "Parse Env")
 	}
@@ -154,7 +136,7 @@ func DoQuery(queryFn func(*Deps, Env, []byte) (*QueryResponse, error), envPtr, m
 		return StdErrResult(err, "Query")
 	}
 
-	data, err := ezjson.Marshal(*ok)
+	data, err := ok.MarshalJSON()
 	if err != nil {
 		return StdErrResult(err, "Marshal Response")
 	}

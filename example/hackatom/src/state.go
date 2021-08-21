@@ -2,7 +2,6 @@ package src
 
 import (
 	"github.com/cosmwasm/cosmwasm-go/std"
-	"github.com/cosmwasm/cosmwasm-go/std/ezjson"
 )
 
 // this is what we store
@@ -16,12 +15,13 @@ type State struct {
 var StateKey = []byte("config")
 
 func LoadState(storage std.Storage) (*State, error) {
-	var state State
 	data, err := storage.Get(StateKey)
 	if err != nil {
 		return nil, err
 	}
-	err = ezjson.Unmarshal(data, &state)
+
+	var state State
+	err = state.UnmarshalJSON(data)
 	if err != nil {
 		return nil, err
 	}
@@ -29,11 +29,10 @@ func LoadState(storage std.Storage) (*State, error) {
 }
 
 func SaveState(storage std.Storage, state *State) error {
-	bz, err := ezjson.Marshal(*state)
+	bz, err := state.MarshalJSON()
 	if err != nil {
 		return err
 	}
-	// TODO: this should not return error
-	// TODO: change names Api -> Api
+	// TODO: storage.Set should not return error
 	return storage.Set(StateKey, bz)
 }

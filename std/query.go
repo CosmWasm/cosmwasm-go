@@ -2,9 +2,6 @@ package std
 
 import (
 	"encoding/base64"
-	"errors"
-
-	"github.com/cosmwasm/cosmwasm-go/std/ezjson"
 )
 
 // ------- query detail types ---------
@@ -34,20 +31,22 @@ func BuildQueryResponseBinary(msg []byte) *QueryResponse {
 
 func (q QueryResponse) Data() ([]byte, error) {
 	if q.Error != "" {
-		return nil, errors.New(q.Error)
+		return nil, NewError(q.Error)
 	}
 	return base64.StdEncoding.DecodeString(q.Ok)
 }
-
-// random constant for the size to preallocate arrays before parsing
-const MAX_ARRAY_SIZE = 8
 
 type QuerierWrapper struct {
 	Querier
 }
 
-func (q QuerierWrapper) doQuery(query QueryRequest, result interface{}) error {
-	binQuery, err := ezjson.Marshal(query)
+type JSONType interface {
+	MarshalJSON() ([]byte, error)
+	UnmarshalJSON([]byte) error
+}
+
+func (q QuerierWrapper) doQuery(query QueryRequest, result JSONType) error {
+	binQuery, err := query.MarshalJSON()
 	if err != nil {
 		return err
 	}
@@ -55,31 +54,29 @@ func (q QuerierWrapper) doQuery(query QueryRequest, result interface{}) error {
 	if err != nil {
 		return err
 	}
-	return ezjson.Unmarshal(data, result)
+	return result.UnmarshalJSON(data)
 }
 
 func (q QuerierWrapper) QueryAllBalances(addr string) ([]Coin, error) {
 	query := QueryRequest{
-		Bank: BankQuery{
-			AllBalances: AllBalancesQuery{
+		Bank: &BankQuery{
+			AllBalances: &AllBalancesQuery{
 				Address: addr,
 			},
 		},
 	}
-	qres := AllBalancesResponse{
-		Amount: make([]Coin, MAX_ARRAY_SIZE),
-	}
+	qres := AllBalancesResponse{}
 	err := q.doQuery(query, &qres)
 	if err != nil {
 		return nil, err
 	}
-	return TrimCoins(qres.Amount), err
+	return qres.Amount, nil
 }
 
 func (q QuerierWrapper) QueryBalance(addr string, denom string) (Coin, error) {
 	query := QueryRequest{
-		Bank: BankQuery{
-			Balance: BalanceQuery{
+		Bank: &BankQuery{
+			Balance: &BalanceQuery{
 				Address: addr,
 				Denom:   denom,
 			},
@@ -93,15 +90,15 @@ func (q QuerierWrapper) QueryBalance(addr string, denom string) (Coin, error) {
 // QueryRequest is an rust enum and only (exactly) one of the fields should be set
 // Should we do a cleaner approach in Go? (type/data?)
 type QueryRequest struct {
-	Bank    BankQuery    `json:"bank,omitempty"`
-	Custom  RawMessage   `json:"custom,omitempty"`
-	Staking StakingQuery `json:"staking,omitempty"`
-	Wasm    WasmQuery    `json:"wasm,omitempty"`
+	Bank    *BankQuery    `json:"bank,omitempty"`
+	Custom  *RawMessage   `json:"custom,omitempty"`
+	Staking *StakingQuery `json:"staking,omitempty"`
+	Wasm    *WasmQuery    `json:"wasm,omitempty"`
 }
 
 type BankQuery struct {
-	Balance     BalanceQuery     `json:"balance,omitempty"`
-	AllBalances AllBalancesQuery `json:"all_balances,omitempty"`
+	Balance     *BalanceQuery     `json:"balance,omitempty"`
+	AllBalances *AllBalancesQuery `json:"all_balances,omitempty"`
 }
 
 func (b BankQuery) IsEmpty() bool {
@@ -124,103 +121,43 @@ type AllBalancesQuery struct {
 
 // AllBalancesResponse is the expected response to AllBalancesQuery
 type AllBalancesResponse struct {
-	Amount Coins `json:"amount"`
+	Amount []Coin `json:"amount,emptyslice"`
 }
 
 type StakingQuery struct {
-	Validators     ezjson.EmptyStruct  `json:"validators,omitempty,opt_seen"`
-	AllDelegations AllDelegationsQuery `json:"all_delegations,omitempty"`
-	Delegation     DelegationQuery     `json:"delegation,omitempty"`
-	BondedDenom    ezjson.EmptyStruct  `json:"bonded_denom,omitempty,opt_seen"`
-}
-
-func (s StakingQuery) IsEmpty() bool {
-	return !s.Validators.WasSet() &&
-		s.AllDelegations.Delegator == "" &&
-		s.Delegation.Delegator == "" &&
-		!s.BondedDenom.WasSet()
+	Validators     *struct{}            `json:",omitempty"`
+	AllDelegations *AllDelegationsQuery `json:",omitempty"`
+	Delegation     *DelegationQuery     `json:",omitempty"`
+	BondedDenom    *struct{}            `json:",omitempty"`
 }
 
 // ValidatorsResponse is the expected response to ValidatorsQuery
 type ValidatorsResponse struct {
-	Validators Validators `json:"validators"`
+	Validators []Validator `json:",emptyslice"`
 }
-
-// TODO: Validators must JSON encode empty array as []
-type Validators []Validator
-
-// MarshalJSON ensures that we get [] for empty arrays
-func (v Validators) MarshalJSON() ([]byte, error) {
-	if len(v) == 0 {
-		return []byte("[]"), nil
-	}
-	var raw []Validator = v
-	return ezjson.Marshal(raw)
-}
-
-// UnmarshalJSON ensures that we get [] for empty arrays
-func (v *Validators) UnmarshalJSON(data []byte) error {
-	// make sure we deserialize [] back to null
-	if string(data) == "[]" || string(data) == "null" {
-		return nil
-	}
-	var raw []Validator
-	if err := ezjson.Unmarshal(data, &raw); err != nil {
-		return err
-	}
-	*v = raw
-	return nil
-}
-
 type Validator struct {
-	Address string `json:"address"`
+	Address string
 	// decimal string, eg "0.02"
-	Commission string `json:"commission"`
+	Commission string
 	// decimal string, eg "0.02"
-	MaxCommission string `json:"max_commission"`
+	MaxCommission string
 	// decimal string, eg "0.02"
-	MaxChangeRate string `json:"max_change_rate"`
+	MaxChangeRate string
 }
 
 type AllDelegationsQuery struct {
-	Delegator string `json:"delegator"`
+	Delegator string
 }
 
 type DelegationQuery struct {
-	Delegator string `json:"delegator"`
-	Validator string `json:"validator"`
+	Delegator string
+	Validator string
 }
 
 // AllDelegationsResponse is the expected response to AllDelegationsQuery
 type AllDelegationsResponse struct {
-	Delegations Delegations `json:"delegations"`
+	Delegations []Delegation `json:",emptyslice"`
 }
-
-type Delegations []Delegation
-
-// MarshalJSON ensures that we get [] for empty arrays
-func (d Delegations) MarshalJSON() ([]byte, error) {
-	if len(d) == 0 {
-		return []byte("[]"), nil
-	}
-	var raw []Delegation = d
-	return ezjson.Marshal(raw)
-}
-
-// UnmarshalJSON ensures that we get [] for empty arrays
-func (d *Delegations) UnmarshalJSON(data []byte) error {
-	// make sure we deserialize [] back to null
-	if string(data) == "[]" || string(data) == "null" {
-		return nil
-	}
-	var raw []Delegation
-	if err := ezjson.Unmarshal(data, &raw); err != nil {
-		return err
-	}
-	*d = raw
-	return nil
-}
-
 type Delegation struct {
 	Delegator string `json:"delegator"`
 	Validator string `json:"validator"`
@@ -229,39 +166,34 @@ type Delegation struct {
 
 // DelegationResponse is the expected response to DelegationsQuery
 type DelegationResponse struct {
-	Delegation *FullDelegation `json:"delegation,omitempty"`
+	Delegation *FullDelegation `json:",omitempty"`
 }
 
 type FullDelegation struct {
-	Delegator          string `json:"delegator"`
-	Validator          string `json:"validator"`
-	Amount             Coin   `json:"amount"`
-	AccumulatedRewards []Coin `json:"accumulated_rewards"`
-	CanRedelegate      Coin   `json:"can_redelegate"`
+	Delegator          string
+	Validator          string
+	Amount             Coin
+	AccumulatedRewards []Coin `json:",emptyslice"`
+	CanRedelegate      Coin
 }
 
 type BondedDenomResponse struct {
-	Denom string `json:"denom"`
+	Denom string
 }
 
 type WasmQuery struct {
-	Smart SmartQuery `json:"smart,omitempty"`
-	Raw   RawQuery   `json:"raw,omitempty"`
-}
-
-func (w WasmQuery) IsEmpty() bool {
-	return w.Smart.ContractAddr == "" &&
-		w.Raw.ContractAddr == ""
+	Smart *SmartQuery `json:",omitempty"`
+	Raw   *RawQuery   `json:",omitempty"`
 }
 
 // SmartQuery respone is raw bytes ([]byte)
 type SmartQuery struct {
-	ContractAddr string `json:"contract_addr"`
-	Msg          []byte `json:"msg"`
+	ContractAddr string
+	Msg          []byte
 }
 
 // RawQuery response is raw bytes ([]byte)
 type RawQuery struct {
-	ContractAddr string `json:"contract_addr"`
-	Key          []byte `json:"key"`
+	ContractAddr string
+	Key          []byte
 }

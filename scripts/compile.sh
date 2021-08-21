@@ -3,8 +3,8 @@
 set -o errexit -o nounset -o pipefail
 command -v shellcheck > /dev/null && shellcheck "$0"
 
-TINYGO_IMAGE="cosmwasm/tinygo:0.14.1"
-EMSCRIPTEN="trzeci/emscripten:1.39.8-fastcomp"
+TINYGO_IMAGE="cosmwasm/tinygo:0.19.0-dev2"
+EMSCRIPTEN="polkasource/webassembly-wabt:v1.0.11"
 
 SCRIPT_DIR="$(realpath "$(dirname "$0")")"
 ROOT="$(dirname "$SCRIPT_DIR")"
@@ -30,20 +30,28 @@ if [ ! -d "$DIR" ]; then
 fi
 
 echo "Compiling $CONTRACT with tinygo..."
-docker run --rm -w /code -v "${ROOT}:/code" ${TINYGO_IMAGE} tinygo build -tags cosmwasm -no-debug -target wasm -o "/code/${CONTRACT}.wasm" "/code/example/${CONTRACT}/main.go"
+docker run --rm -w /code -v "${ROOT}:/code" ${TINYGO_IMAGE} tinygo build -tags "cosmwasm easyjson_nounsafe" -no-debug -target wasi -o "/code/${CONTRACT}.wasm" "/code/example/${CONTRACT}/main.go"
 ls -l "${ROOT}/${CONTRACT}.wasm"
 
-echo "Stripping out floating point symbols..."
 WATFILE="${ROOT}/${CONTRACT}.wat"
 docker run --rm -v "${ROOT}:/code" ${EMSCRIPTEN} wasm2wat "/code/${CONTRACT}.wasm" > "${WATFILE}"
 
-# this just replaces all the floating point ops with unreachable. It still leaves them in the args and local variables
-sed -E 's/^(\s*)f[[:digit:]]{2}\.[^()]+/\1unreachable/' "${WATFILE}" | \
-  sed -E 's/^(\s*)i[[:digit:]]{2}\.trunc_[^()]+/\1unreachable/' | \
-  sed -E 's/^(\s*)i[[:digit:]]{2}\.reinterpret_[^()]+/\1unreachable/' > "${WATFILE}-rewrite"
-mv "${WATFILE}-rewrite" "${WATFILE}"
+ls -l "${ROOT}/${CONTRACT}.wasm"
+
+grep import "${WATFILE}"
+
+echo "Any floating point?"
+grep f64 "${WATFILE}" || true
+
+# echo "Stripping out floating point symbols..."
+# # this just replaces all the floating point ops with unreachable. It still leaves them in the args and local variables
+# sed -E 's/^(\s*)f[[:digit:]]{2}\.[^()]+/\1unreachable/' "${WATFILE}" | \
+#   sed -E 's/^(\s*)i[[:digit:]]{2}\.trunc_[^()]+/\1unreachable/' | \
+#   sed -E 's/^(\s*)i[[:digit:]]{2}\.reinterpret_[^()]+/\1unreachable/' > "${WATFILE}-rewrite"
+# mv "${WATFILE}-rewrite" "${WATFILE}"
 
 docker run --rm -w /code -v "${ROOT}:/code" ${EMSCRIPTEN} wat2wasm "/code/${CONTRACT}.wat"
 
 echo "Done! ${CONTRACT}.wasm is ready to use."
 ls -l "${ROOT}/${CONTRACT}.wasm"
+sha256sum "${ROOT}/${CONTRACT}.wasm"

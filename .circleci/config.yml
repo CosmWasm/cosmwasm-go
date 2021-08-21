@@ -18,12 +18,17 @@ jobs:
           paths:
             - "/go/pkg/mod"
       - run:
+          name: Hackatom integration tests
+          command: |
+            cd example/hackatom
+            go test -v -count=1 ./integration
+      - run:
           name: Run unit tests
           command: make test
       - run:
           name: Try gotestsum
           command: |
             mkdir -p /tmp/test-reports
-            gotestsum --junitfile /tmp/test-reports/unit-tests.xml ./std 
+            gotestsum --junitfile /tmp/test-reports/unit-tests.xml ./std
       - store_test_results:
           path: /tmp/test-reports

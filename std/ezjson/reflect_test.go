@@ -1,3 +1,0 @@
-// +build tinygo
-
-package ezjson

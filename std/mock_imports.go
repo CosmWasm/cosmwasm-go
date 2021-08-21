@@ -3,9 +3,8 @@
 package std
 
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
+
 	dbm "github.com/tendermint/tm-db"
 )
 
@@ -57,7 +56,7 @@ func newMockIterator(iter dbm.Iterator) MockIterator {
 func (iter MockIterator) Next() (key, value []byte, err error) {
 	if !iter.Iter.Valid() {
 		iter.Iter.Close()
-		return key, value, errors.New("the end of iterator")
+		return key, value, NewError("the end of iterator")
 	}
 	key, value = iter.Iter.Key(), iter.Iter.Value()
 	iter.Iter.Next()
@@ -93,7 +92,7 @@ func (s *MockStorage) Range(start, end []byte, order Order) (iter Iterator, err 
 		iterator, err = s.storage.ReverseIterator(start, end)
 		iter = newMockIterator(iterator)
 	default:
-		err = errors.New("failed. unexpected Order")
+		err = NewError("failed. unexpected Order")
 	}
 	return
 }
@@ -119,7 +118,7 @@ type MockApi struct{}
 
 func (api MockApi) CanonicalAddress(human string) (CanonicalAddr, error) {
 	if len(human) > canonicalLength {
-		return nil, errors.New("failed. human encoding too long")
+		return nil, NewError("failed. human encoding too long")
 	}
 
 	return []byte(human), nil
@@ -127,7 +126,7 @@ func (api MockApi) CanonicalAddress(human string) (CanonicalAddr, error) {
 
 func (api MockApi) HumanAddress(canonical CanonicalAddr) (string, error) {
 	if len(canonical) != canonicalLength {
-		return "", errors.New("failed. wrong canonical address length")
+		return "", NewError("failed. wrong canonical address length")
 	}
 
 	cutIndex := canonicalLength
@@ -168,7 +167,7 @@ func NewMockQuerier(funds []Coin) *MockQuerier {
 
 func (q *MockQuerier) RawQuery(raw []byte) ([]byte, error) {
 	var request QueryRequest
-	err := json.Unmarshal(raw, &request)
+	err := request.UnmarshalJSON(raw)
 	if err != nil {
 		return nil, err
 	}
@@ -176,27 +175,27 @@ func (q *MockQuerier) RawQuery(raw []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return json.Marshal(res)
+	return res.MarshalJSON()
 }
 
-func (q *MockQuerier) HandleQuery(request QueryRequest) (interface{}, error) {
+func (q *MockQuerier) HandleQuery(request QueryRequest) (JSONType, error) {
 	switch {
-	case !request.Bank.IsEmpty():
+	case request.Bank != nil:
 		return q.HandleBank(request.Bank)
-	case !request.Staking.IsEmpty():
-		return nil, errors.New("Staking queries not implemented")
-	case !request.Wasm.IsEmpty():
-		return nil, errors.New("Wasm queries not implemented")
-	case len(request.Custom) > 0:
-		return nil, errors.New("Custom queries not implemented")
+	case request.Staking != nil:
+		return nil, NewError("Staking queries not implemented")
+	case request.Wasm != nil:
+		return nil, NewError("Wasm queries not implemented")
+	case request.Custom != nil:
+		return nil, NewError("Custom queries not implemented")
 	default:
-		return nil, errors.New("Unknown QueryRequest variant")
+		return nil, NewError("Unknown QueryRequest variant")
 	}
 }
 
-func (q *MockQuerier) HandleBank(request BankQuery) (interface{}, error) {
+func (q *MockQuerier) HandleBank(request *BankQuery) (JSONType, error) {
 	switch {
-	case request.Balance.Address != "":
+	case request.Balance != nil:
 		balances := q.GetBalance(request.Balance.Address)
 		coin := Coin{Denom: request.Balance.Denom, Amount: "0"}
 		for _, c := range balances {
@@ -205,12 +204,12 @@ func (q *MockQuerier) HandleBank(request BankQuery) (interface{}, error) {
 				break
 			}
 		}
-		return BalanceResponse{Amount: coin}, nil
-	case request.AllBalances.Address != "":
+		return &BalanceResponse{Amount: coin}, nil
+	case request.AllBalances != nil:
 		balances := q.GetBalance(request.AllBalances.Address)
-		return AllBalancesResponse{Amount: balances}, nil
+		return &AllBalancesResponse{Amount: balances}, nil
 	default:
-		return nil, errors.New("Unknown BankQuery variant")
+		return nil, NewError("Unknown BankQuery variant")
 	}
 }
 
