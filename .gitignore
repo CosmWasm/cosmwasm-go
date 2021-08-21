@@ -5,3 +5,5 @@ example/.idea/*
 
 *.wasm
 *.wat
+
+bin/

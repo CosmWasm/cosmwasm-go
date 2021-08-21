@@ -4,6 +4,14 @@
 # TEST_FLAG=-v make test
 #TEST_FLAG=-v -count=1
 
+tiny-build:
+	rm -rf bin
+	go build -o ./bin/easyjson github.com/mailru/easyjson/easyjson
+
+generate: tiny-build
+	rm -f std/*_easyjson.go
+	./bin/easyjson -all -snake_case ./std/*.go
+
 test: test-std test-contracts
 
 test-std:
