@@ -7,11 +7,13 @@
 test: test-std test-contracts
 
 test-std:
-	go test $(TEST_FLAG) ./std/...
+	go test $(TEST_FLAG) ./std
+	go test $(TEST_FLAG) ./std/safe_math
 
 test-contracts:
-	cd example/erc20 && $(MAKE) test
-	cd example/hackatom && $(MAKE) test
+	cd example/hackatom && $(MAKE) unit-test
+	# cd example/hackatom && $(MAKE) test
+	# cd example/erc20 && $(MAKE) test
 
 examples: erc20 hackatom
 
