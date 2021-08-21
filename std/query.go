@@ -1,14 +1,8 @@
 package std
 
-import (
-	"encoding/base64"
-)
-
 // ------- query detail types ---------
 type QueryResponse struct {
-	// this must be base64 encoded
-	Ok string `json:"ok,omitempty,rust_option"`
-	// TODO: what is this format actually?
+	Ok    []byte `json:"ok,omitempty"`
 	Error string `json:"error,omitempty"`
 }
 
@@ -19,20 +13,18 @@ type QuerierResult struct {
 }
 
 func BuildQueryResponse(msg string) *QueryResponse {
-	encoded := base64.StdEncoding.EncodeToString([]byte(msg))
-	return &QueryResponse{Ok: encoded}
+	return &QueryResponse{Ok: []byte(msg)}
 }
 
 func BuildQueryResponseBinary(msg []byte) *QueryResponse {
-	encoded := base64.StdEncoding.EncodeToString(msg)
-	return &QueryResponse{Ok: encoded}
+	return &QueryResponse{Ok: msg}
 }
 
 func (q QueryResponse) Data() ([]byte, error) {
 	if q.Error != "" {
 		return nil, NewError(q.Error)
 	}
-	return base64.StdEncoding.DecodeString(q.Ok)
+	return q.Ok, nil
 }
 
 type QuerierWrapper struct {

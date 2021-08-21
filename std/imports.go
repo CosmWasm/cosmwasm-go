@@ -22,7 +22,6 @@ extern int display_message(void* str);
 import "C"
 
 import (
-	"encoding/base64"
 	"unsafe"
 )
 
@@ -249,7 +248,7 @@ func (querier ExternalQuerier) RawQuery(request []byte) ([]byte, error) {
 	if qres.Ok.Error != "" {
 		return nil, NewError(qres.Ok.Error)
 	}
-	return base64.StdEncoding.DecodeString(qres.Ok.Ok)
+	return qres.Ok.Ok, nil
 }
 
 // use for ezjson Logging
