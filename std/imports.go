@@ -243,8 +243,8 @@ func (querier ExternalQuerier) RawQuery(request []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	if qres.Error != "" {
-		return nil, NewError(qres.Error)
+	if qres.Error != nil {
+		return nil, NewError(qres.Error.Error())
 	}
 	if qres.Ok.Error != "" {
 		return nil, NewError(qres.Ok.Error)

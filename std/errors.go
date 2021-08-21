@@ -1,17 +1,15 @@
 package std
 
-// This is a (temporary?) helper to use in place of errors.New
 func NewError(msg string) error {
-	return myError{msg: msg}
+	return ContractError{Err: msg}
 }
 
-//easyjson:skip
-type myError struct {
-	msg string
+type ContractError struct {
+	Err string `json:"error"`
 }
 
-func (m myError) Error() string {
-	return m.msg
+func (e ContractError) Error() string {
+	return e.Err
 }
 
 //easyjson:skip
@@ -48,6 +46,11 @@ var (
 	_ error = Unauthorized{}
 	_ error = Underflow{}
 )
+
+func (e StdError) Error() string {
+	bz, _ := e.MarshalJSON()
+	return string(bz)
+}
 
 type GenericErr struct {
 	Msg string

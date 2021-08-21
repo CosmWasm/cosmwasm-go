@@ -20,20 +20,8 @@ var (
 )
 
 func (a SystemError) Error() string {
-	switch {
-	case a.InvalidRequest != nil:
-		return a.InvalidRequest.Error()
-	case a.InvalidResponse != nil:
-		return a.InvalidResponse.Error()
-	case a.NoSuchContract != nil:
-		return a.NoSuchContract.Error()
-	case a.Unknown != nil:
-		return a.Unknown.Error()
-	case a.UnsupportedRequest != nil:
-		return a.UnsupportedRequest.Error()
-	default:
-		panic("unknown error variant")
-	}
+	bz, _ := a.MarshalJSON()
+	return string(bz)
 }
 
 type InvalidRequest struct {

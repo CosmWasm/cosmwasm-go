@@ -851,3 +851,69 @@ func (v *GenericErr) UnmarshalJSON(data []byte) error {
 func (v *GenericErr) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjsonD31a5a85DecodeGithubComCosmwasmCosmwasmGoStd9(l, v)
 }
+func easyjsonD31a5a85DecodeGithubComCosmwasmCosmwasmGoStd10(in *jlexer.Lexer, out *ContractError) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeFieldName(false)
+		in.WantColon()
+		if in.IsNull() {
+			in.Skip()
+			in.WantComma()
+			continue
+		}
+		switch key {
+		case "error":
+			out.Err = string(in.String())
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjsonD31a5a85EncodeGithubComCosmwasmCosmwasmGoStd10(out *jwriter.Writer, in ContractError) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"error\":"
+		out.RawString(prefix[1:])
+		out.String(string(in.Err))
+	}
+	out.RawByte('}')
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v ContractError) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	easyjsonD31a5a85EncodeGithubComCosmwasmCosmwasmGoStd10(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalEasyJSON supports easyjson.Marshaler interface
+func (v ContractError) MarshalEasyJSON(w *jwriter.Writer) {
+	easyjsonD31a5a85EncodeGithubComCosmwasmCosmwasmGoStd10(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *ContractError) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	easyjsonD31a5a85DecodeGithubComCosmwasmCosmwasmGoStd10(&r, v)
+	return r.Error()
+}
+
+// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
+func (v *ContractError) UnmarshalEasyJSON(l *jlexer.Lexer) {
+	easyjsonD31a5a85DecodeGithubComCosmwasmCosmwasmGoStd10(l, v)
+}

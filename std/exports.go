@@ -3,22 +3,17 @@
 package std
 
 import (
-	"strings"
 	"unsafe"
 )
 
-type ContractError struct {
-	Err string `json:"error"`
-}
-
 func StdErrResult(err error, prefix string) unsafe.Pointer {
-	raw := err.Error()
-	if prefix != "" {
-		raw = prefix + ": " + raw
-	}
-	clean := strings.Replace(raw, `"`, `\"`, -1)
-	msg := `{"error":"` + clean + `"}`
-	return Package_message([]byte(msg))
+	wrapped := ContractError{Err: err.Error()}
+	// ignore this now... maybe enable later for debug?
+	// if prefix != "" {
+	// 	raw = prefix + ": " + raw
+	// }
+	bz, _ := wrapped.MarshalJSON()
+	return Package_message(bz)
 }
 
 func make_dependencies() Deps {
@@ -37,7 +32,7 @@ func parseInfo(infoPtr uint32) (MessageInfo, error) {
 }
 
 // ========== init ==============
-func DoInit(initFn func(*Deps, Env, MessageInfo, []byte) (*InitResultOk, error), envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
+func DoInit(initFn func(*Deps, Env, MessageInfo, []byte) (*InitResult, error), envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
 	env := Env{}
 	envData := TranslateToSlice(uintptr(envPtr))
 	err := env.UnmarshalJSON(envData)
@@ -65,7 +60,7 @@ func DoInit(initFn func(*Deps, Env, MessageInfo, []byte) (*InitResultOk, error),
 }
 
 // ========= handler ============
-func DoHandler(handlerFn func(*Deps, Env, MessageInfo, []byte) (*HandleResultOk, error), envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
+func DoHandler(handlerFn func(*Deps, Env, MessageInfo, []byte) (*HandleResult, error), envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
 	env := Env{}
 	envData := TranslateToSlice(uintptr(envPtr))
 	err := env.UnmarshalJSON(envData)
@@ -93,7 +88,7 @@ func DoHandler(handlerFn func(*Deps, Env, MessageInfo, []byte) (*HandleResultOk,
 }
 
 // ========= migrate ============
-func DoMigrate(migrateFn func(*Deps, Env, MessageInfo, []byte) (*MigrateResultOk, error), envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
+func DoMigrate(migrateFn func(*Deps, Env, MessageInfo, []byte) (*MigrateResult, error), envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
 	env := Env{}
 	envData := TranslateToSlice(uintptr(envPtr))
 	err := env.UnmarshalJSON(envData)
