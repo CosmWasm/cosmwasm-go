@@ -38,9 +38,9 @@ func defaultInit(t *testing.T, funds []types.Coin) *integration.Instance {
 		Beneficiary: BENEFICIARY,
 	}
 	res, gas, err := instance.Init(env, info, mustEncode(t, initMsg))
-	fmt.Printf("Gas: %d\n", gas)
 	require.NoError(t, err)
 	require.NotNil(t, res)
+	fmt.Printf("Init gas: %d\n", gas)
 	return &instance
 }
 
@@ -63,8 +63,10 @@ func TestInitAndQuery(t *testing.T) {
 	assert.Equal(t, "hacking begin", attr.Value)
 
 	qmsg := []byte(`{"verifier":{}}`)
-	data, _, err := instance.Query(env, qmsg)
+	data, gas, err := instance.Query(env, qmsg)
 	require.NoError(t, err)
+	fmt.Printf("Query gas: %d\n", gas)
+
 	var qres src.VerifierResponse
 	err = json.Unmarshal(data, &qres)
 	require.NoError(t, err)
@@ -96,7 +98,9 @@ func TestRelease(t *testing.T) {
 			env := mocks.MockEnv()
 			info := mocks.MockInfo(tc.signer, nil)
 			handleMsg := []byte(`{"release":{}}`)
-			res, _, err := deps.Handle(env, info, handleMsg)
+			res, gas, err := deps.Handle(env, info, handleMsg)
+			fmt.Printf("Handle gas: %d\n", gas)
+
 			if !tc.valid {
 				require.Error(t, err)
 				require.Equal(t, "Handle: Unauthorized", err.Error())
@@ -149,7 +153,9 @@ func TestQueryOther(t *testing.T) {
 			// json encoding makes invalid QueryMsg... look into this later (only ezjson works?)
 			queryMsg := []byte(`{"other_balance":{"address":"` + tc.account + `"}}`)
 
-			raw, _, err := deps.Query(env, queryMsg)
+			raw, gas, err := deps.Query(env, queryMsg)
+			fmt.Printf("Query gas: %d\n", gas)
+
 			require.NoError(t, err)
 			var res types.AllBalancesResponse
 			err = json.Unmarshal(raw, &res)
@@ -158,7 +164,3 @@ func TestQueryOther(t *testing.T) {
 		})
 	}
 }
-
-//let rich_addr = HumanAddr::from("foobar");
-//let rich_balance = coins(10000, "gold");
-//let deps = mock_dependencies_with_balances(&[(&rich_addr, &rich_balance)]);
