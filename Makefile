@@ -16,6 +16,7 @@ generate-std:
 		./std/env.go \
 		./std/errors.go \
 		./std/types.go \
+		./std/msg.go \
 		./std/query.go
 	./bin/easyjson -all -snake_case -build_tags=cosmwasm ./std/exports.go 2>/dev/null || true
 

@@ -27,32 +27,32 @@ const (
 	UnderflowError
 )
 
-func GenerateError(errType ErrorType, msg string, msg_plus string) *CosmosResponseError {
-	err := CosmosResponseError{}
-	switch errType {
-	case GenericError:
-		err.Err.GenericErr = GenericErr{Msg: msg}
-	case InvalidBase64Error:
-		err.Err.InvalidBase64 = InvalidBase64{Msg: msg}
-	case InvalidUtf8Error:
-		err.Err.InvalidUtf8 = InvalidUtf8{Msg: msg}
-	case NotFoundError:
-		err.Err.NotFound = NotFound{Kind: msg}
-	case NullPointerError:
-		err.Err.NullPointer = NullPointer{Msg: msg}
-	case ParseError:
-		err.Err.ParseErr = ParseErr{Msg: msg}
-	case SerializeError:
-		err.Err.SerializeErr = SerializeErr{Msg: msg}
-	case UnauthorizedError:
-		err.Err.Unauthorized = Unauthorized{Msg: msg}
-	case UnderflowError:
-		err.Err.Underflow = Underflow{Minuend: msg, Subtrahend: msg_plus}
-	default:
-		err.Err.GenericErr = GenericErr{Msg: msg}
-	}
-	return &err
-}
+// func GenerateError(errType ErrorType, msg string, msg_plus string) *CosmosResponseError {
+// 	err := CosmosResponseError{}
+// 	switch errType {
+// 	case GenericError:
+// 		err.Err.GenericErr = GenericErr{Msg: msg}
+// 	case InvalidBase64Error:
+// 		err.Err.InvalidBase64 = InvalidBase64{Msg: msg}
+// 	case InvalidUtf8Error:
+// 		err.Err.InvalidUtf8 = InvalidUtf8{Msg: msg}
+// 	case NotFoundError:
+// 		err.Err.NotFound = NotFound{Kind: msg}
+// 	case NullPointerError:
+// 		err.Err.NullPointer = NullPointer{Msg: msg}
+// 	case ParseError:
+// 		err.Err.ParseErr = ParseErr{Msg: msg}
+// 	case SerializeError:
+// 		err.Err.SerializeErr = SerializeErr{Msg: msg}
+// 	case UnauthorizedError:
+// 		err.Err.Unauthorized = Unauthorized{Msg: msg}
+// 	case UnderflowError:
+// 		err.Err.Underflow = Underflow{Minuend: msg, Subtrahend: msg_plus}
+// 	default:
+// 		err.Err.GenericErr = GenericErr{Msg: msg}
+// 	}
+// 	return &err
+// }
 
 // StdError captures all errors returned from the Rust code as StdError.
 // Exactly one of the fields should be set.

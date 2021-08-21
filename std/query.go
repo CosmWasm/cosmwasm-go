@@ -101,10 +101,6 @@ type BankQuery struct {
 	AllBalances *AllBalancesQuery `json:"all_balances,omitempty"`
 }
 
-func (b BankQuery) IsEmpty() bool {
-	return b.Balance.Address == "" && b.AllBalances.Address == ""
-}
-
 type BalanceQuery struct {
 	Address string `json:"address"`
 	Denom   string `json:"denom"`
