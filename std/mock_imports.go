@@ -21,10 +21,9 @@ const MOCK_CONTRACT_ADDR = "test-contract"
 func MockEnv() Env {
 	return Env{
 		Block: BlockInfo{
-			Height:    12_345,
-			Time:      1_571_797_419,
-			TimeNanos: 404_808_777,
-			ChainID:   "cosmos-testnet-14002",
+			Height:  12_345,
+			Time:    1_571_797_419_404_808_777,
+			ChainID: "cosmos-testnet-14002",
 		},
 		Contract: ContractInfo{
 			Address: MOCK_CONTRACT_ADDR,
@@ -34,8 +33,8 @@ func MockEnv() Env {
 
 func MockInfo(sender string, funds []Coin) MessageInfo {
 	return MessageInfo{
-		Sender:    sender,
-		SentFunds: funds,
+		Sender: sender,
+		Funds:  funds,
 	}
 }
 

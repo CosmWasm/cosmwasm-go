@@ -14,19 +14,17 @@ type Env struct {
 
 type BlockInfo struct {
 	// block height this transaction is executed
-	Height uint64
-	// time in seconds since unix epoch (since CosmWasm 0.3)
-	Time uint64
-	// Nanoseconds of the block time (since CosmWasm 0.11)
-	TimeNanos uint64
-	ChainID   string
+	Height uint64 `json:"height"`
+	// time in nanoseconds since unix epoch. Uses string to ensure JavaScript compatibility.
+	Time    uint64 `json:"time,string"`
+	ChainID string `json:"chain_id"`
 }
 
 type MessageInfo struct {
-	// bech32 encoding of sdk.AccAddress executing the contract
-	Sender string
+	// binary encoding of sdk.AccAddress executing the contract
+	Sender string `json:"sender"`
 	// amount of funds send to the contract along with this message
-	SentFunds []Coin
+	Funds []Coin `json:"funds,emptyslice"`
 }
 
 type ContractInfo struct {

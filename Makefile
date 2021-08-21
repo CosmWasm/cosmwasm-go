@@ -18,6 +18,7 @@ generate-std:
 		./std/systemerror.go \
 		./std/types.go \
 		./std/msg.go \
+		./std/subcall.go \
 		./std/query.go
 
 generate-contracts:

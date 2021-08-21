@@ -36,25 +36,25 @@ func easyjson3ba44563DecodeGithubComCosmwasmCosmwasmGoStd(in *jlexer.Lexer, out 
 		switch key {
 		case "sender":
 			out.Sender = string(in.String())
-		case "sent_funds":
+		case "funds":
 			if in.IsNull() {
 				in.Skip()
-				out.SentFunds = nil
+				out.Funds = nil
 			} else {
 				in.Delim('[')
-				if out.SentFunds == nil {
+				if out.Funds == nil {
 					if !in.IsDelim(']') {
-						out.SentFunds = make([]Coin, 0, 2)
+						out.Funds = make([]Coin, 0, 2)
 					} else {
-						out.SentFunds = []Coin{}
+						out.Funds = []Coin{}
 					}
 				} else {
-					out.SentFunds = (out.SentFunds)[:0]
+					out.Funds = (out.Funds)[:0]
 				}
 				for !in.IsDelim(']') {
 					var v1 Coin
 					(v1).UnmarshalEasyJSON(in)
-					out.SentFunds = append(out.SentFunds, v1)
+					out.Funds = append(out.Funds, v1)
 					in.WantComma()
 				}
 				in.Delim(']')
@@ -79,13 +79,11 @@ func easyjson3ba44563EncodeGithubComCosmwasmCosmwasmGoStd(out *jwriter.Writer, i
 		out.String(string(in.Sender))
 	}
 	{
-		const prefix string = ",\"sent_funds\":"
+		const prefix string = ",\"funds\":"
 		out.RawString(prefix)
-		if in.SentFunds == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
-			out.RawString("null")
-		} else {
+		{
 			out.RawByte('[')
-			for v2, v3 := range in.SentFunds {
+			for v2, v3 := range in.Funds {
 				if v2 > 0 {
 					out.RawByte(',')
 				}
@@ -281,9 +279,7 @@ func easyjson3ba44563DecodeGithubComCosmwasmCosmwasmGoStd3(in *jlexer.Lexer, out
 		case "height":
 			out.Height = uint64(in.Uint64())
 		case "time":
-			out.Time = uint64(in.Uint64())
-		case "time_nanos":
-			out.TimeNanos = uint64(in.Uint64())
+			out.Time = uint64(in.Uint64Str())
 		case "chain_id":
 			out.ChainID = string(in.String())
 		default:
@@ -308,12 +304,7 @@ func easyjson3ba44563EncodeGithubComCosmwasmCosmwasmGoStd3(out *jwriter.Writer, 
 	{
 		const prefix string = ",\"time\":"
 		out.RawString(prefix)
-		out.Uint64(uint64(in.Time))
-	}
-	{
-		const prefix string = ",\"time_nanos\":"
-		out.RawString(prefix)
-		out.Uint64(uint64(in.TimeNanos))
+		out.Uint64Str(uint64(in.Time))
 	}
 	{
 		const prefix string = ",\"chain_id\":"
