@@ -28,19 +28,11 @@ test: test-std test-contracts
 
 test-std:
 	go test $(TEST_FLAG) ./std
-	go test $(TEST_FLAG) ./std/safe_math
 
 test-contracts:
 	cd example/hackatom && $(MAKE) unit-test
-	# cd example/hackatom && $(MAKE) test
-	# cd example/erc20 && $(MAKE) test
 
-examples: erc20 hackatom
-
-erc20:
-	./scripts/compile.sh erc20
-	@ wasm-nm -e erc20.wasm
-	@ wasm-nm -i erc20.wasm
+examples: hackatom
 
 hackatom:
 	./scripts/compile.sh hackatom
