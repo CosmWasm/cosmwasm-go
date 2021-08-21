@@ -1,4 +1,4 @@
-package integration
+package systest
 
 import (
 	"io/ioutil"

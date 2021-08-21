@@ -1,4 +1,4 @@
-package integration
+package systest
 
 import (
 	"encoding/json"
@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmwasm/cosmwasm-go/example/hackatom/src"
-	"github.com/cosmwasm/cosmwasm-go/std/integration"
+	"github.com/cosmwasm/cosmwasm-go/systest"
 )
 
 var CONTRACT = filepath.Join("..", "hackatom.wasm")
@@ -28,8 +28,8 @@ const BENEFICIARY = "benefits"
 const FUNDER = "creator"
 
 // this can be used for a quick setup if you don't have nay other requirements
-func defaultInit(t *testing.T, funds []types.Coin) *integration.Instance {
-	instance := integration.NewInstance(t, CONTRACT, 100_000_000, funds)
+func defaultInit(t *testing.T, funds []types.Coin) *systest.Instance {
+	instance := systest.NewInstance(t, CONTRACT, 100_000_000, funds)
 
 	env := mocks.MockEnv()
 	info := mocks.MockInfo(FUNDER, funds)
@@ -45,7 +45,7 @@ func defaultInit(t *testing.T, funds []types.Coin) *integration.Instance {
 }
 
 func TestInitAndQuery(t *testing.T) {
-	instance := integration.NewInstance(t, CONTRACT, 100_000_000, nil)
+	instance := systest.NewInstance(t, CONTRACT, 100_000_000, nil)
 
 	env := mocks.MockEnv()
 	info := mocks.MockInfo(FUNDER, nil)
@@ -88,8 +88,8 @@ func TestRelease(t *testing.T) {
 		funds  []types.Coin
 		valid  bool
 	}{
-		"verifier releases": {VERIFIER, integration.NewCoins(765432, "wei"), true},
-		"random fails":      {BENEFICIARY, integration.NewCoins(123456, "wei"), false},
+		"verifier releases": {VERIFIER, systest.NewCoins(765432, "wei"), true},
+		"random fails":      {BENEFICIARY, systest.NewCoins(123456, "wei"), false},
 	}
 
 	for name, tc := range cases {
