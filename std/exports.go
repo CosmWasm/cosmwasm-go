@@ -33,11 +33,7 @@ func parseInfo(infoPtr uint32) (MessageInfo, error) {
 	infoData := TranslateToSlice(uintptr(infoPtr))
 	var info MessageInfo
 	err := info.UnmarshalJSON(infoData)
-	if err != nil {
-		return info, err
-	}
-	info.SentFunds = TrimCoins(info.SentFunds)
-	return info, nil
+	return info, err
 }
 
 // ========== init ==============
@@ -57,7 +53,7 @@ func DoInit(initFn func(*Deps, Env, MessageInfo, []byte) (*InitResultOk, error),
 	deps := make_dependencies()
 	msgData := Translate_range_custom(uintptr(msgPtr))
 	ok, err := initFn(&deps, env, info, msgData)
-	if ok == nil {
+	if ok == nil || err != nil {
 		return StdErrResult(err, "Init")
 	}
 
@@ -85,7 +81,7 @@ func DoHandler(handlerFn func(*Deps, Env, MessageInfo, []byte) (*HandleResultOk,
 	deps := make_dependencies()
 	msgData := Translate_range_custom(uintptr(msgPtr))
 	ok, err := handlerFn(&deps, env, info, msgData)
-	if ok == nil {
+	if ok == nil || err != nil {
 		return StdErrResult(err, "Handle")
 	}
 

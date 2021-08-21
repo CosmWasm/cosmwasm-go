@@ -46,7 +46,7 @@ func TestInitAndQuery(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, res)
 	assert.Equal(t, 0, len(res.Ok.Messages))
-	assert.Equal(t, 1, len(res.Ok.Attributes))
+	require.Equal(t, 1, len(res.Ok.Attributes))
 	attr := res.Ok.Attributes[0]
 	assert.Equal(t, "Let the", attr.Key)
 	assert.Equal(t, "hacking begin", attr.Value)

@@ -36,6 +36,8 @@ ls -l "${ROOT}/${CONTRACT}.wasm"
 WATFILE="${ROOT}/${CONTRACT}.wat"
 docker run --rm -v "${ROOT}:/code" ${EMSCRIPTEN} wasm2wat "/code/${CONTRACT}.wasm" > "${WATFILE}"
 
+ls -l "${ROOT}/${CONTRACT}.wasm"
+
 grep import "${WATFILE}"
 
 echo "Any floating point?"
@@ -52,3 +54,4 @@ docker run --rm -w /code -v "${ROOT}:/code" ${EMSCRIPTEN} wat2wasm "/code/${CONT
 
 echo "Done! ${CONTRACT}.wasm is ready to use."
 ls -l "${ROOT}/${CONTRACT}.wasm"
+sha256sum "${ROOT}/${CONTRACT}.wasm"

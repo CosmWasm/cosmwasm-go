@@ -21,16 +21,6 @@ func (c Coin) IsEmpty() bool {
 	return c.Denom == "" && c.Amount == ""
 }
 
-// We preallocate empty elements at the end for parsing.
-// This will remove the ones that were not filled
-func TrimCoins(parsed []Coin) []Coin {
-	i := 0
-	for !parsed[i].IsEmpty() {
-		i++
-	}
-	return parsed[:i]
-}
-
 func NewCoins(amount uint64, denom string) []Coin {
 	return []Coin{NewCoin(amount, denom)}
 }

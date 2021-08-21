@@ -2,6 +2,7 @@ package integration
 
 import (
 	"encoding/json"
+	"fmt"
 	"path/filepath"
 	"testing"
 
@@ -36,7 +37,8 @@ func defaultInit(t *testing.T, funds []types.Coin) *integration.Instance {
 		Verifier:    VERIFIER,
 		Beneficiary: BENEFICIARY,
 	}
-	res, _, err := instance.Init(env, info, mustEncode(t, initMsg))
+	res, gas, err := instance.Init(env, info, mustEncode(t, initMsg))
+	fmt.Printf("Gas: %d\n", gas)
 	require.NoError(t, err)
 	require.NotNil(t, res)
 	return &instance
@@ -55,7 +57,7 @@ func TestInitAndQuery(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, res)
 	assert.Equal(t, 0, len(res.Messages))
-	assert.Equal(t, 1, len(res.Attributes))
+	require.Equal(t, 1, len(res.Attributes))
 	attr := res.Attributes[0]
 	assert.Equal(t, "Let the", attr.Key)
 	assert.Equal(t, "hacking begin", attr.Value)
