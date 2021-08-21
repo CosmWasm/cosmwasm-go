@@ -240,7 +240,7 @@ func (querier ExternalQuerier) RawQuery(request []byte) ([]byte, error) {
 	// TODO: parse this into the proper structure
 	// success looks like: {"ok":{"ok":"eyJhbW91bnQiOlt7ImRlbm9tIjoid2VpIiwiYW1vdW50IjoiNzY1NDMyIn1dfQ=="}}
 	var qres QuerierResult
-	err := qres.Unmarshal(response)
+	err := qres.UnmarshalJSON(response)
 	if err != nil {
 		return nil, err
 	}

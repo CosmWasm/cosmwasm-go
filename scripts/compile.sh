@@ -3,8 +3,8 @@
 set -o errexit -o nounset -o pipefail
 command -v shellcheck > /dev/null && shellcheck "$0"
 
-TINYGO_IMAGE="cosmwasm/tinygo:0.14.1"
-EMSCRIPTEN="trzeci/emscripten:1.39.8-fastcomp"
+TINYGO_IMAGE="cosmwasm/tinygo:0.19.0-dev"
+EMSCRIPTEN="polkasource/webassembly-wabt:v1.0.11"
 
 SCRIPT_DIR="$(realpath "$(dirname "$0")")"
 ROOT="$(dirname "$SCRIPT_DIR")"

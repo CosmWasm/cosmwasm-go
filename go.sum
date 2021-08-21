@@ -12,6 +12,10 @@ github.com/CosmWasm/go-cosmwasm v0.11.1-0.20201030003026-823a52c049ee h1:PtlfxB2
 github.com/CosmWasm/go-cosmwasm v0.11.1-0.20201030003026-823a52c049ee/go.mod h1:gAFCwllx97ejI+m9SqJQrmd2SBW7HA0fOjvWWJjM2uc=
 github.com/CosmWasm/tinyjson v0.8.0 h1:SzD3NKJyiNk63Tq2EwI1YEF3xvThSMfowHB9mpmnSMo=
 github.com/CosmWasm/tinyjson v0.8.0/go.mod h1:DCgHfu6rIAZOahKct8BQIH7/x9aAJpueXbNiO9Ow4Ic=
+github.com/CosmWasm/tinyjson v0.8.1-0.20210821135032-f9853acc9fc6 h1:C/fMHzo1Kda0o2zoEFYHOVH6r3r2o8/YnYKQtYJPYMA=
+github.com/CosmWasm/tinyjson v0.8.1-0.20210821135032-f9853acc9fc6/go.mod h1:DCgHfu6rIAZOahKct8BQIH7/x9aAJpueXbNiO9Ow4Ic=
+github.com/CosmWasm/tinyjson v0.8.1-0.20210821135926-d2e906c18c4b h1:VRCO8nV9AU0ZkCRfHhgOG6lX+n3XARZ5LTWHTYlD4Mk=
+github.com/CosmWasm/tinyjson v0.8.1-0.20210821135926-d2e906c18c4b/go.mod h1:DCgHfu6rIAZOahKct8BQIH7/x9aAJpueXbNiO9Ow4Ic=
 github.com/DataDog/zstd v1.4.1 h1:3oxKN3wbHibqx897utPC2LTQU4J+IHWWJO+glkAkpFM=
 github.com/DataDog/zstd v1.4.1/go.mod h1:1jcaCB/ufaK+sKp1NBhlGmpz41jOoPQ35bpF36t7BBo=
 github.com/OneOfOne/xxhash v1.2.2 h1:KMrpdQIwFcEqXDklaen+P1axHaj9BSKzvpUUfnHldSE=
