@@ -2,7 +2,6 @@ package std
 
 import (
 	"encoding/base64"
-	"errors"
 )
 
 // ------- query detail types ---------
@@ -32,7 +31,7 @@ func BuildQueryResponseBinary(msg []byte) *QueryResponse {
 
 func (q QueryResponse) Data() ([]byte, error) {
 	if q.Error != "" {
-		return nil, errors.New(q.Error)
+		return nil, NewError(q.Error)
 	}
 	return base64.StdEncoding.DecodeString(q.Ok)
 }

@@ -1,10 +1,19 @@
 package std
 
-import (
-	"reflect"
-)
-
 type ErrorType uintptr
+
+// This is a (temporary?) helper to use in place of errors.New
+func NewError(msg string) error {
+	return myError{msg: msg}
+}
+
+type myError struct {
+	msg string
+}
+
+func (m myError) Error() string {
+	return m.msg
+}
 
 const (
 	GenericError ErrorType = iota
@@ -144,19 +153,6 @@ type Underflow struct {
 
 func (e Underflow) Error() string {
 	return `{"underflow":{"minuend":"` + e.Minuend + `","subtrahend":"` + e.Subtrahend + `"}}`
-}
-
-// check if an interface is nil (even if it has type info)
-func isNil(i interface{}) bool {
-	if i == nil {
-		return true
-	}
-	if reflect.TypeOf(i).Kind() == reflect.Ptr {
-		// IsNil panics if you try it on a struct (not a pointer)
-		return reflect.ValueOf(i).IsNil()
-	}
-	// if we aren't a pointer, can't be nil, can we?
-	return false
 }
 
 // SystemError captures all errors returned from the Rust code as SystemError.

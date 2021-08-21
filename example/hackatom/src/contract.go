@@ -1,8 +1,6 @@
 package src
 
 import (
-	"errors"
-
 	"github.com/cosmwasm/cosmwasm-go/std"
 )
 
@@ -79,13 +77,13 @@ func Handle(deps *std.Deps, env std.Env, info std.MessageInfo, data []byte) (*st
 	case msg.MemoryLoop != nil:
 		return handleMemoryLoop(deps, &env, &info)
 	case msg.AllocateLargeMemory != nil:
-		return nil, errors.New("Not implemented: AllocateLargeMemory")
+		return nil, std.NewError("Not implemented: AllocateLargeMemory")
 	case msg.Panic != nil:
 		return handlePanic(deps, &env, &info)
 	case msg.UserErrorsInApiCalls != nil:
-		return nil, errors.New("Not implemented: UserErrorInApiCalls")
+		return nil, std.NewError("Not implemented: UserErrorInApiCalls")
 	default:
-		return nil, errors.New("Unknown HandleMsg")
+		return nil, std.NewError("Unknown HandleMsg")
 	}
 }
 
@@ -96,7 +94,7 @@ func handleRelease(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.Ha
 	}
 
 	if info.Sender != state.Verifier {
-		return nil, errors.New("Unauthorized")
+		return nil, std.NewError("Unauthorized")
 	}
 	amount, err := std.QuerierWrapper{deps.Querier}.QueryAllBalances(env.Contract.Address)
 	if err != nil {
@@ -172,9 +170,9 @@ func Query(deps *std.Deps, env std.Env, data []byte) (*std.QueryResponse, error)
 	case msg.OtherBalance != nil:
 		res, err = queryOtherBalance(deps, &env, msg.OtherBalance)
 	case msg.Recurse != nil:
-		err = errors.New("Not implemented: Recurse")
+		err = std.NewError("Not implemented: Recurse")
 	default:
-		err = errors.New("Unknown QueryMsg")
+		err = std.NewError("Unknown QueryMsg")
 	}
 	if err != nil {
 		return nil, err
