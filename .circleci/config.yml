@@ -24,6 +24,11 @@ jobs:
           name: Try gotestsum
           command: |
             mkdir -p /tmp/test-reports
-            gotestsum --junitfile /tmp/test-reports/unit-tests.xml ./std 
+            gotestsum --junitfile /tmp/test-reports/unit-tests.xml ./std
+      - run:
+          name: Hackatom integration tests
+          command: |
+            cd example/hackatom
+            go test -v -count=1 ./integration
       - store_test_results:
           path: /tmp/test-reports
