@@ -189,24 +189,24 @@ func Query(deps *std.Deps, env std.Env, data []byte) (*std.QueryResponse, error)
 
 }
 
-func queryVerifier(deps *std.Deps, env *std.Env) (std.JSONType, error) {
+func queryVerifier(deps *std.Deps, env *std.Env) (*VerifierResponse, error) {
 	state, err := LoadState(deps.Storage)
 	if err != nil {
 		return nil, err
 	}
 
-	return VerifierResponse{
+	return &VerifierResponse{
 		Verifier: state.Verifier,
 	}, nil
 }
 
-func queryOtherBalance(deps *std.Deps, env *std.Env, msg *OtherBalance) (std.JSONType, error) {
-	amount, err := std.QuerierWrapper{deps.Querier}.QueryAllBalances(msg.Address)
+func queryOtherBalance(deps *std.Deps, env *std.Env, msg *OtherBalance) (*std.AllBalancesResponse, error) {
+	amount, err := std.QuerierWrapper{Querier: deps.Querier}.QueryAllBalances(msg.Address)
 	if err != nil {
 		return nil, err
 	}
 
-	return std.AllBalancesResponse{
+	return &std.AllBalancesResponse{
 		Amount: amount,
-	}, err
+	}, nil
 }
