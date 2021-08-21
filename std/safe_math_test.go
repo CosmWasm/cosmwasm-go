@@ -1,9 +1,10 @@
-package safe_math
+package std
 
 import (
-	"github.com/stretchr/testify/require"
 	"math"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestSafeAdd(t *testing.T) {
