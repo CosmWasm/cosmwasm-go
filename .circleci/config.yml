@@ -20,10 +20,10 @@ jobs:
       - run:
           name: Run unit tests
           command: make test
-      # - run:
-      #     name: Run tests
-      #     command: |
-      #       mkdir -p /tmp/test-reports
-      #       gotestsum --junitfile /tmp/test-reports/unit-tests.xml
-      # - store_test_results:
-      #     path: /tmp/test-reports
+      - run:
+          name: Try gotestsum
+          command: |
+            mkdir -p /tmp/test-reports
+            gotestsum ./std ./std/safe_math --junitfile /tmp/test-reports/unit-tests.xml
+      - store_test_results:
+          path: /tmp/test-reports
