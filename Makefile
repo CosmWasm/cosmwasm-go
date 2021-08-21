@@ -15,6 +15,7 @@ generate-std:
 	./bin/easyjson -all -snake_case \
 		./std/env.go \
 		./std/errors.go \
+		./std/systemerror.go \
 		./std/types.go \
 		./std/msg.go \
 		./std/query.go

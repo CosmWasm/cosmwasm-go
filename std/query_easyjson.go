@@ -914,9 +914,25 @@ func easyjson90b16446DecodeGithubComCosmwasmCosmwasmGoStd9(in *jlexer.Lexer, out
 		}
 		switch key {
 		case "ok":
-			(out.Ok).UnmarshalEasyJSON(in)
+			if in.IsNull() {
+				in.Skip()
+				out.Ok = nil
+			} else {
+				if out.Ok == nil {
+					out.Ok = new(QueryResponse)
+				}
+				(*out.Ok).UnmarshalEasyJSON(in)
+			}
 		case "error":
-			out.Error = string(in.String())
+			if in.IsNull() {
+				in.Skip()
+				out.Error = nil
+			} else {
+				if out.Error == nil {
+					out.Error = new(SystemError)
+				}
+				(*out.Error).UnmarshalEasyJSON(in)
+			}
 		default:
 			in.SkipRecursive()
 		}
@@ -931,13 +947,13 @@ func easyjson90b16446EncodeGithubComCosmwasmCosmwasmGoStd9(out *jwriter.Writer, 
 	out.RawByte('{')
 	first := true
 	_ = first
-	if true {
+	if in.Ok != nil {
 		const prefix string = ",\"ok\":"
 		first = false
 		out.RawString(prefix[1:])
-		(in.Ok).MarshalEasyJSON(out)
+		(*in.Ok).MarshalEasyJSON(out)
 	}
-	if in.Error != "" {
+	if in.Error != nil {
 		const prefix string = ",\"error\":"
 		if first {
 			first = false
@@ -945,7 +961,7 @@ func easyjson90b16446EncodeGithubComCosmwasmCosmwasmGoStd9(out *jwriter.Writer, 
 		} else {
 			out.RawString(prefix)
 		}
-		out.String(string(in.Error))
+		(*in.Error).MarshalEasyJSON(out)
 	}
 	out.RawByte('}')
 }

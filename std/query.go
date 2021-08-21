@@ -14,9 +14,8 @@ type QueryResponse struct {
 
 // This is a 2-level result
 type QuerierResult struct {
-	Ok QueryResponse `json:"ok,omitempty"`
-	// TODO: what is this format actually?
-	Error string `json:"error,omitempty"`
+	Ok    *QueryResponse `json:"ok,omitempty"`
+	Error *SystemError   `json:"error,omitempty"`
 }
 
 func BuildQueryResponse(msg string) *QueryResponse {
