@@ -4,7 +4,6 @@ go 1.14
 
 require (
 	github.com/CosmWasm/wasmvm v0.13.1
-	github.com/cosmwasm/jsonparser v1.0.2
 	github.com/mailru/easyjson v0.7.8
 	github.com/stretchr/testify v1.6.1
 	github.com/tendermint/tm-db v0.6.2
