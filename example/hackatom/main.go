@@ -11,12 +11,12 @@ func main() {}
 
 //export instantiate
 func instantiate(env_ptr, info_ptr, msg_ptr uint32) unsafe.Pointer {
-	return std.DoInit(src.Init, env_ptr, info_ptr, msg_ptr)
+	return std.DoInstantiate(src.Instantiate, env_ptr, info_ptr, msg_ptr)
 }
 
 //export execute
 func execute(env_ptr, info_ptr, msg_ptr uint32) unsafe.Pointer {
-	return std.DoHandler(src.Handle, env_ptr, info_ptr, msg_ptr)
+	return std.DoExecute(src.Execute, env_ptr, info_ptr, msg_ptr)
 }
 
 //export migrate
@@ -28,6 +28,3 @@ func migrate(env_ptr, info_ptr, msg_ptr uint32) unsafe.Pointer {
 func query(env_ptr, msg_ptr uint32) unsafe.Pointer {
 	return std.DoQuery(src.Query, env_ptr, msg_ptr)
 }
-
-//export interface_version_7
-func interface_version_7() {}

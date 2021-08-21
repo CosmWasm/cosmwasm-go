@@ -80,7 +80,7 @@ func NewInstance(t *testing.T, contractPath string, gasLimit uint64, funds []typ
 	}
 }
 
-func (i *Instance) Init(env types.Env, info types.MessageInfo, initMsg []byte) (*types.Response, uint64, error) {
+func (i *Instance) Instantiate(env types.Env, info types.MessageInfo, initMsg []byte) (*types.Response, uint64, error) {
 	return i.Wasmer.Instantiate(
 		i.CodeID,
 		env,
@@ -95,7 +95,7 @@ func (i *Instance) Init(env types.Env, info types.MessageInfo, initMsg []byte) (
 	)
 }
 
-func (i *Instance) Handle(env types.Env, info types.MessageInfo, handleMsg []byte) (*types.Response, uint64, error) {
+func (i *Instance) Execute(env types.Env, info types.MessageInfo, handleMsg []byte) (*types.Response, uint64, error) {
 	return i.Wasmer.Execute(
 		i.CodeID,
 		env,

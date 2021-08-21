@@ -28,7 +28,7 @@ func defaultInit(t *testing.T, funds []std.Coin) *std.Deps {
 		Verifier:    VERIFIER,
 		Beneficiary: BENEFICIARY,
 	}
-	res, err := Init(deps, env, info, mustEncode(t, initMsg))
+	res, err := Instantiate(deps, env, info, mustEncode(t, initMsg))
 	require.NoError(t, err)
 	require.NotNil(t, res)
 	return deps
@@ -42,7 +42,7 @@ func TestInitAndQuery(t *testing.T) {
 		Verifier:    VERIFIER,
 		Beneficiary: BENEFICIARY,
 	}
-	res, err := Init(deps, env, info, mustEncode(t, initMsg))
+	res, err := Instantiate(deps, env, info, mustEncode(t, initMsg))
 	require.NoError(t, err)
 	require.NotNil(t, res)
 	assert.Equal(t, 0, len(res.Ok.Messages))
@@ -68,7 +68,7 @@ func TestPanic(t *testing.T) {
 	info := std.MockInfo(FUNDER, nil)
 	handleMsg := []byte(`{"panic":{}}`)
 	require.Panics(t, func() {
-		Handle(deps, env, info, handleMsg)
+		Execute(deps, env, info, handleMsg)
 	})
 }
 
@@ -89,7 +89,7 @@ func TestRelease(t *testing.T) {
 			env := std.MockEnv()
 			info := std.MockInfo(tc.signer, nil)
 			handleMsg := []byte(`{"release":{}}`)
-			res, err := Handle(deps, env, info, handleMsg)
+			res, err := Execute(deps, env, info, handleMsg)
 			if !tc.valid {
 				require.Error(t, err)
 				require.Equal(t, "Unauthorized", err.Error())
