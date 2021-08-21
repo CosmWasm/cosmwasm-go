@@ -31,8 +31,8 @@ func parseInfo(infoPtr uint32) (MessageInfo, error) {
 	return info, err
 }
 
-// ========== init ==============
-func DoInit(initFn func(*Deps, Env, MessageInfo, []byte) (*InitResult, error), envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
+// ========== instantiate ==============
+func DoInstantiate(instantiateFn func(*Deps, Env, MessageInfo, []byte) (*ContractResult, error), envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
 	env := Env{}
 	envData := TranslateToSlice(uintptr(envPtr))
 	err := env.UnmarshalJSON(envData)
@@ -47,9 +47,9 @@ func DoInit(initFn func(*Deps, Env, MessageInfo, []byte) (*InitResult, error), e
 
 	deps := make_dependencies()
 	msgData := Translate_range_custom(uintptr(msgPtr))
-	ok, err := initFn(&deps, env, info, msgData)
+	ok, err := instantiateFn(&deps, env, info, msgData)
 	if ok == nil || err != nil {
-		return StdErrResult(err, "Init")
+		return StdErrResult(err, "Instantiate")
 	}
 
 	data, err := ok.MarshalJSON()
@@ -59,8 +59,8 @@ func DoInit(initFn func(*Deps, Env, MessageInfo, []byte) (*InitResult, error), e
 	return Package_message(data)
 }
 
-// ========= handler ============
-func DoHandler(handlerFn func(*Deps, Env, MessageInfo, []byte) (*HandleResult, error), envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
+// ========= execute ============
+func DoExecute(executeFn func(*Deps, Env, MessageInfo, []byte) (*ContractResult, error), envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
 	env := Env{}
 	envData := TranslateToSlice(uintptr(envPtr))
 	err := env.UnmarshalJSON(envData)
@@ -75,7 +75,7 @@ func DoHandler(handlerFn func(*Deps, Env, MessageInfo, []byte) (*HandleResult, e
 
 	deps := make_dependencies()
 	msgData := Translate_range_custom(uintptr(msgPtr))
-	ok, err := handlerFn(&deps, env, info, msgData)
+	ok, err := executeFn(&deps, env, info, msgData)
 	if ok == nil || err != nil {
 		return StdErrResult(err, "Handle")
 	}
@@ -88,7 +88,7 @@ func DoHandler(handlerFn func(*Deps, Env, MessageInfo, []byte) (*HandleResult, e
 }
 
 // ========= migrate ============
-func DoMigrate(migrateFn func(*Deps, Env, MessageInfo, []byte) (*MigrateResult, error), envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
+func DoMigrate(migrateFn func(*Deps, Env, MessageInfo, []byte) (*ContractResult, error), envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
 	env := Env{}
 	envData := TranslateToSlice(uintptr(envPtr))
 	err := env.UnmarshalJSON(envData)
@@ -138,9 +138,6 @@ func DoQuery(queryFn func(*Deps, Env, []byte) (*QueryResponse, error), envPtr, m
 	return Package_message(data)
 }
 
-//export cosmwasm_vm_version_4
-func cosmwasm_vm_version_4() {}
-
 //export allocate
 func allocate(size uint32) unsafe.Pointer {
 	ptr, _ := Build_region(size, 0)
@@ -151,3 +148,6 @@ func allocate(size uint32) unsafe.Pointer {
 func deallocate(pointer unsafe.Pointer) {
 	Deallocate(pointer)
 }
+
+//export interface_version_7
+func interface_version_7() {}

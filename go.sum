@@ -2,8 +2,8 @@ cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMT
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/CosmWasm/tinyjson v0.8.2 h1:tMkx38hrbllk841YaBjoZYoieyRXiYyKfYnZ2sa8kgY=
 github.com/CosmWasm/tinyjson v0.8.2/go.mod h1:DCgHfu6rIAZOahKct8BQIH7/x9aAJpueXbNiO9Ow4Ic=
-github.com/CosmWasm/wasmvm v0.13.1 h1:bXieE7dRJvFOSZHEd+1y6oRpWFA7Djo6ZTeeB1LzPq0=
-github.com/CosmWasm/wasmvm v0.13.1/go.mod h1:Id107qllDJyJjVQQsKMOy2YYF98sqPJ2t+jX1QES40A=
+github.com/CosmWasm/wasmvm v0.16.0 h1:87jyCTcCpuSx7a8s5ed9N/E/XV13XZflxa0/OplwSmA=
+github.com/CosmWasm/wasmvm v0.16.0/go.mod h1:Id107qllDJyJjVQQsKMOy2YYF98sqPJ2t+jX1QES40A=
 github.com/DataDog/zstd v1.4.1 h1:3oxKN3wbHibqx897utPC2LTQU4J+IHWWJO+glkAkpFM=
 github.com/DataDog/zstd v1.4.1/go.mod h1:1jcaCB/ufaK+sKp1NBhlGmpz41jOoPQ35bpF36t7BBo=
 github.com/OneOfOne/xxhash v1.2.2 h1:KMrpdQIwFcEqXDklaen+P1axHaj9BSKzvpUUfnHldSE=

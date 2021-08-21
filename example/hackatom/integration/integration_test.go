@@ -37,10 +37,10 @@ func defaultInit(t *testing.T, funds []types.Coin) *systest.Instance {
 		Verifier:    VERIFIER,
 		Beneficiary: BENEFICIARY,
 	}
-	res, gas, err := instance.Init(env, info, mustEncode(t, initMsg))
+	res, gas, err := instance.Instantiate(env, info, mustEncode(t, initMsg))
 	require.NoError(t, err)
 	require.NotNil(t, res)
-	fmt.Printf("Init gas: %d\n", gas)
+	fmt.Printf("Instantiate gas: %d\n", gas)
 	return &instance
 }
 
@@ -53,7 +53,7 @@ func TestInitAndQuery(t *testing.T) {
 		Verifier:    VERIFIER,
 		Beneficiary: BENEFICIARY,
 	}
-	res, _, err := instance.Init(env, info, mustEncode(t, initMsg))
+	res, _, err := instance.Instantiate(env, info, mustEncode(t, initMsg))
 	require.NoError(t, err)
 	require.NotNil(t, res)
 	assert.Equal(t, 0, len(res.Messages))
@@ -78,7 +78,7 @@ func TestPanic(t *testing.T) {
 	env := mocks.MockEnv()
 	info := mocks.MockInfo(FUNDER, nil)
 	handleMsg := []byte(`{"panic":{}}`)
-	_, _, err := deps.Handle(env, info, handleMsg)
+	_, _, err := deps.Execute(env, info, handleMsg)
 	require.Error(t, err)
 }
 
@@ -98,8 +98,8 @@ func TestRelease(t *testing.T) {
 			env := mocks.MockEnv()
 			info := mocks.MockInfo(tc.signer, nil)
 			handleMsg := []byte(`{"release":{}}`)
-			res, gas, err := deps.Handle(env, info, handleMsg)
-			fmt.Printf("Handle gas: %d\n", gas)
+			res, gas, err := deps.Execute(env, info, handleMsg)
+			fmt.Printf("Execute gas: %d\n", gas)
 
 			if !tc.valid {
 				require.Error(t, err)
@@ -109,11 +109,10 @@ func TestRelease(t *testing.T) {
 				require.NotNil(t, res)
 
 				require.Equal(t, 1, len(res.Messages))
-				msg := res.Messages[0]
+				msg := res.Messages[0].Msg
 				expected := types.CosmosMsg{Bank: &types.BankMsg{Send: &types.SendMsg{
-					FromAddress: mocks.MOCK_CONTRACT_ADDR,
-					ToAddress:   BENEFICIARY,
-					Amount:      tc.funds,
+					ToAddress: BENEFICIARY,
+					Amount:    tc.funds,
 				}}}
 				assert.Equal(t, expected, msg)
 				assert.Equal(t, 2, len(res.Attributes))

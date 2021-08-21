@@ -4,7 +4,7 @@ import (
 	"github.com/cosmwasm/cosmwasm-go/std"
 )
 
-func Init(deps *std.Deps, env std.Env, info std.MessageInfo, msg []byte) (*std.InitResult, error) {
+func Instantiate(deps *std.Deps, env std.Env, info std.MessageInfo, msg []byte) (*std.ContractResult, error) {
 	deps.Api.Debug("here we go 🚀")
 
 	initMsg := InitMsg{}
@@ -33,13 +33,13 @@ func Init(deps *std.Deps, env std.Env, info std.MessageInfo, msg []byte) (*std.I
 	if err != nil {
 		return nil, err
 	}
-	res := &std.InitResponse{
+	res := &std.Response{
 		Attributes: []std.EventAttribute{{"Let the", "hacking begin"}},
 	}
-	return &std.InitResult{Ok: res}, nil
+	return &std.ContractResult{Ok: res}, nil
 }
 
-func Migrate(deps *std.Deps, env std.Env, info std.MessageInfo, msg []byte) (*std.MigrateResult, error) {
+func Migrate(deps *std.Deps, env std.Env, info std.MessageInfo, msg []byte) (*std.ContractResult, error) {
 	migrateMsg := MigrateMsg{}
 	err := migrateMsg.UnmarshalJSON(msg)
 	if err != nil {
@@ -56,11 +56,11 @@ func Migrate(deps *std.Deps, env std.Env, info std.MessageInfo, msg []byte) (*st
 		return nil, err
 	}
 
-	res := &std.MigrateResponse{Data: []byte("migrated")}
-	return &std.MigrateResult{Ok: res}, nil
+	res := &std.Response{Data: []byte("migrated")}
+	return &std.ContractResult{Ok: res}, nil
 }
 
-func Handle(deps *std.Deps, env std.Env, info std.MessageInfo, data []byte) (*std.HandleResult, error) {
+func Execute(deps *std.Deps, env std.Env, info std.MessageInfo, data []byte) (*std.ContractResult, error) {
 	msg := HandleMsg{}
 	err := msg.UnmarshalJSON(data)
 	if err != nil {
@@ -70,17 +70,17 @@ func Handle(deps *std.Deps, env std.Env, info std.MessageInfo, data []byte) (*st
 	// we need to find which one is non-empty
 	switch {
 	case msg.Release != nil:
-		return handleRelease(deps, &env, &info)
+		return executeRelease(deps, &env, &info)
 	case msg.CpuLoop != nil:
-		return handleCpuLoop(deps, &env, &info)
+		return executeCpuLoop(deps, &env, &info)
 	case msg.StorageLoop != nil:
-		return handleStorageLoop(deps, &env, &info)
+		return executeStorageLoop(deps, &env, &info)
 	case msg.MemoryLoop != nil:
-		return handleMemoryLoop(deps, &env, &info)
+		return executeMemoryLoop(deps, &env, &info)
 	case msg.AllocateLargeMemory != nil:
 		return nil, std.NewError("Not implemented: AllocateLargeMemory")
 	case msg.Panic != nil:
-		return handlePanic(deps, &env, &info)
+		return executePanic(deps, &env, &info)
 	case msg.UserErrorsInApiCalls != nil:
 		return nil, std.NewError("Not implemented: UserErrorInApiCalls")
 	default:
@@ -88,7 +88,7 @@ func Handle(deps *std.Deps, env std.Env, info std.MessageInfo, data []byte) (*st
 	}
 }
 
-func handleRelease(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.HandleResult, error) {
+func executeRelease(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.ContractResult, error) {
 	state, err := LoadState(deps.Storage)
 	if err != nil {
 		return nil, err
@@ -102,27 +102,26 @@ func handleRelease(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.Ha
 		return nil, err
 	}
 
-	msg := []std.CosmosMsg{{
+	msg := std.NewSubMsg(std.CosmosMsg{
 		Bank: &std.BankMsg{
 			Send: &std.SendMsg{
-				FromAddress: env.Contract.Address,
-				ToAddress:   state.Beneficiary,
-				Amount:      amount,
+				ToAddress: state.Beneficiary,
+				Amount:    amount,
 			},
 		},
-	}}
+	})
 
-	res := &std.HandleResponse{
+	res := &std.Response{
 		Attributes: []std.EventAttribute{
 			{"action", "release"},
 			{"destination", state.Beneficiary},
 		},
-		Messages: msg,
+		Messages: []std.SubMsg{msg},
 	}
-	return &std.HandleResult{Ok: res}, nil
+	return &std.ContractResult{Ok: res}, nil
 }
 
-func handleCpuLoop(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.HandleResult, error) {
+func executeCpuLoop(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.ContractResult, error) {
 	var counter uint64 = 0
 	for {
 		counter += 1
@@ -130,29 +129,29 @@ func handleCpuLoop(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.Ha
 			counter = 0
 		}
 	}
-	return &std.HandleResult{}, nil
+	return &std.ContractResult{}, nil
 }
 
-func handleMemoryLoop(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.HandleResult, error) {
+func executeMemoryLoop(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.ContractResult, error) {
 	counter := 1
 	data := []int{1}
 	for {
 		counter += 1
 		data = append(data, counter)
 	}
-	return &std.HandleResult{}, nil
+	return &std.ContractResult{}, nil
 }
 
-func handleStorageLoop(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.HandleResult, error) {
+func executeStorageLoop(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.ContractResult, error) {
 	var counter uint64 = 0
 	for {
 		data := []byte{0, 0, 0, 0, 0, 0, byte(counter / 256), byte(counter % 256)}
 		deps.Storage.Set([]byte("test.key"), data)
 	}
-	return &std.HandleResult{}, nil
+	return &std.ContractResult{}, nil
 }
 
-func handlePanic(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.HandleResult, error) {
+func executePanic(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.ContractResult, error) {
 	panic("This page intentionally faulted")
 }
 

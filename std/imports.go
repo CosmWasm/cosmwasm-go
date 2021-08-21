@@ -11,13 +11,13 @@ extern void db_remove(void* key);
 extern int db_scan(void* start_ptr, void* end_ptr, int order);
 extern void* db_next(unsigned iterator_id);
 
-extern int canonicalize_address(void* human, void* canonical);
-extern int humanize_address(void* canonical, void* human);
+extern int addr_canonicalize(void* human, void* canonical);
+extern int addr_humanize(void* canonical, void* human);
+extern int addr_validate(void* human);
+
 extern void debug(void* msg);
 
 extern void* query_chain(void* request);
-
-extern int display_message(void* str);
 */
 import "C"
 
@@ -44,20 +44,6 @@ const (
 	// An upper bound for typical human readable address formats (e.g. 42 for Ethereum hex addresses or 90 for bech32)
 	HUMAN_ADDRESS_BUFFER_LENGTH uint32 = 90
 )
-
-// log print
-
-func DisplayMessage(data []byte) int {
-	//cause that cosmwasm-vm does not support display_message, we denied it in publish version for now.
-	//if you want using display_message to build and test your contract, try using cosmwasm-simulate tool to load and test
-	//download it from :https://github.com/CosmWasm/cosmwasm-simulate
-
-	msg := C.malloc(C.ulong(len(data)))
-	regionMsg := TranslateToRegion(data, uintptr(msg))
-	C.display_message(unsafe.Pointer(regionMsg))
-	C.free(unsafe.Pointer(msg))
-	return 0
-}
 
 // ====== DB ======
 
@@ -177,11 +163,12 @@ func (api ExternalApi) CanonicalAddress(human string) (CanonicalAddr, error) {
 
 	regionCanon, _ := Build_region(CANONICAL_ADDRESS_BUFFER_LENGTH, 0)
 
-	ret := C.canonicalize_address(unsafe.Pointer(regionHuman), unsafe.Pointer(regionCanon))
+	ret := C.addr_canonicalize(unsafe.Pointer(regionHuman), unsafe.Pointer(regionCanon))
 	C.free(humanPtr)
 
 	if ret < 0 {
-		return nil, NewError("canonicalize_address returned error")
+		// TODO: how to get actual error message?
+		return nil, NewError("addr_canonicalize returned error")
 	}
 
 	canoAddress := TranslateToSlice(uintptr(regionCanon))
@@ -195,16 +182,32 @@ func (api ExternalApi) HumanAddress(canonical CanonicalAddr) (string, error) {
 
 	regionHuman, _ := Build_region(HUMAN_ADDRESS_BUFFER_LENGTH, 0)
 
-	ret := C.humanize_address(unsafe.Pointer(regionCanon), unsafe.Pointer(regionHuman))
+	ret := C.addr_humanize(unsafe.Pointer(regionCanon), unsafe.Pointer(regionHuman))
 	C.free(canonPtr)
 
 	if ret < 0 {
-		return "", NewError("humanize_address returned error")
+		// TODO: how to get actual error message?
+		return "", NewError("addr_humanize returned error")
 	}
 
 	humanAddress := TranslateToSlice(uintptr(regionHuman))
 
 	return string(humanAddress), nil
+}
+
+func (api ExternalApi) ValidateAddress(human string) error {
+	humanAddr := []byte(human)
+	humanPtr := C.malloc(C.ulong(len(humanAddr)))
+	regionHuman := TranslateToRegion(humanAddr, uintptr(humanPtr))
+
+	ret := C.addr_validate(unsafe.Pointer(regionHuman))
+	C.free(humanPtr)
+
+	if ret < 0 {
+		// TODO: how to get actual error message?
+		return NewError("addr_validate returned error")
+	}
+	return nil
 }
 
 func (api ExternalApi) Debug(msg string) {

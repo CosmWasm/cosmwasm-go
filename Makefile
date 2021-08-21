@@ -18,7 +18,9 @@ generate-std:
 		./std/systemerror.go \
 		./std/types.go \
 		./std/msg.go \
-		./std/query.go
+		./std/subcall.go \
+		./std/query.go \
+		./std/ibc.go
 
 generate-contracts:
 	./bin/easyjson -all -snake_case \
