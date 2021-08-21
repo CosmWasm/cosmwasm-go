@@ -32,7 +32,7 @@ func parseInfo(infoPtr uint32) (MessageInfo, error) {
 }
 
 // ========== init ==============
-func DoInit(initFn func(*Deps, Env, MessageInfo, []byte) (*InitResult, error), envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
+func DoInit(initFn func(*Deps, Env, MessageInfo, []byte) (*ContractResult, error), envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
 	env := Env{}
 	envData := TranslateToSlice(uintptr(envPtr))
 	err := env.UnmarshalJSON(envData)
@@ -60,7 +60,7 @@ func DoInit(initFn func(*Deps, Env, MessageInfo, []byte) (*InitResult, error), e
 }
 
 // ========= handler ============
-func DoHandler(handlerFn func(*Deps, Env, MessageInfo, []byte) (*HandleResult, error), envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
+func DoHandler(handlerFn func(*Deps, Env, MessageInfo, []byte) (*ContractResult, error), envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
 	env := Env{}
 	envData := TranslateToSlice(uintptr(envPtr))
 	err := env.UnmarshalJSON(envData)
@@ -88,7 +88,7 @@ func DoHandler(handlerFn func(*Deps, Env, MessageInfo, []byte) (*HandleResult, e
 }
 
 // ========= migrate ============
-func DoMigrate(migrateFn func(*Deps, Env, MessageInfo, []byte) (*MigrateResult, error), envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
+func DoMigrate(migrateFn func(*Deps, Env, MessageInfo, []byte) (*ContractResult, error), envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
 	env := Env{}
 	envData := TranslateToSlice(uintptr(envPtr))
 	err := env.UnmarshalJSON(envData)
