@@ -111,9 +111,8 @@ func TestRelease(t *testing.T) {
 				require.Equal(t, 1, len(res.Messages))
 				msg := res.Messages[0]
 				expected := types.CosmosMsg{Bank: &types.BankMsg{Send: &types.SendMsg{
-					FromAddress: mocks.MOCK_CONTRACT_ADDR,
-					ToAddress:   BENEFICIARY,
-					Amount:      tc.funds,
+					ToAddress: BENEFICIARY,
+					Amount:    tc.funds,
 				}}}
 				assert.Equal(t, expected, msg)
 				assert.Equal(t, 2, len(res.Attributes))

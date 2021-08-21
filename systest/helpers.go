@@ -19,6 +19,11 @@ func NewCoins(amount uint64, denom string) []types.Coin {
 	return []types.Coin{types.NewCoin(amount, denom)}
 }
 
+var deserCost = types.UFraction{
+	Numerator:   1,
+	Denominator: 10,
+}
+
 // End transient code
 
 func SetupWasmer(t *testing.T, contractPath string) (*wasmvm.VM, []byte) {
@@ -75,7 +80,7 @@ func NewInstance(t *testing.T, contractPath string, gasLimit uint64, funds []typ
 	}
 }
 
-func (i *Instance) Init(env types.Env, info types.MessageInfo, initMsg []byte) (*types.InitResponse, uint64, error) {
+func (i *Instance) Init(env types.Env, info types.MessageInfo, initMsg []byte) (*types.Response, uint64, error) {
 	return i.Wasmer.Instantiate(
 		i.CodeID,
 		env,
@@ -86,10 +91,11 @@ func (i *Instance) Init(env types.Env, info types.MessageInfo, initMsg []byte) (
 		i.Querier,
 		i.GasMeter,
 		i.GasLimit,
+		deserCost,
 	)
 }
 
-func (i *Instance) Handle(env types.Env, info types.MessageInfo, handleMsg []byte) (*types.HandleResponse, uint64, error) {
+func (i *Instance) Handle(env types.Env, info types.MessageInfo, handleMsg []byte) (*types.Response, uint64, error) {
 	return i.Wasmer.Execute(
 		i.CodeID,
 		env,
@@ -100,6 +106,7 @@ func (i *Instance) Handle(env types.Env, info types.MessageInfo, handleMsg []byt
 		i.Querier,
 		i.GasMeter,
 		i.GasLimit,
+		deserCost,
 	)
 }
 
@@ -113,5 +120,6 @@ func (i *Instance) Query(env types.Env, queryMsg []byte) ([]byte, uint64, error)
 		i.Querier,
 		i.GasMeter,
 		i.GasLimit,
+		deserCost,
 	)
 }
