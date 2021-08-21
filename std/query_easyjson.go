@@ -639,7 +639,12 @@ func easyjson90b16446DecodeGithubComCosmwasmCosmwasmGoStd6(in *jlexer.Lexer, out
 		}
 		switch key {
 		case "ok":
-			out.Ok = string(in.String())
+			if in.IsNull() {
+				in.Skip()
+				out.Ok = nil
+			} else {
+				out.Ok = in.Bytes()
+			}
 		case "error":
 			out.Error = string(in.String())
 		default:
@@ -656,11 +661,11 @@ func easyjson90b16446EncodeGithubComCosmwasmCosmwasmGoStd6(out *jwriter.Writer, 
 	out.RawByte('{')
 	first := true
 	_ = first
-	if in.Ok != "" {
+	if len(in.Ok) != 0 {
 		const prefix string = ",\"ok\":"
 		first = false
 		out.RawString(prefix[1:])
-		out.String(string(in.Ok))
+		out.Base64Bytes(in.Ok)
 	}
 	if in.Error != "" {
 		const prefix string = ",\"error\":"
@@ -914,9 +919,25 @@ func easyjson90b16446DecodeGithubComCosmwasmCosmwasmGoStd9(in *jlexer.Lexer, out
 		}
 		switch key {
 		case "ok":
-			(out.Ok).UnmarshalEasyJSON(in)
+			if in.IsNull() {
+				in.Skip()
+				out.Ok = nil
+			} else {
+				if out.Ok == nil {
+					out.Ok = new(QueryResponse)
+				}
+				(*out.Ok).UnmarshalEasyJSON(in)
+			}
 		case "error":
-			out.Error = string(in.String())
+			if in.IsNull() {
+				in.Skip()
+				out.Error = nil
+			} else {
+				if out.Error == nil {
+					out.Error = new(SystemError)
+				}
+				(*out.Error).UnmarshalEasyJSON(in)
+			}
 		default:
 			in.SkipRecursive()
 		}
@@ -931,13 +952,13 @@ func easyjson90b16446EncodeGithubComCosmwasmCosmwasmGoStd9(out *jwriter.Writer, 
 	out.RawByte('{')
 	first := true
 	_ = first
-	if true {
+	if in.Ok != nil {
 		const prefix string = ",\"ok\":"
 		first = false
 		out.RawString(prefix[1:])
-		(in.Ok).MarshalEasyJSON(out)
+		(*in.Ok).MarshalEasyJSON(out)
 	}
-	if in.Error != "" {
+	if in.Error != nil {
 		const prefix string = ",\"error\":"
 		if first {
 			first = false
@@ -945,7 +966,7 @@ func easyjson90b16446EncodeGithubComCosmwasmCosmwasmGoStd9(out *jwriter.Writer, 
 		} else {
 			out.RawString(prefix)
 		}
-		out.String(string(in.Error))
+		(*in.Error).MarshalEasyJSON(out)
 	}
 	out.RawByte('}')
 }
@@ -1014,9 +1035,9 @@ func easyjson90b16446DecodeGithubComCosmwasmCosmwasmGoStd10(in *jlexer.Lexer, ou
 					out.AccumulatedRewards = (out.AccumulatedRewards)[:0]
 				}
 				for !in.IsDelim(']') {
-					var v10 Coin
-					(v10).UnmarshalEasyJSON(in)
-					out.AccumulatedRewards = append(out.AccumulatedRewards, v10)
+					var v13 Coin
+					(v13).UnmarshalEasyJSON(in)
+					out.AccumulatedRewards = append(out.AccumulatedRewards, v13)
 					in.WantComma()
 				}
 				in.Delim(']')
@@ -1057,11 +1078,11 @@ func easyjson90b16446EncodeGithubComCosmwasmCosmwasmGoStd10(out *jwriter.Writer,
 		out.RawString(prefix)
 		{
 			out.RawByte('[')
-			for v11, v12 := range in.AccumulatedRewards {
-				if v11 > 0 {
+			for v14, v15 := range in.AccumulatedRewards {
+				if v14 > 0 {
 					out.RawByte(',')
 				}
-				(v12).MarshalEasyJSON(out)
+				(v15).MarshalEasyJSON(out)
 			}
 			out.RawByte(']')
 		}
@@ -1660,9 +1681,9 @@ func easyjson90b16446DecodeGithubComCosmwasmCosmwasmGoStd18(in *jlexer.Lexer, ou
 					out.Delegations = (out.Delegations)[:0]
 				}
 				for !in.IsDelim(']') {
-					var v13 Delegation
-					(v13).UnmarshalEasyJSON(in)
-					out.Delegations = append(out.Delegations, v13)
+					var v16 Delegation
+					(v16).UnmarshalEasyJSON(in)
+					out.Delegations = append(out.Delegations, v16)
 					in.WantComma()
 				}
 				in.Delim(']')
@@ -1686,11 +1707,11 @@ func easyjson90b16446EncodeGithubComCosmwasmCosmwasmGoStd18(out *jwriter.Writer,
 		out.RawString(prefix[1:])
 		{
 			out.RawByte('[')
-			for v14, v15 := range in.Delegations {
-				if v14 > 0 {
+			for v17, v18 := range in.Delegations {
+				if v17 > 0 {
 					out.RawByte(',')
 				}
-				(v15).MarshalEasyJSON(out)
+				(v18).MarshalEasyJSON(out)
 			}
 			out.RawByte(']')
 		}
@@ -1822,9 +1843,9 @@ func easyjson90b16446DecodeGithubComCosmwasmCosmwasmGoStd20(in *jlexer.Lexer, ou
 					out.Amount = (out.Amount)[:0]
 				}
 				for !in.IsDelim(']') {
-					var v16 Coin
-					(v16).UnmarshalEasyJSON(in)
-					out.Amount = append(out.Amount, v16)
+					var v19 Coin
+					(v19).UnmarshalEasyJSON(in)
+					out.Amount = append(out.Amount, v19)
 					in.WantComma()
 				}
 				in.Delim(']')
@@ -1848,11 +1869,11 @@ func easyjson90b16446EncodeGithubComCosmwasmCosmwasmGoStd20(out *jwriter.Writer,
 		out.RawString(prefix[1:])
 		{
 			out.RawByte('[')
-			for v17, v18 := range in.Amount {
-				if v17 > 0 {
+			for v20, v21 := range in.Amount {
+				if v20 > 0 {
 					out.RawByte(',')
 				}
-				(v18).MarshalEasyJSON(out)
+				(v21).MarshalEasyJSON(out)
 			}
 			out.RawByte(']')
 		}

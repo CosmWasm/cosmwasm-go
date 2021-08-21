@@ -7,6 +7,29 @@ import (
 	"unsafe"
 )
 
+//easyjson:skip
+type MemRegion struct {
+	Offset   uint32
+	Capacity uint32
+	Length   uint32
+}
+
+const REGION_HEAD_SIZE uint32 = 12
+
+//easyjson:skip
+type SliceHeader_tinyGo struct {
+	Data uintptr
+	Len  uintptr
+	Cap  uintptr
+}
+
+//easyjson:skip
+type SliceHeader_Go struct {
+	Data uintptr
+	Len  int
+	Cap  int
+}
+
 func Build_region(size uint32, len uint32) (unsafe.Pointer, *MemRegion) {
 	ptr := C.malloc(C.ulong(size) + C.ulong(REGION_HEAD_SIZE))
 	var region = new(MemRegion)

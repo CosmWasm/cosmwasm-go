@@ -1,39 +1,30 @@
 package std
 
-import (
-	"encoding/base64"
-)
-
 // ------- query detail types ---------
 type QueryResponse struct {
-	// this must be base64 encoded
-	Ok string `json:"ok,omitempty,rust_option"`
-	// TODO: what is this format actually?
+	Ok    []byte `json:"ok,omitempty"`
 	Error string `json:"error,omitempty"`
 }
 
 // This is a 2-level result
 type QuerierResult struct {
-	Ok QueryResponse `json:"ok,omitempty"`
-	// TODO: what is this format actually?
-	Error string `json:"error,omitempty"`
+	Ok    *QueryResponse `json:"ok,omitempty"`
+	Error *SystemError   `json:"error,omitempty"`
 }
 
 func BuildQueryResponse(msg string) *QueryResponse {
-	encoded := base64.StdEncoding.EncodeToString([]byte(msg))
-	return &QueryResponse{Ok: encoded}
+	return &QueryResponse{Ok: []byte(msg)}
 }
 
 func BuildQueryResponseBinary(msg []byte) *QueryResponse {
-	encoded := base64.StdEncoding.EncodeToString(msg)
-	return &QueryResponse{Ok: encoded}
+	return &QueryResponse{Ok: msg}
 }
 
 func (q QueryResponse) Data() ([]byte, error) {
 	if q.Error != "" {
 		return nil, NewError(q.Error)
 	}
-	return base64.StdEncoding.DecodeString(q.Ok)
+	return q.Ok, nil
 }
 
 type QuerierWrapper struct {
@@ -99,10 +90,6 @@ type QueryRequest struct {
 type BankQuery struct {
 	Balance     *BalanceQuery     `json:"balance,omitempty"`
 	AllBalances *AllBalancesQuery `json:"all_balances,omitempty"`
-}
-
-func (b BankQuery) IsEmpty() bool {
-	return b.Balance.Address == "" && b.AllBalances.Address == ""
 }
 
 type BalanceQuery struct {
