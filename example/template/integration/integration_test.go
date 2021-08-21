@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	mocks "github.com/CosmWasm/go-cosmwasm/api"
+	mocks "github.com/CosmWasm/wasmvm/api"
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmwasm/cosmwasm-go/example/TEMPLATE/src"

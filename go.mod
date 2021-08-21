@@ -3,7 +3,7 @@ module github.com/cosmwasm/cosmwasm-go
 go 1.14
 
 require (
-	github.com/CosmWasm/go-cosmwasm v0.11.1-0.20201030003026-823a52c049ee
+	github.com/CosmWasm/wasmvm v0.13.1
 	github.com/cosmwasm/jsonparser v1.0.2
 	github.com/mailru/easyjson v0.7.8
 	github.com/stretchr/testify v1.6.1

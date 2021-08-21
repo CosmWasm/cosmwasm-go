@@ -5,29 +5,29 @@ import (
 	"os"
 	"testing"
 
-	cosmwasm "github.com/CosmWasm/go-cosmwasm"
-	mocks "github.com/CosmWasm/go-cosmwasm/api"
-	types "github.com/CosmWasm/go-cosmwasm/types"
+	wasmvm "github.com/CosmWasm/wasmvm"
+	mocks "github.com/CosmWasm/wasmvm/api"
+	types "github.com/CosmWasm/wasmvm/types"
 
 	"github.com/stretchr/testify/require"
 )
 
 const FEATURES = "staking"
 
-// TODO: move this into go-cosmwasm at some point
+// TODO: move this into wasmvm at some point
 func NewCoins(amount uint64, denom string) []types.Coin {
 	return []types.Coin{types.NewCoin(amount, denom)}
 }
 
 // End transient code
 
-func SetupWasmer(t *testing.T, contractPath string) (*cosmwasm.Wasmer, []byte) {
+func SetupWasmer(t *testing.T, contractPath string) (*wasmvm.Wasmer, []byte) {
 	// setup wasmer instance
 	tmpdir, err := ioutil.TempDir("", "wasmer")
 	require.NoError(t, err)
 	t.Cleanup(func() { os.RemoveAll(tmpdir) })
 
-	wasmer, err := cosmwasm.NewWasmer(tmpdir, FEATURES, true)
+	wasmer, err := wasmvm.NewWasmer(tmpdir, FEATURES, true)
 	require.NoError(t, err)
 	codeID := StoreCode(t, wasmer, contractPath)
 
@@ -35,7 +35,7 @@ func SetupWasmer(t *testing.T, contractPath string) (*cosmwasm.Wasmer, []byte) {
 }
 
 // Returns code id
-func StoreCode(t *testing.T, wasmer *cosmwasm.Wasmer, contractPath string) []byte {
+func StoreCode(t *testing.T, wasmer *wasmvm.Wasmer, contractPath string) []byte {
 	// upload code and get some sha256 hash
 	bz, err := ioutil.ReadFile(contractPath)
 	require.NoError(t, err)
@@ -46,10 +46,10 @@ func StoreCode(t *testing.T, wasmer *cosmwasm.Wasmer, contractPath string) []byt
 }
 
 type Instance struct {
-	Wasmer   *cosmwasm.Wasmer
+	Wasmer   *wasmvm.Wasmer
 	CodeID   []byte
 	GasLimit uint64
-	GasMeter cosmwasm.GasMeter
+	GasMeter wasmvm.GasMeter
 	Store    *mocks.Lookup
 	Api      *mocks.GoAPI
 	Querier  mocks.Querier
