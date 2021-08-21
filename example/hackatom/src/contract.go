@@ -4,14 +4,13 @@ import (
 	"errors"
 
 	"github.com/cosmwasm/cosmwasm-go/std"
-	"github.com/cosmwasm/cosmwasm-go/std/ezjson"
 )
 
 func Init(deps *std.Deps, env std.Env, info std.MessageInfo, msg []byte) (*std.InitResultOk, error) {
 	deps.Api.Debug("here we go 🚀")
 
 	initMsg := InitMsg{}
-	err := ezjson.Unmarshal(msg, &initMsg)
+	err := initMsg.UnmarshalJSON(msg)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +43,7 @@ func Init(deps *std.Deps, env std.Env, info std.MessageInfo, msg []byte) (*std.I
 
 func Migrate(deps *std.Deps, env std.Env, info std.MessageInfo, msg []byte) (*std.MigrateResultOk, error) {
 	migrateMsg := MigrateMsg{}
-	err := ezjson.Unmarshal(msg, &migrateMsg)
+	err := migrateMsg.UnmarshalJSON(msg)
 	if err != nil {
 		return nil, err
 	}
@@ -64,26 +63,26 @@ func Migrate(deps *std.Deps, env std.Env, info std.MessageInfo, msg []byte) (*st
 
 func Handle(deps *std.Deps, env std.Env, info std.MessageInfo, data []byte) (*std.HandleResultOk, error) {
 	msg := HandleMsg{}
-	err := ezjson.Unmarshal(data, &msg)
+	err := msg.UnmarshalJSON(data)
 	if err != nil {
 		return nil, err
 	}
 
 	// we need to find which one is non-empty
 	switch {
-	case msg.Release.WasSet():
+	case msg.Release != nil:
 		return handleRelease(deps, &env, &info)
-	case msg.CpuLoop.WasSet():
+	case msg.CpuLoop != nil:
 		return handleCpuLoop(deps, &env, &info)
-	case msg.StorageLoop.WasSet():
+	case msg.StorageLoop != nil:
 		return handleStorageLoop(deps, &env, &info)
-	case msg.MemoryLoop.WasSet():
+	case msg.MemoryLoop != nil:
 		return handleMemoryLoop(deps, &env, &info)
-	case msg.AllocateLargeMemory.WasSet():
+	case msg.AllocateLargeMemory != nil:
 		return nil, errors.New("Not implemented: AllocateLargeMemory")
-	case msg.Panic.WasSet():
+	case msg.Panic != nil:
 		return handlePanic(deps, &env, &info)
-	case msg.UserErrorsInApiCalls.WasSet():
+	case msg.UserErrorsInApiCalls != nil:
 		return nil, errors.New("Not implemented: UserErrorInApiCalls")
 	default:
 		return nil, errors.New("Unknown HandleMsg")
@@ -105,8 +104,8 @@ func handleRelease(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.Ha
 	}
 
 	msg := []std.CosmosMsg{{
-		Bank: std.BankMsg{
-			Send: std.SendMsg{
+		Bank: &std.BankMsg{
+			Send: &std.SendMsg{
 				FromAddress: env.Contract.Address,
 				ToAddress:   state.Beneficiary,
 				Amount:      amount,
@@ -160,19 +159,19 @@ func handlePanic(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.Hand
 
 func Query(deps *std.Deps, env std.Env, data []byte) (*std.QueryResponse, error) {
 	msg := QueryMsg{}
-	err := ezjson.Unmarshal(data, &msg)
+	err := msg.UnmarshalJSON(data)
 	if err != nil {
 		return nil, err
 	}
 
 	// we need to find which one is non-empty
-	var res interface{}
+	var res std.JSONType
 	switch {
-	case msg.Verifier.WasSet():
+	case msg.Verifier != nil:
 		res, err = queryVerifier(deps, &env)
-	case msg.OtherBalance.Address != "":
+	case msg.OtherBalance != nil:
 		res, err = queryOtherBalance(deps, &env, msg.OtherBalance)
-	case msg.Recurse.Work != 0 || msg.Recurse.Depth != 0:
+	case msg.Recurse != nil:
 		err = errors.New("Not implemented: Recurse")
 	default:
 		err = errors.New("Unknown QueryMsg")
@@ -182,7 +181,7 @@ func Query(deps *std.Deps, env std.Env, data []byte) (*std.QueryResponse, error)
 	}
 
 	// if we got a result above, encode it
-	bz, err := ezjson.Marshal(res)
+	bz, err := res.MarshalJSON()
 	if err != nil {
 		return nil, err
 	}
@@ -190,7 +189,7 @@ func Query(deps *std.Deps, env std.Env, data []byte) (*std.QueryResponse, error)
 
 }
 
-func queryVerifier(deps *std.Deps, env *std.Env) (interface{}, error) {
+func queryVerifier(deps *std.Deps, env *std.Env) (std.JSONType, error) {
 	state, err := LoadState(deps.Storage)
 	if err != nil {
 		return nil, err
@@ -201,7 +200,7 @@ func queryVerifier(deps *std.Deps, env *std.Env) (interface{}, error) {
 	}, nil
 }
 
-func queryOtherBalance(deps *std.Deps, env *std.Env, msg OtherBalance) (interface{}, error) {
+func queryOtherBalance(deps *std.Deps, env *std.Env, msg *OtherBalance) (std.JSONType, error) {
 	amount, err := std.QuerierWrapper{deps.Querier}.QueryAllBalances(msg.Address)
 	if err != nil {
 		return nil, err

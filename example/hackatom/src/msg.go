@@ -1,7 +1,5 @@
 package src
 
-import "github.com/cosmwasm/cosmwasm-go/std/ezjson"
-
 type InitMsg struct {
 	Verifier    string `json:"verifier"`
 	Beneficiary string `json:"beneficiary"`
@@ -12,19 +10,19 @@ type MigrateMsg struct {
 }
 
 type HandleMsg struct {
-	Release              ezjson.EmptyStruct `json:"release,opt_seen,omitempty"`
-	CpuLoop              ezjson.EmptyStruct `json:"cpu_loop,opt_seen,omitempty"`
-	StorageLoop          ezjson.EmptyStruct `json:"storage_loop,opt_seen,omitempty"`
-	MemoryLoop           ezjson.EmptyStruct `json:"memory_loop,opt_seen,omitempty"`
-	AllocateLargeMemory  ezjson.EmptyStruct `json:"allocate_large_memory,opt_seen,omitempty"`
-	Panic                ezjson.EmptyStruct `json:"panic,opt_seen,omitempty"`
-	UserErrorsInApiCalls ezjson.EmptyStruct `json:"user_errors_in_api_calls,opt_seen,omitempty"`
+	Release              *struct{} `json:"release,omitempty"`
+	CpuLoop              *struct{} `json:"cpu_loop,omitempty"`
+	StorageLoop          *struct{} `json:"storage_loop,omitempty"`
+	MemoryLoop           *struct{} `json:"memory_loop,omitempty"`
+	AllocateLargeMemory  *struct{} `json:"allocate_large_memory,omitempty"`
+	Panic                *struct{} `json:"panic,omitempty"`
+	UserErrorsInApiCalls *struct{} `json:"user_errors_in_api_calls,omitempty"`
 }
 
 type QueryMsg struct {
-	Verifier     ezjson.EmptyStruct `json:"verifier,opt_seen,omitempty"`
-	OtherBalance OtherBalance       `json:"other_balance,omitempty"`
-	Recurse      Recurse            `json:"recurse,omitempty"`
+	Verifier     *struct{}     `json:"verifier,omitempty"`
+	OtherBalance *OtherBalance `json:"other_balance,omitempty"`
+	Recurse      *Recurse      `json:"recurse,omitempty"`
 }
 
 type OtherBalance struct {
