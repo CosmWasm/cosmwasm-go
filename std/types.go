@@ -32,6 +32,10 @@ func TrimCoins(parsed []Coin) []Coin {
 	return parsed[:i]
 }
 
+func NewCoins(amount uint64, denom string) []Coin {
+	return []Coin{NewCoin(amount, denom)}
+}
+
 // ============= MSG ===========
 //------- Results / Msgs -------------
 

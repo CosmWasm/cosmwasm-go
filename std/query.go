@@ -37,9 +37,6 @@ func (q QueryResponse) Data() ([]byte, error) {
 	return base64.StdEncoding.DecodeString(q.Ok)
 }
 
-// random constant for the size to preallocate arrays before parsing
-const MAX_ARRAY_SIZE = 8
-
 type QuerierWrapper struct {
 	Querier
 }
@@ -69,14 +66,12 @@ func (q QuerierWrapper) QueryAllBalances(addr string) ([]Coin, error) {
 			},
 		},
 	}
-	qres := AllBalancesResponse{
-		Amount: make([]Coin, MAX_ARRAY_SIZE),
-	}
+	qres := AllBalancesResponse{}
 	err := q.doQuery(query, &qres)
 	if err != nil {
 		return nil, err
 	}
-	return TrimCoins(qres.Amount), err
+	return qres.Amount, nil
 }
 
 func (q QuerierWrapper) QueryBalance(addr string, denom string) (Coin, error) {

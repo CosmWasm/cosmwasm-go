@@ -99,7 +99,7 @@ func TestRelease(t *testing.T) {
 
 				require.Equal(t, 1, len(res.Ok.Messages))
 				msg := res.Ok.Messages[0]
-				expected := std.CosmosMsg{Bank: std.BankMsg{Send: std.SendMsg{
+				expected := std.CosmosMsg{Bank: &std.BankMsg{Send: &std.SendMsg{
 					FromAddress: std.MOCK_CONTRACT_ADDR,
 					ToAddress:   BENEFICIARY,
 					Amount:      tc.funds,

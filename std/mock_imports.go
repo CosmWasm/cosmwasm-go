@@ -197,7 +197,7 @@ func (q *MockQuerier) HandleQuery(request QueryRequest) (interface{}, error) {
 
 func (q *MockQuerier) HandleBank(request *BankQuery) (interface{}, error) {
 	switch {
-	case request.Balance.Address != "":
+	case request.Balance != nil:
 		balances := q.GetBalance(request.Balance.Address)
 		coin := Coin{Denom: request.Balance.Denom, Amount: "0"}
 		for _, c := range balances {
@@ -207,7 +207,7 @@ func (q *MockQuerier) HandleBank(request *BankQuery) (interface{}, error) {
 			}
 		}
 		return BalanceResponse{Amount: coin}, nil
-	case request.AllBalances.Address != "":
+	case request.AllBalances != nil:
 		balances := q.GetBalance(request.AllBalances.Address)
 		return AllBalancesResponse{Amount: balances}, nil
 	default:
