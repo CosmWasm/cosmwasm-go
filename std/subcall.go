@@ -39,3 +39,11 @@ type Event struct {
 	Type       string           `json:"type"`
 	Attributes []EventAttribute `json:"attributes,emptyslice"`
 }
+
+func NewSubMsg(msg CosmosMsg) SubMsg {
+	return SubMsg{
+		ID:      0,
+		Msg:     msg,
+		ReplyOn: ReplyNever,
+	}
+}

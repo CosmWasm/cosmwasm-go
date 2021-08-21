@@ -28,3 +28,6 @@ func migrate(env_ptr, info_ptr, msg_ptr uint32) unsafe.Pointer {
 func query(env_ptr, msg_ptr uint32) unsafe.Pointer {
 	return std.DoQuery(src.Query, env_ptr, msg_ptr)
 }
+
+//export interface_version_7
+func interface_version_7() {}

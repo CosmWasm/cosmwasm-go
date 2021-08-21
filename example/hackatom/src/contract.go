@@ -4,7 +4,7 @@ import (
 	"github.com/cosmwasm/cosmwasm-go/std"
 )
 
-func Init(deps *std.Deps, env std.Env, info std.MessageInfo, msg []byte) (*std.InitResult, error) {
+func Init(deps *std.Deps, env std.Env, info std.MessageInfo, msg []byte) (*std.ContractResult, error) {
 	deps.Api.Debug("here we go 🚀")
 
 	initMsg := InitMsg{}
@@ -33,13 +33,13 @@ func Init(deps *std.Deps, env std.Env, info std.MessageInfo, msg []byte) (*std.I
 	if err != nil {
 		return nil, err
 	}
-	res := &std.InitResponse{
+	res := &std.Response{
 		Attributes: []std.EventAttribute{{"Let the", "hacking begin"}},
 	}
-	return &std.InitResult{Ok: res}, nil
+	return &std.ContractResult{Ok: res}, nil
 }
 
-func Migrate(deps *std.Deps, env std.Env, info std.MessageInfo, msg []byte) (*std.MigrateResult, error) {
+func Migrate(deps *std.Deps, env std.Env, info std.MessageInfo, msg []byte) (*std.ContractResult, error) {
 	migrateMsg := MigrateMsg{}
 	err := migrateMsg.UnmarshalJSON(msg)
 	if err != nil {
@@ -56,11 +56,11 @@ func Migrate(deps *std.Deps, env std.Env, info std.MessageInfo, msg []byte) (*st
 		return nil, err
 	}
 
-	res := &std.MigrateResponse{Data: []byte("migrated")}
-	return &std.MigrateResult{Ok: res}, nil
+	res := &std.Response{Data: []byte("migrated")}
+	return &std.ContractResult{Ok: res}, nil
 }
 
-func Handle(deps *std.Deps, env std.Env, info std.MessageInfo, data []byte) (*std.HandleResult, error) {
+func Handle(deps *std.Deps, env std.Env, info std.MessageInfo, data []byte) (*std.ContractResult, error) {
 	msg := HandleMsg{}
 	err := msg.UnmarshalJSON(data)
 	if err != nil {
@@ -88,7 +88,7 @@ func Handle(deps *std.Deps, env std.Env, info std.MessageInfo, data []byte) (*st
 	}
 }
 
-func handleRelease(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.HandleResult, error) {
+func handleRelease(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.ContractResult, error) {
 	state, err := LoadState(deps.Storage)
 	if err != nil {
 		return nil, err
@@ -102,27 +102,26 @@ func handleRelease(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.Ha
 		return nil, err
 	}
 
-	msg := []std.CosmosMsg{{
+	msg := std.NewSubMsg(std.CosmosMsg{
 		Bank: &std.BankMsg{
 			Send: &std.SendMsg{
-				FromAddress: env.Contract.Address,
-				ToAddress:   state.Beneficiary,
-				Amount:      amount,
+				ToAddress: state.Beneficiary,
+				Amount:    amount,
 			},
 		},
-	}}
+	})
 
-	res := &std.HandleResponse{
+	res := &std.Response{
 		Attributes: []std.EventAttribute{
 			{"action", "release"},
 			{"destination", state.Beneficiary},
 		},
-		Messages: msg,
+		Messages: []std.SubMsg{msg},
 	}
-	return &std.HandleResult{Ok: res}, nil
+	return &std.ContractResult{Ok: res}, nil
 }
 
-func handleCpuLoop(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.HandleResult, error) {
+func handleCpuLoop(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.ContractResult, error) {
 	var counter uint64 = 0
 	for {
 		counter += 1
@@ -130,29 +129,29 @@ func handleCpuLoop(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.Ha
 			counter = 0
 		}
 	}
-	return &std.HandleResult{}, nil
+	return &std.ContractResult{}, nil
 }
 
-func handleMemoryLoop(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.HandleResult, error) {
+func handleMemoryLoop(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.ContractResult, error) {
 	counter := 1
 	data := []int{1}
 	for {
 		counter += 1
 		data = append(data, counter)
 	}
-	return &std.HandleResult{}, nil
+	return &std.ContractResult{}, nil
 }
 
-func handleStorageLoop(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.HandleResult, error) {
+func handleStorageLoop(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.ContractResult, error) {
 	var counter uint64 = 0
 	for {
 		data := []byte{0, 0, 0, 0, 0, 0, byte(counter / 256), byte(counter % 256)}
 		deps.Storage.Set([]byte("test.key"), data)
 	}
-	return &std.HandleResult{}, nil
+	return &std.ContractResult{}, nil
 }
 
-func handlePanic(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.HandleResult, error) {
+func handlePanic(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.ContractResult, error) {
 	panic("This page intentionally faulted")
 }
 
