@@ -139,6 +139,13 @@ func (api MockApi) HumanAddress(canonical CanonicalAddr) (string, error) {
 	return string(canonical[:cutIndex]), nil
 }
 
+func (api MockApi) ValidateAddress(human string) error {
+	if len(human) > canonicalLength {
+		return NewError("failed. human encoding too long")
+	}
+	return nil
+}
+
 func (api MockApi) Debug(msg string) {
 	fmt.Println("DEBUG: " + msg)
 }

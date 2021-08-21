@@ -33,6 +33,7 @@ type Iterator interface {
 type Api interface {
 	CanonicalAddress(human string) (CanonicalAddr, error)
 	HumanAddress(canonical CanonicalAddr) (string, error)
+	ValidateAddress(human string) error
 	Debug(msg string)
 }
 

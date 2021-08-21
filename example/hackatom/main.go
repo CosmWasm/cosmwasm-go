@@ -9,13 +9,13 @@ import (
 
 func main() {}
 
-//export init
-func initialize(env_ptr, info_ptr, msg_ptr uint32) unsafe.Pointer {
+//export instantiate
+func instantiate(env_ptr, info_ptr, msg_ptr uint32) unsafe.Pointer {
 	return std.DoInit(src.Init, env_ptr, info_ptr, msg_ptr)
 }
 
-//export handle
-func handle(env_ptr, info_ptr, msg_ptr uint32) unsafe.Pointer {
+//export execute
+func execute(env_ptr, info_ptr, msg_ptr uint32) unsafe.Pointer {
 	return std.DoHandler(src.Handle, env_ptr, info_ptr, msg_ptr)
 }
 
