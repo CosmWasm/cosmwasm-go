@@ -39,10 +39,10 @@ type CosmosMsg struct {
 	Custom       RawMessage       `json:"custom,omitempty"`
 	Distribution *DistributionMsg `json:"distribution,omitempty"`
 	Gov          *GovMsg          `json:"gov,omitempty"`
+	IBC          *IBCMsg          `json:"ibc,omitempty"`
 	Staking      *StakingMsg      `json:"staking,omitempty"`
 	Stargate     *StargateMsg     `json:"stargate,omitempty"`
 	Wasm         *WasmMsg         `json:"wasm,omitempty"`
-	// IBC          *IBCMsg          `json:"ibc,omitempty"`
 }
 
 type BankMsg struct {

@@ -1777,6 +1777,16 @@ func easyjson3bd68309DecodeGithubComCosmwasmCosmwasmGoStd18(in *jlexer.Lexer, ou
 				}
 				(*out.Gov).UnmarshalEasyJSON(in)
 			}
+		case "ibc":
+			if in.IsNull() {
+				in.Skip()
+				out.IBC = nil
+			} else {
+				if out.IBC == nil {
+					out.IBC = new(IBCMsg)
+				}
+				(*out.IBC).UnmarshalEasyJSON(in)
+			}
 		case "staking":
 			if in.IsNull() {
 				in.Skip()
@@ -1856,6 +1866,16 @@ func easyjson3bd68309EncodeGithubComCosmwasmCosmwasmGoStd18(out *jwriter.Writer,
 			out.RawString(prefix)
 		}
 		(*in.Gov).MarshalEasyJSON(out)
+	}
+	if in.IBC != nil {
+		const prefix string = ",\"ibc\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		(*in.IBC).MarshalEasyJSON(out)
 	}
 	if in.Staking != nil {
 		const prefix string = ",\"staking\":"
