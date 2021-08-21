@@ -10,4 +10,4 @@ require (
 	github.com/tendermint/tm-db v0.6.2
 )
 
-replace github.com/mailru/easyjson => github.com/CosmWasm/tinyjson v0.8.1
+replace github.com/mailru/easyjson => github.com/CosmWasm/tinyjson v0.8.2

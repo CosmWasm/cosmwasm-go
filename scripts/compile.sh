@@ -30,7 +30,7 @@ if [ ! -d "$DIR" ]; then
 fi
 
 echo "Compiling $CONTRACT with tinygo..."
-docker run --rm -w /code -v "${ROOT}:/code" ${TINYGO_IMAGE} tinygo build -tags cosmwasm -no-debug -target wasi -o "/code/${CONTRACT}.wasm" "/code/example/${CONTRACT}/main.go"
+docker run --rm -w /code -v "${ROOT}:/code" ${TINYGO_IMAGE} tinygo build -tags "cosmwasm easyjson_nounsafe" -no-debug -target wasi -o "/code/${CONTRACT}.wasm" "/code/example/${CONTRACT}/main.go"
 ls -l "${ROOT}/${CONTRACT}.wasm"
 
 WATFILE="${ROOT}/${CONTRACT}.wat"
@@ -38,14 +38,15 @@ docker run --rm -v "${ROOT}:/code" ${EMSCRIPTEN} wasm2wat "/code/${CONTRACT}.was
 
 grep import "${WATFILE}"
 
-grep f32 "${WATFILE}"
+echo "Any floating point?"
+grep f64 "${WATFILE}" || true
 
-echo "Stripping out floating point symbols..."
-# this just replaces all the floating point ops with unreachable. It still leaves them in the args and local variables
-sed -E 's/^(\s*)f[[:digit:]]{2}\.[^()]+/\1unreachable/' "${WATFILE}" | \
-  sed -E 's/^(\s*)i[[:digit:]]{2}\.trunc_[^()]+/\1unreachable/' | \
-  sed -E 's/^(\s*)i[[:digit:]]{2}\.reinterpret_[^()]+/\1unreachable/' > "${WATFILE}-rewrite"
-mv "${WATFILE}-rewrite" "${WATFILE}"
+# echo "Stripping out floating point symbols..."
+# # this just replaces all the floating point ops with unreachable. It still leaves them in the args and local variables
+# sed -E 's/^(\s*)f[[:digit:]]{2}\.[^()]+/\1unreachable/' "${WATFILE}" | \
+#   sed -E 's/^(\s*)i[[:digit:]]{2}\.trunc_[^()]+/\1unreachable/' | \
+#   sed -E 's/^(\s*)i[[:digit:]]{2}\.reinterpret_[^()]+/\1unreachable/' > "${WATFILE}-rewrite"
+# mv "${WATFILE}-rewrite" "${WATFILE}"
 
 docker run --rm -w /code -v "${ROOT}:/code" ${EMSCRIPTEN} wat2wasm "/code/${CONTRACT}.wat"
 
