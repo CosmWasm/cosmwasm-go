@@ -103,7 +103,7 @@ func TestRelease(t *testing.T) {
 
 			if !tc.valid {
 				require.Error(t, err)
-				require.Equal(t, "Handle: Unauthorized", err.Error())
+				require.Equal(t, "Unauthorized", err.Error())
 			} else {
 				require.NoError(t, err)
 				require.NotNil(t, res)
