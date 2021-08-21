@@ -3,7 +3,7 @@
 set -o errexit -o nounset -o pipefail
 command -v shellcheck > /dev/null && shellcheck "$0"
 
-TINYGO_IMAGE="cosmwasm/tinygo:0.19.0-dev"
+TINYGO_IMAGE="cosmwasm/tinygo:0.19.0-dev2"
 EMSCRIPTEN="polkasource/webassembly-wabt:v1.0.11"
 
 SCRIPT_DIR="$(realpath "$(dirname "$0")")"
@@ -30,13 +30,17 @@ if [ ! -d "$DIR" ]; then
 fi
 
 echo "Compiling $CONTRACT with tinygo..."
-docker run --rm -w /code -v "${ROOT}:/code" ${TINYGO_IMAGE} tinygo build -tags cosmwasm -no-debug -target wasm -o "/code/${CONTRACT}.wasm" "/code/example/${CONTRACT}/main.go"
+docker run --rm -w /code -v "${ROOT}:/code" ${TINYGO_IMAGE} tinygo build -tags cosmwasm -no-debug -target wasi -o "/code/${CONTRACT}.wasm" "/code/example/${CONTRACT}/main.go"
 ls -l "${ROOT}/${CONTRACT}.wasm"
 
-echo "Stripping out floating point symbols..."
 WATFILE="${ROOT}/${CONTRACT}.wat"
 docker run --rm -v "${ROOT}:/code" ${EMSCRIPTEN} wasm2wat "/code/${CONTRACT}.wasm" > "${WATFILE}"
 
+grep import "${WATFILE}"
+
+grep f32 "${WATFILE}"
+
+echo "Stripping out floating point symbols..."
 # this just replaces all the floating point ops with unreachable. It still leaves them in the args and local variables
 sed -E 's/^(\s*)f[[:digit:]]{2}\.[^()]+/\1unreachable/' "${WATFILE}" | \
   sed -E 's/^(\s*)i[[:digit:]]{2}\.trunc_[^()]+/\1unreachable/' | \
