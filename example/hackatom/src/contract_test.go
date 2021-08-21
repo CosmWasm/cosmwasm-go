@@ -106,7 +106,7 @@ func TestRelease(t *testing.T) {
 				}}}
 				assert.Equal(t, expected, msg)
 				assert.Equal(t, 2, len(res.Ok.Attributes))
-				assert.Equal(t, []std.Attribute{{"action", "release"}, {"destination", BENEFICIARY}}, res.Ok.Attributes)
+				assert.Equal(t, []std.EventAttribute{{"action", "release"}, {"destination", BENEFICIARY}}, res.Ok.Attributes)
 			}
 		})
 	}

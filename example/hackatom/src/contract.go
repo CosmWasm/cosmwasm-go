@@ -4,7 +4,7 @@ import (
 	"github.com/cosmwasm/cosmwasm-go/std"
 )
 
-func Init(deps *std.Deps, env std.Env, info std.MessageInfo, msg []byte) (*std.InitResultOk, error) {
+func Init(deps *std.Deps, env std.Env, info std.MessageInfo, msg []byte) (*std.InitResult, error) {
 	deps.Api.Debug("here we go 🚀")
 
 	initMsg := InitMsg{}
@@ -33,13 +33,13 @@ func Init(deps *std.Deps, env std.Env, info std.MessageInfo, msg []byte) (*std.I
 	if err != nil {
 		return nil, err
 	}
-	res := std.InitResponse{
-		Attributes: []std.Attribute{{"Let the", "hacking begin"}},
+	res := &std.InitResponse{
+		Attributes: []std.EventAttribute{{"Let the", "hacking begin"}},
 	}
-	return &std.InitResultOk{Ok: res}, nil
+	return &std.InitResult{Ok: res}, nil
 }
 
-func Migrate(deps *std.Deps, env std.Env, info std.MessageInfo, msg []byte) (*std.MigrateResultOk, error) {
+func Migrate(deps *std.Deps, env std.Env, info std.MessageInfo, msg []byte) (*std.MigrateResult, error) {
 	migrateMsg := MigrateMsg{}
 	err := migrateMsg.UnmarshalJSON(msg)
 	if err != nil {
@@ -56,10 +56,11 @@ func Migrate(deps *std.Deps, env std.Env, info std.MessageInfo, msg []byte) (*st
 		return nil, err
 	}
 
-	return std.MigrateResultOkDefault(), nil
+	res := &std.MigrateResponse{Data: []byte("migrated")}
+	return &std.MigrateResult{Ok: res}, nil
 }
 
-func Handle(deps *std.Deps, env std.Env, info std.MessageInfo, data []byte) (*std.HandleResultOk, error) {
+func Handle(deps *std.Deps, env std.Env, info std.MessageInfo, data []byte) (*std.HandleResult, error) {
 	msg := HandleMsg{}
 	err := msg.UnmarshalJSON(data)
 	if err != nil {
@@ -87,7 +88,7 @@ func Handle(deps *std.Deps, env std.Env, info std.MessageInfo, data []byte) (*st
 	}
 }
 
-func handleRelease(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.HandleResultOk, error) {
+func handleRelease(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.HandleResult, error) {
 	state, err := LoadState(deps.Storage)
 	if err != nil {
 		return nil, err
@@ -111,17 +112,17 @@ func handleRelease(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.Ha
 		},
 	}}
 
-	res := std.HandleResponse{
-		Attributes: []std.Attribute{
+	res := &std.HandleResponse{
+		Attributes: []std.EventAttribute{
 			{"action", "release"},
 			{"destination", state.Beneficiary},
 		},
 		Messages: msg,
 	}
-	return &std.HandleResultOk{Ok: res}, nil
+	return &std.HandleResult{Ok: res}, nil
 }
 
-func handleCpuLoop(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.HandleResultOk, error) {
+func handleCpuLoop(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.HandleResult, error) {
 	var counter uint64 = 0
 	for {
 		counter += 1
@@ -129,29 +130,29 @@ func handleCpuLoop(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.Ha
 			counter = 0
 		}
 	}
-	return &std.HandleResultOk{}, nil
+	return &std.HandleResult{}, nil
 }
 
-func handleMemoryLoop(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.HandleResultOk, error) {
+func handleMemoryLoop(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.HandleResult, error) {
 	counter := 1
 	data := []int{1}
 	for {
 		counter += 1
 		data = append(data, counter)
 	}
-	return &std.HandleResultOk{}, nil
+	return &std.HandleResult{}, nil
 }
 
-func handleStorageLoop(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.HandleResultOk, error) {
+func handleStorageLoop(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.HandleResult, error) {
 	var counter uint64 = 0
 	for {
 		data := []byte{0, 0, 0, 0, 0, 0, byte(counter / 256), byte(counter % 256)}
 		deps.Storage.Set([]byte("test.key"), data)
 	}
-	return &std.HandleResultOk{}, nil
+	return &std.HandleResult{}, nil
 }
 
-func handlePanic(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.HandleResultOk, error) {
+func handlePanic(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.HandleResult, error) {
 	panic("This page intentionally faulted")
 }
 
