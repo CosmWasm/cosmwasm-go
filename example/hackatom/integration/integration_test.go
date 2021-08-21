@@ -109,7 +109,7 @@ func TestRelease(t *testing.T) {
 				require.NotNil(t, res)
 
 				require.Equal(t, 1, len(res.Messages))
-				msg := res.Messages[0]
+				msg := res.Messages[0].Msg
 				expected := types.CosmosMsg{Bank: &types.BankMsg{Send: &types.SendMsg{
 					ToAddress: BENEFICIARY,
 					Amount:    tc.funds,
