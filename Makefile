@@ -9,8 +9,13 @@ tiny-build:
 	go build -o ./bin/easyjson github.com/mailru/easyjson/easyjson
 
 generate: tiny-build
-	rm -f std/*_easyjson.go
-	./bin/easyjson -all -snake_case ./std/*.go
+	# rm -f std/*_easyjson.go
+	./bin/easyjson -all -snake_case \
+		./std/env.go \
+		./std/errors.go \
+		./std/types.go \
+		./std/query.go
+	./bin/easyjson -all -snake_case -build_tags=cosmwasm ./std/exports.go 2>/dev/null || true
 
 test: test-std test-contracts
 
