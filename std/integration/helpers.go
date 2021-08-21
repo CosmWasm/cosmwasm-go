@@ -21,13 +21,13 @@ func NewCoins(amount uint64, denom string) []types.Coin {
 
 // End transient code
 
-func SetupWasmer(t *testing.T, contractPath string) (*wasmvm.Wasmer, []byte) {
+func SetupWasmer(t *testing.T, contractPath string) (*wasmvm.VM, []byte) {
 	// setup wasmer instance
 	tmpdir, err := ioutil.TempDir("", "wasmer")
 	require.NoError(t, err)
 	t.Cleanup(func() { os.RemoveAll(tmpdir) })
 
-	wasmer, err := wasmvm.NewWasmer(tmpdir, FEATURES, true)
+	wasmer, err := wasmvm.NewVM(tmpdir, FEATURES, 256, true, 0)
 	require.NoError(t, err)
 	codeID := StoreCode(t, wasmer, contractPath)
 
@@ -35,7 +35,7 @@ func SetupWasmer(t *testing.T, contractPath string) (*wasmvm.Wasmer, []byte) {
 }
 
 // Returns code id
-func StoreCode(t *testing.T, wasmer *wasmvm.Wasmer, contractPath string) []byte {
+func StoreCode(t *testing.T, wasmer *wasmvm.VM, contractPath string) []byte {
 	// upload code and get some sha256 hash
 	bz, err := ioutil.ReadFile(contractPath)
 	require.NoError(t, err)
@@ -46,7 +46,7 @@ func StoreCode(t *testing.T, wasmer *wasmvm.Wasmer, contractPath string) []byte 
 }
 
 type Instance struct {
-	Wasmer   *wasmvm.Wasmer
+	Wasmer   *wasmvm.VM
 	CodeID   []byte
 	GasLimit uint64
 	GasMeter wasmvm.GasMeter
