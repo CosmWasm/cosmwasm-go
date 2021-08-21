@@ -8,27 +8,28 @@ package std
 //
 // Env are json encoded to a byte slice before passing to the wasm contract.
 type Env struct {
-	Block    BlockInfo    `json:"block"`
-	Contract ContractInfo `json:"contract"`
+	Block    BlockInfo
+	Contract ContractInfo
 }
 
 type BlockInfo struct {
 	// block height this transaction is executed
-	Height uint64 `json:"height"`
-	// time in seconds since unix epoch - since cosmwasm 0.3
-	Time      uint64 `json:"time"`
-	TimeNanos uint64 `json:"time_nanos"`
-	ChainID   string `json:"chain_id"`
+	Height uint64
+	// time in seconds since unix epoch (since CosmWasm 0.3)
+	Time uint64
+	// Nanoseconds of the block time (since CosmWasm 0.11)
+	TimeNanos uint64
+	ChainID   string
 }
 
 type MessageInfo struct {
 	// bech32 encoding of sdk.AccAddress executing the contract
-	Sender string `json:"sender"`
+	Sender string
 	// amount of funds send to the contract along with this message
-	SentFunds []Coin `json:"sent_funds"`
+	SentFunds []Coin
 }
 
 type ContractInfo struct {
 	// bech32 encoding of sdk.AccAddress of the contract, to be used when sending messages
-	Address string `json:"address"`
+	Address string
 }
