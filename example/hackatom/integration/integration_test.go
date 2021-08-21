@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	mocks "github.com/CosmWasm/go-cosmwasm/api"
-	"github.com/CosmWasm/go-cosmwasm/types"
+	mocks "github.com/CosmWasm/wasmvm/api"
+	"github.com/CosmWasm/wasmvm/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 

@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	cosmwasm "github.com/CosmWasm/go-cosmwasm/api"
-	types "github.com/CosmWasm/go-cosmwasm/types"
+	wasmvm "github.com/CosmWasm/wasmvm/api"
+	types "github.com/CosmWasm/wasmvm/types"
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmwasm/cosmwasm-go/example/erc20/src"
@@ -20,18 +20,18 @@ var CONTRACT = filepath.Join("..", "erc20.wasm")
 func TestWorkflow(t *testing.T) {
 	wasmer, codeID := integration.SetupWasmer(t, CONTRACT)
 
-	// a whole lot of setup object using go-cosmwasm mock/test code
+	// a whole lot of setup object using wasmvm mock/test code
 	var gasLimit uint64 = 100_000_000
-	gasMeter := cosmwasm.NewMockGasMeter(gasLimit)
-	store := cosmwasm.NewLookup(gasMeter)
-	api := cosmwasm.NewMockAPI()
-	querier := cosmwasm.DefaultQuerier(cosmwasm.MOCK_CONTRACT_ADDR, types.Coins{types.NewCoin(100, "ATOM")})
-	info := cosmwasm.MockInfo("coral1e86v774dch5uwkks0cepw8mdz8a9flhhapvf6w", nil)
+	gasMeter := wasmvm.NewMockGasMeter(gasLimit)
+	store := wasmvm.NewLookup(gasMeter)
+	api := wasmvm.NewMockAPI()
+	querier := wasmvm.DefaultQuerier(wasmvm.MOCK_CONTRACT_ADDR, types.Coins{types.NewCoin(100, "ATOM")})
+	info := wasmvm.MockInfo("coral1e86v774dch5uwkks0cepw8mdz8a9flhhapvf6w", nil)
 
 	initMsg := []byte(`{"name":"OKB","symbol":"OKB","decimal":10,"total_supply":170000}`)
 	//initMsg := []byte(`{123]]`) // invalid json
 	res, _, err := wasmer.Instantiate(codeID,
-		cosmwasm.MockEnv(),
+		wasmvm.MockEnv(),
 		info,
 		initMsg,
 		store,
@@ -51,7 +51,7 @@ func TestWorkflow(t *testing.T) {
 
 	handleMsg := []byte(`{"Transfer":{"to":"1234567","value": 2000}}`)
 	_, _, err = wasmer.Execute(codeID,
-		cosmwasm.MockEnv(),
+		wasmvm.MockEnv(),
 		info,
 		handleMsg,
 		store,
@@ -65,7 +65,7 @@ func TestWorkflow(t *testing.T) {
 
 	queryMsg := []byte(`{"balance":{"address":"1234567"}}`)
 	qres, _, err := wasmer.Query(codeID,
-		cosmwasm.MockEnv(),
+		wasmvm.MockEnv(),
 		queryMsg,
 		store,
 		*api,
@@ -94,7 +94,7 @@ func TestInfoMarshalCompatibility(t *testing.T) {
 
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
-			info := cosmwasm.MockInfo("coral1e86v774dch5uwkks0cepw8mdz8a9flhhapvf6w", tc.funds)
+			info := wasmvm.MockInfo("coral1e86v774dch5uwkks0cepw8mdz8a9flhhapvf6w", tc.funds)
 			bz, err := json.Marshal(info)
 			require.NoError(t, err)
 
@@ -113,18 +113,18 @@ func TestInfoMarshalCompatibility(t *testing.T) {
 func TestErrorReturned(t *testing.T) {
 	wasmer, codeID := integration.SetupWasmer(t, CONTRACT)
 
-	// a whole lot of setup object using go-cosmwasm mock/test code
+	// a whole lot of setup object using wasmvm mock/test code
 	var gasLimit uint64 = 100_000_000
-	gasMeter := cosmwasm.NewMockGasMeter(gasLimit)
-	store := cosmwasm.NewLookup(gasMeter)
-	api := cosmwasm.NewMockAPI()
-	querier := cosmwasm.DefaultQuerier(cosmwasm.MOCK_CONTRACT_ADDR, nil)
-	info := cosmwasm.MockInfo("coral1e86v774dch5uwkks0cepw8mdz8a9flhhapvf6w", nil)
+	gasMeter := wasmvm.NewMockGasMeter(gasLimit)
+	store := wasmvm.NewLookup(gasMeter)
+	api := wasmvm.NewMockAPI()
+	querier := wasmvm.DefaultQuerier(wasmvm.MOCK_CONTRACT_ADDR, nil)
+	info := wasmvm.MockInfo("coral1e86v774dch5uwkks0cepw8mdz8a9flhhapvf6w", nil)
 
 	// this doesn't create json parse error, but we error on validating an empty InitMsg
 	initMsg := []byte(`{.32r!`)
 	_, _, err := wasmer.Instantiate(codeID,
-		cosmwasm.MockEnv(),
+		wasmvm.MockEnv(),
 		info,
 		initMsg,
 		store,
@@ -141,18 +141,18 @@ func TestErrorReturned(t *testing.T) {
 func TestWorkflowWithFunds(t *testing.T) {
 	wasmer, codeID := integration.SetupWasmer(t, CONTRACT)
 
-	// a whole lot of setup object using go-cosmwasm mock/test code
+	// a whole lot of setup object using wasmvm mock/test code
 	var gasLimit uint64 = 100_000_000
-	gasMeter := cosmwasm.NewMockGasMeter(gasLimit)
-	store := cosmwasm.NewLookup(gasMeter)
-	api := cosmwasm.NewMockAPI()
+	gasMeter := wasmvm.NewMockGasMeter(gasLimit)
+	store := wasmvm.NewLookup(gasMeter)
+	api := wasmvm.NewMockAPI()
 	funds := types.Coins{types.NewCoin(1000, "uatom"), types.NewCoin(60000, "utgd")}
-	querier := cosmwasm.DefaultQuerier(cosmwasm.MOCK_CONTRACT_ADDR, funds)
-	info := cosmwasm.MockInfo("coral1e86v774dch5uwkks0cepw8mdz8a9flhhapvf6w", funds)
+	querier := wasmvm.DefaultQuerier(wasmvm.MOCK_CONTRACT_ADDR, funds)
+	info := wasmvm.MockInfo("coral1e86v774dch5uwkks0cepw8mdz8a9flhhapvf6w", funds)
 
 	initMsg := []byte(`{"name":"Okay","symbol":"OKB","decimal":10,"total_supply":170000}`)
 	res, gas, err := wasmer.Instantiate(codeID,
-		cosmwasm.MockEnv(),
+		wasmvm.MockEnv(),
 		info,
 		initMsg,
 		store,

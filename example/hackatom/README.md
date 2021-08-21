@@ -11,7 +11,7 @@ of other repos integration tests.
 This also uses most aspects of the Api. Multiple messages, state access,
 api usage, external queries. The two elements that are not covered are
 the iterator, and queries besides Bank. These should not be relied upon
-yet, but the rest has been tested to work (including via go-cosmwasm
+yet, but the rest has been tested to work (including via `wasmvm`
 in the production VM).
 
 You can read through this contract to see a basic example of how to write
@@ -34,7 +34,7 @@ following:
 * `contract_test.go` - unit tests for the contract, using a mock environment
 
 `integration` contains integration tests, which depend on a wasm output
-previously compiles. They load that wasm code into a `go-cosmwasm` VM, the
+previously compiles. They load that wasm code into a `wasmvm` VM, the
 same environment that is used in `wasmd`. We mock out the callbacks, so it
 doesn't provide the same power as `wasmd` tests, for checking system interactions,
 but it is a great way to test all code inside the restricted wasm environment
