@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+
 	dbm "github.com/tendermint/tm-db"
 )
 
@@ -181,20 +182,20 @@ func (q *MockQuerier) RawQuery(raw []byte) ([]byte, error) {
 
 func (q *MockQuerier) HandleQuery(request QueryRequest) (interface{}, error) {
 	switch {
-	case !request.Bank.IsEmpty():
+	case request.Bank != nil:
 		return q.HandleBank(request.Bank)
-	case !request.Staking.IsEmpty():
+	case request.Staking != nil:
 		return nil, errors.New("Staking queries not implemented")
-	case !request.Wasm.IsEmpty():
+	case request.Wasm != nil:
 		return nil, errors.New("Wasm queries not implemented")
-	case len(request.Custom) > 0:
+	case request.Custom != nil:
 		return nil, errors.New("Custom queries not implemented")
 	default:
 		return nil, errors.New("Unknown QueryRequest variant")
 	}
 }
 
-func (q *MockQuerier) HandleBank(request BankQuery) (interface{}, error) {
+func (q *MockQuerier) HandleBank(request *BankQuery) (interface{}, error) {
 	switch {
 	case request.Balance.Address != "":
 		balances := q.GetBalance(request.Balance.Address)

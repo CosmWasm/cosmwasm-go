@@ -25,8 +25,6 @@ import (
 	"encoding/base64"
 	"errors"
 	"unsafe"
-
-	"github.com/cosmwasm/cosmwasm-go/std/ezjson"
 )
 
 const (
@@ -242,7 +240,7 @@ func (querier ExternalQuerier) RawQuery(request []byte) ([]byte, error) {
 	// TODO: parse this into the proper structure
 	// success looks like: {"ok":{"ok":"eyJhbW91bnQiOlt7ImRlbm9tIjoid2VpIiwiYW1vdW50IjoiNzY1NDMyIn1dfQ=="}}
 	var qres QuerierResult
-	err := ezjson.Unmarshal(response, &qres)
+	err := qres.Unmarshal(response)
 	if err != nil {
 		return nil, err
 	}
@@ -256,6 +254,7 @@ func (querier ExternalQuerier) RawQuery(request []byte) ([]byte, error) {
 }
 
 // use for ezjson Logging
+// TODO: remove????
 
 func Wasmlog(msg []byte) int {
 	msgPtr := C.malloc(C.ulong(len(msg)))
