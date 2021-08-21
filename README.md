@@ -116,8 +116,22 @@ The following produces the same sha256 hash everytime I run it:
 
 ```
 cd example/hackatom
-make build && sha256sum hackatom.wasm 
+make build && sha256sum hackatom.wasm
+
+# this will test the wasm code
+go test ./integration
 ```
+
+However, the docker image for our custom TinyGo is not yet published.
+In order to build locally you can do the following:
+
+```
+git clone https://github.com/confio/tinygo.git
+git checkout cw-0.19.0
+docker build -t cosmwasm/tinygo:0.19.0 -f Dockerfile.wasm .
+```
+
+Once it is finished, you should be able to successfully run `make build` on hackatom
 
 ## Performance
 

@@ -3,7 +3,7 @@
 set -o errexit -o nounset -o pipefail
 command -v shellcheck > /dev/null && shellcheck "$0"
 
-TINYGO_IMAGE="cosmwasm/tinygo:0.19.0-dev2"
+TINYGO_IMAGE="cosmwasm/tinygo:0.19.0"
 EMSCRIPTEN="polkasource/webassembly-wabt:v1.0.11"
 
 SCRIPT_DIR="$(realpath "$(dirname "$0")")"
@@ -12,7 +12,7 @@ ROOT="$(dirname "$SCRIPT_DIR")"
 function print_usage() {
   echo "Usage: $0 [contract_name]"
   echo ""
-  echo "e.g. $0 erc20"
+  echo "e.g. $0 hackatom"
   echo "This must be a valid directory name under example/"
 }
 
