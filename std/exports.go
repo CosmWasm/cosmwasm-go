@@ -9,7 +9,7 @@ import (
 )
 
 func StdErrResult(err error, _prefix string) unsafe.Pointer {
-	wrapped := types.ContractError{Err: err.Error()}
+	wrapped := types.ContractResult{Err: err.Error()}
 	bz, _ := wrapped.MarshalJSON()
 	return Package_message(bz)
 }

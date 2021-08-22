@@ -2,10 +2,6 @@ package types
 
 import "strconv"
 
-type ContractError struct {
-	Err string `json:"error"`
-}
-
 // TODO: rename call to GenericError
 func NewError(msg string) error {
 	return GenericErr{Msg: msg}

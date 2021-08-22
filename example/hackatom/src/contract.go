@@ -96,7 +96,7 @@ func executeRelease(deps *std.Deps, env *types.Env, info *types.MessageInfo) (*t
 	}
 
 	if info.Sender != state.Verifier {
-		return nil, types.NewError("Unauthorized")
+		return nil, types.Unauthorized{}
 	}
 	amount, err := std.QuerierWrapper{deps.Querier}.QueryAllBalances(env.Contract.Address)
 	if err != nil {
