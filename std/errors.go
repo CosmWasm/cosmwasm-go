@@ -12,7 +12,7 @@ func (e ContractError) Error() string {
 	return e.Err
 }
 
-//easyjson:skip
+//tinyjson:skip
 type OutOfGasError struct{}
 
 var _ error = OutOfGasError{}

@@ -6,13 +6,16 @@
 
 tiny-build:
 	rm -rf bin
-	go build -o ./bin/easyjson github.com/CosmWasm/tinyjson/easyjson
+	go build -o ./bin/tinyjson github.com/CosmWasm/tinyjson/tinyjson
+
+clean:
+	rm -f std/*_tinyjson.go
+	rm -f example/hackatom/src/*_tinyjson.go
 
 generate: tiny-build generate-std generate-contracts
 
 generate-std:
-	# rm -f std/*_easyjson.go
-	./bin/easyjson -all -snake_case \
+	./bin/tinyjson -all -snake_case \
 		./std/env.go \
 		./std/errors.go \
 		./std/systemerror.go \
@@ -23,9 +26,10 @@ generate-std:
 		./std/ibc.go
 
 generate-contracts:
-	./bin/easyjson -all -snake_case \
-		./example/hackatom/src/msg.go \
+	./bin/tinyjson -all -snake_case \
 		./example/hackatom/src/state.go
+	./bin/tinyjson -all -snake_case \
+		./example/hackatom/src/msg.go
 
 test: test-std test-contracts
 
