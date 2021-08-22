@@ -6,7 +6,7 @@
 
 tiny-build:
 	rm -rf bin
-	go build -o ./bin/easyjson github.com/mailru/easyjson/easyjson
+	go build -o ./bin/easyjson github.com/CosmWasm/tinyjson/easyjson
 
 generate: tiny-build generate-std generate-contracts
 

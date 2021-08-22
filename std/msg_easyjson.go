@@ -3,9 +3,9 @@
 package std
 
 import (
-	easyjson "github.com/mailru/easyjson"
-	jlexer "github.com/mailru/easyjson/jlexer"
-	jwriter "github.com/mailru/easyjson/jwriter"
+	easyjson "github.com/CosmWasm/tinyjson"
+	jlexer "github.com/CosmWasm/tinyjson/jlexer"
+	jwriter "github.com/CosmWasm/tinyjson/jwriter"
 )
 
 // suppress unused package warning
