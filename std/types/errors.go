@@ -1,4 +1,4 @@
-package std
+package types
 
 func NewError(msg string) error {
 	return ContractError{Err: msg}

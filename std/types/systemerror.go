@@ -1,4 +1,4 @@
-package std
+package types
 
 // SystemError captures all errors returned from the Rust code as SystemError.
 // Exactly one of the fields should be set.

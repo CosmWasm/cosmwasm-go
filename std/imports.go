@@ -2,6 +2,10 @@
 
 package std
 
+import (
+	"github.com/cosmwasm/cosmwasm-go/std/types"
+)
+
 /*
 #include "stdlib.h"
 extern void* db_read(void* key);
@@ -62,7 +66,7 @@ func (storage ExternalStorage) Get(key []byte) (value []byte, err error) {
 	C.free(unsafe.Pointer(keyPtr))
 
 	if read == nil {
-		return nil, NewError("key not existed")
+		return nil, types.NewError("key not existed")
 	}
 
 	b := TranslateToSlice(uintptr(read))
@@ -83,7 +87,7 @@ func (storage ExternalStorage) Range(start, end []byte, order Order) (Iterator, 
 		C.free(ptrEnd)
 
 		if iterId < 0 {
-			return nil, NewError("error creating iterator (via db_scan): " + string(int(iterId)))
+			return nil, types.NewError("error creating iterator (via db_scan): " + string(int(iterId)))
 		}
 
 		return ExternalIterator{uint32(iterId)}, nil
@@ -130,24 +134,23 @@ func (iterator ExternalIterator) Next() (key, value []byte, err error) {
 		ret := nil //C.db_next(C.uint(iterator.IteratorId))
 
 		if ret == nil {
-			return nil, nil, NewError("unknown error from db_next ")
+			return nil, nil, types.NewError("unknown error from db_next ")
 		}
 
 		key = TranslateToSlice(uintptr(regionKey))
 		value = TranslateToSlice(uintptr(regionNextValue))
 
 		if len(key) == 0 {
-			return nil, nil, NewError("empty key get from db_next")
+			return nil, nil, types.NewError("empty key get from db_next")
 		}
 
 		return key, value, nil
 
 	*/
-	return nil, nil, NewError("unsupported for now")
+	return nil, nil, types.NewError("unsupported for now")
 }
 
 // ====== API ======
-type CanonicalAddr []byte
 
 // ensure Api interface compliance at compile time
 var (
@@ -156,7 +159,7 @@ var (
 
 type ExternalApi struct{}
 
-func (api ExternalApi) CanonicalAddress(human string) (CanonicalAddr, error) {
+func (api ExternalApi) CanonicalAddress(human string) (types.CanonicalAddr, error) {
 	humanAddr := []byte(human)
 	humanPtr := C.malloc(C.ulong(len(humanAddr)))
 	regionHuman := TranslateToRegion(humanAddr, uintptr(humanPtr))
@@ -168,7 +171,7 @@ func (api ExternalApi) CanonicalAddress(human string) (CanonicalAddr, error) {
 
 	if ret < 0 {
 		// TODO: how to get actual error message?
-		return nil, NewError("addr_canonicalize returned error")
+		return nil, types.NewError("addr_canonicalize returned error")
 	}
 
 	canoAddress := TranslateToSlice(uintptr(regionCanon))
@@ -176,7 +179,7 @@ func (api ExternalApi) CanonicalAddress(human string) (CanonicalAddr, error) {
 	return canoAddress, nil
 }
 
-func (api ExternalApi) HumanAddress(canonical CanonicalAddr) (string, error) {
+func (api ExternalApi) HumanAddress(canonical types.CanonicalAddr) (string, error) {
 	canonPtr := C.malloc(C.ulong(len(canonical)))
 	regionCanon := TranslateToRegion(canonical, uintptr(canonPtr))
 
@@ -187,7 +190,7 @@ func (api ExternalApi) HumanAddress(canonical CanonicalAddr) (string, error) {
 
 	if ret < 0 {
 		// TODO: how to get actual error message?
-		return "", NewError("addr_humanize returned error")
+		return "", types.NewError("addr_humanize returned error")
 	}
 
 	humanAddress := TranslateToSlice(uintptr(regionHuman))
@@ -205,7 +208,7 @@ func (api ExternalApi) ValidateAddress(human string) error {
 
 	if ret < 0 {
 		// TODO: how to get actual error message?
-		return NewError("addr_validate returned error")
+		return types.NewError("addr_validate returned error")
 	}
 	return nil
 }
@@ -234,22 +237,22 @@ func (querier ExternalQuerier) RawQuery(request []byte) ([]byte, error) {
 	C.free(reqPtr)
 
 	if ret == nil {
-		return nil, NewError("failed to query chain: unknown error")
+		return nil, types.NewError("failed to query chain: unknown error")
 	}
 
 	response := TranslateToSlice(uintptr(ret))
 	// TODO: parse this into the proper structure
 	// success looks like: {"ok":{"ok":"eyJhbW91bnQiOlt7ImRlbm9tIjoid2VpIiwiYW1vdW50IjoiNzY1NDMyIn1dfQ=="}}
-	var qres QuerierResult
+	var qres types.QuerierResult
 	err := qres.UnmarshalJSON(response)
 	if err != nil {
 		return nil, err
 	}
 	if qres.Error != nil {
-		return nil, NewError(qres.Error.Error())
+		return nil, types.NewError(qres.Error.Error())
 	}
 	if qres.Ok.Error != "" {
-		return nil, NewError(qres.Ok.Error)
+		return nil, types.NewError(qres.Ok.Error)
 	}
 	return qres.Ok.Ok, nil
 }

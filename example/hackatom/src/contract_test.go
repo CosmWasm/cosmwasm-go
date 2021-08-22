@@ -4,9 +4,12 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/cosmwasm/cosmwasm-go/std"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/cosmwasm/cosmwasm-go/std"
+	"github.com/cosmwasm/cosmwasm-go/std/mocks"
+	"github.com/cosmwasm/cosmwasm-go/std/types"
 )
 
 func mustEncode(t *testing.T, msg interface{}) []byte {
@@ -20,10 +23,10 @@ const BENEFICIARY = "benefits"
 const FUNDER = "creator"
 
 // this can be used for a quick setup if you don't have nay other requirements
-func defaultInit(t *testing.T, funds []std.Coin) *std.Deps {
-	deps := std.MockDeps(funds)
-	env := std.MockEnv()
-	info := std.MockInfo(FUNDER, funds)
+func defaultInit(t *testing.T, funds []types.Coin) *std.Deps {
+	deps := mocks.MockDeps(funds)
+	env := mocks.MockEnv()
+	info := mocks.MockInfo(FUNDER, funds)
 	initMsg := InitMsg{
 		Verifier:    VERIFIER,
 		Beneficiary: BENEFICIARY,
@@ -35,9 +38,9 @@ func defaultInit(t *testing.T, funds []std.Coin) *std.Deps {
 }
 
 func TestInitAndQuery(t *testing.T) {
-	deps := std.MockDeps(nil)
-	env := std.MockEnv()
-	info := std.MockInfo(FUNDER, nil)
+	deps := mocks.MockDeps(nil)
+	env := mocks.MockEnv()
+	info := mocks.MockInfo(FUNDER, nil)
 	initMsg := InitMsg{
 		Verifier:    VERIFIER,
 		Beneficiary: BENEFICIARY,
@@ -64,8 +67,8 @@ func TestInitAndQuery(t *testing.T) {
 
 func TestPanic(t *testing.T) {
 	deps := defaultInit(t, nil)
-	env := std.MockEnv()
-	info := std.MockInfo(FUNDER, nil)
+	env := mocks.MockEnv()
+	info := mocks.MockInfo(FUNDER, nil)
 	handleMsg := []byte(`{"panic":{}}`)
 	require.Panics(t, func() {
 		Execute(deps, env, info, handleMsg)
@@ -75,19 +78,19 @@ func TestPanic(t *testing.T) {
 func TestRelease(t *testing.T) {
 	cases := map[string]struct {
 		signer string
-		funds  []std.Coin
+		funds  []types.Coin
 		valid  bool
 	}{
-		"verifier releases": {VERIFIER, std.NewCoins(765432, "wei"), true},
-		"random fails":      {BENEFICIARY, std.NewCoins(765432, "wei"), false},
+		"verifier releases": {VERIFIER, types.NewCoins(765432, "wei"), true},
+		"random fails":      {BENEFICIARY, types.NewCoins(765432, "wei"), false},
 	}
 
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
 			// TODO: figure out how to set query value and then query from the contract
 			deps := defaultInit(t, tc.funds)
-			env := std.MockEnv()
-			info := std.MockInfo(tc.signer, nil)
+			env := mocks.MockEnv()
+			info := mocks.MockInfo(tc.signer, nil)
 			handleMsg := []byte(`{"release":{}}`)
 			res, err := Execute(deps, env, info, handleMsg)
 			if !tc.valid {
@@ -99,13 +102,13 @@ func TestRelease(t *testing.T) {
 
 				require.Equal(t, 1, len(res.Ok.Messages))
 				msg := res.Ok.Messages[0]
-				expected := std.CosmosMsg{Bank: &std.BankMsg{Send: &std.SendMsg{
+				expected := types.CosmosMsg{Bank: &types.BankMsg{Send: &types.SendMsg{
 					ToAddress: BENEFICIARY,
 					Amount:    tc.funds,
 				}}}
 				assert.Equal(t, expected, msg.Msg)
 				assert.Equal(t, 2, len(res.Ok.Attributes))
-				assert.Equal(t, []std.EventAttribute{{"action", "release"}, {"destination", BENEFICIARY}}, res.Ok.Attributes)
+				assert.Equal(t, []types.EventAttribute{{"action", "release"}, {"destination", BENEFICIARY}}, res.Ok.Attributes)
 			}
 		})
 	}
