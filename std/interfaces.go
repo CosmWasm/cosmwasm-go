@@ -1,5 +1,9 @@
 package std
 
+import (
+	"github.com/cosmwasm/cosmwasm-go/std/types"
+)
+
 // =========== Deps --> context =======
 type Deps struct {
 	Storage Storage
@@ -31,8 +35,8 @@ type Iterator interface {
 }
 
 type Api interface {
-	CanonicalAddress(human string) (CanonicalAddr, error)
-	HumanAddress(canonical CanonicalAddr) (string, error)
+	CanonicalAddress(human string) (types.CanonicalAddr, error)
+	HumanAddress(canonical types.CanonicalAddr) (string, error)
 	ValidateAddress(human string) error
 	Debug(msg string)
 }
@@ -50,7 +54,7 @@ type JSONType interface {
 	UnmarshalJSON([]byte) error
 }
 
-func (q QuerierWrapper) doQuery(query QueryRequest, result JSONType) error {
+func (q QuerierWrapper) doQuery(query types.QueryRequest, result JSONType) error {
 	binQuery, err := query.MarshalJSON()
 	if err != nil {
 		return err
@@ -62,15 +66,15 @@ func (q QuerierWrapper) doQuery(query QueryRequest, result JSONType) error {
 	return result.UnmarshalJSON(data)
 }
 
-func (q QuerierWrapper) QueryAllBalances(addr string) ([]Coin, error) {
-	query := QueryRequest{
-		Bank: &BankQuery{
-			AllBalances: &AllBalancesQuery{
+func (q QuerierWrapper) QueryAllBalances(addr string) ([]types.Coin, error) {
+	query := types.QueryRequest{
+		Bank: &types.BankQuery{
+			AllBalances: &types.AllBalancesQuery{
 				Address: addr,
 			},
 		},
 	}
-	qres := AllBalancesResponse{}
+	qres := types.AllBalancesResponse{}
 	err := q.doQuery(query, &qres)
 	if err != nil {
 		return nil, err
@@ -78,16 +82,16 @@ func (q QuerierWrapper) QueryAllBalances(addr string) ([]Coin, error) {
 	return qres.Amount, nil
 }
 
-func (q QuerierWrapper) QueryBalance(addr string, denom string) (Coin, error) {
-	query := QueryRequest{
-		Bank: &BankQuery{
-			Balance: &BalanceQuery{
+func (q QuerierWrapper) QueryBalance(addr string, denom string) (types.Coin, error) {
+	query := types.QueryRequest{
+		Bank: &types.BankQuery{
+			Balance: &types.BalanceQuery{
 				Address: addr,
 				Denom:   denom,
 			},
 		},
 	}
-	qres := BalanceResponse{}
+	qres := types.BalanceResponse{}
 	err := q.doQuery(query, &qres)
 	return qres.Amount, err
 }

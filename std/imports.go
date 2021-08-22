@@ -2,6 +2,10 @@
 
 package std
 
+import (
+	"github.com/cosmwasm/cosmwasm-go/std/types"
+)
+
 /*
 #include "stdlib.h"
 extern void* db_read(void* key);
@@ -147,7 +151,6 @@ func (iterator ExternalIterator) Next() (key, value []byte, err error) {
 }
 
 // ====== API ======
-type CanonicalAddr []byte
 
 // ensure Api interface compliance at compile time
 var (
@@ -156,7 +159,7 @@ var (
 
 type ExternalApi struct{}
 
-func (api ExternalApi) CanonicalAddress(human string) (CanonicalAddr, error) {
+func (api ExternalApi) CanonicalAddress(human string) (types.CanonicalAddr, error) {
 	humanAddr := []byte(human)
 	humanPtr := C.malloc(C.ulong(len(humanAddr)))
 	regionHuman := TranslateToRegion(humanAddr, uintptr(humanPtr))
@@ -176,7 +179,7 @@ func (api ExternalApi) CanonicalAddress(human string) (CanonicalAddr, error) {
 	return canoAddress, nil
 }
 
-func (api ExternalApi) HumanAddress(canonical CanonicalAddr) (string, error) {
+func (api ExternalApi) HumanAddress(canonical types.CanonicalAddr) (string, error) {
 	canonPtr := C.malloc(C.ulong(len(canonical)))
 	regionCanon := TranslateToRegion(canonical, uintptr(canonPtr))
 

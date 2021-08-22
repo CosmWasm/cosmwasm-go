@@ -35,6 +35,7 @@ test: test-std test-contracts
 
 test-std:
 	go test $(TEST_FLAG) ./std
+	go test $(TEST_FLAG) ./std/mocks
 
 test-contracts:
 	cd example/hackatom && $(MAKE) unit-test

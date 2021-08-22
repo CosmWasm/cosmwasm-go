@@ -1,8 +1,14 @@
-package std
+// +build !cosmwasm
+
+package mocks
 
 import (
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/stretchr/testify/require"
+
+	"github.com/cosmwasm/cosmwasm-go/std"
+	"github.com/cosmwasm/cosmwasm-go/std/types"
 )
 
 func TestMockStorage(t *testing.T) {
@@ -23,14 +29,14 @@ func TestMockStorage(t *testing.T) {
 
 	// iterator
 	// ascending
-	iter, err := es.Range([]byte{'a'}, []byte{'d'}, Ascending)
+	iter, err := es.Range([]byte{'a'}, []byte{'d'}, std.Ascending)
 	require.NoError(t, err)
 	assertKV(t, iter, key1, value1, false)
 	assertKV(t, iter, key2, value2, false)
 	assertKV(t, iter, key3, value3, false)
 	assertKV(t, iter, key4, value4, true)
 	// descending
-	iter, err = es.Range([]byte{'b'}, []byte("eeeef"), Descending)
+	iter, err = es.Range([]byte{'b'}, []byte("eeeef"), std.Descending)
 	assertKV(t, iter, key5, value5, false)
 	assertKV(t, iter, key4, value4, false)
 	assertKV(t, iter, key3, value3, false)
@@ -46,7 +52,7 @@ func TestMockStorage(t *testing.T) {
 
 }
 
-func assertKV(t *testing.T, iter Iterator, key, value []byte, isEnd bool) {
+func assertKV(t *testing.T, iter std.Iterator, key, value []byte, isEnd bool) {
 	curKey, curValue, err := iter.Next()
 	if isEnd {
 		require.Error(t, err)
@@ -63,7 +69,7 @@ func TestMockApi_CanonicalAddress(t *testing.T) {
 	ea := MockApi{}
 	humanAddr := "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 	longHumanAddr := humanAddr + "a"
-	expectedCanonAddr := CanonicalAddr(humanAddr)
+	expectedCanonAddr := types.CanonicalAddr(humanAddr)
 
 	canonAddr, err := ea.CanonicalAddress(longHumanAddr)
 	require.Error(t, err)
@@ -77,21 +83,21 @@ func TestMockApi_CanonicalAddress(t *testing.T) {
 func TestMockApi_HumanAddress(t *testing.T) {
 	ea := MockApi{}
 	expectedHumanAddr := "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-	expectedCanonAddr := CanonicalAddr(expectedHumanAddr)
+	expectedCanonAddr := types.CanonicalAddr(expectedHumanAddr)
 
 	humanAddr, err := ea.HumanAddress(expectedCanonAddr)
 	require.NoError(t, err)
 	require.Equal(t, expectedHumanAddr, humanAddr)
 
 	// error report
-	longCanonAddr := make(CanonicalAddr, canonicalLength)
+	longCanonAddr := make(types.CanonicalAddr, canonicalLength)
 	copy(longCanonAddr, expectedCanonAddr)
 	longCanonAddr = append(longCanonAddr, 'a')
 	humanAddr, err = ea.HumanAddress(longCanonAddr)
 	require.Error(t, err)
 	require.Equal(t, "", humanAddr)
 
-	inputCanonAddr := make(CanonicalAddr, canonicalLength)
+	inputCanonAddr := make(types.CanonicalAddr, canonicalLength)
 	copy(inputCanonAddr, expectedCanonAddr)
 	inputCanonAddr[9] = 0
 	humanAddr, err = ea.HumanAddress(inputCanonAddr)

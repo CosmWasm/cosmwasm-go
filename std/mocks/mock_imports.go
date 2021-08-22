@@ -1,15 +1,18 @@
 // +build !cosmwasm
 
-package std
+package mocks
 
 import (
 	"fmt"
 
 	dbm "github.com/tendermint/tm-db"
+
+	"github.com/cosmwasm/cosmwasm-go/std"
+	"github.com/cosmwasm/cosmwasm-go/std/types"
 )
 
-func MockDeps(funds []Coin) *Deps {
-	return &Deps{
+func MockDeps(funds []types.Coin) *std.Deps {
+	return &std.Deps{
 		Storage: NewMockStorage(),
 		Api:     MockApi{},
 		Querier: NewMockQuerier(funds),
@@ -18,28 +21,28 @@ func MockDeps(funds []Coin) *Deps {
 
 const MOCK_CONTRACT_ADDR = "test-contract"
 
-func MockEnv() Env {
-	return Env{
-		Block: BlockInfo{
+func MockEnv() types.Env {
+	return types.Env{
+		Block: types.BlockInfo{
 			Height:  12_345,
 			Time:    1_571_797_419_404_808_777,
 			ChainID: "cosmos-testnet-14002",
 		},
-		Contract: ContractInfo{
+		Contract: types.ContractInfo{
 			Address: MOCK_CONTRACT_ADDR,
 		},
 	}
 }
 
-func MockInfo(sender string, funds []Coin) MessageInfo {
-	return MessageInfo{
+func MockInfo(sender string, funds []types.Coin) types.MessageInfo {
+	return types.MessageInfo{
 		Sender: sender,
 		Funds:  funds,
 	}
 }
 
 var (
-	_ Iterator = (*MockIterator)(nil)
+	_ std.Iterator = (*MockIterator)(nil)
 )
 
 type MockIterator struct {
@@ -55,7 +58,7 @@ func newMockIterator(iter dbm.Iterator) MockIterator {
 func (iter MockIterator) Next() (key, value []byte, err error) {
 	if !iter.Iter.Valid() {
 		iter.Iter.Close()
-		return key, value, NewError("the end of iterator")
+		return key, value, types.NewError("the end of iterator")
 	}
 	key, value = iter.Iter.Key(), iter.Iter.Value()
 	iter.Iter.Next()
@@ -73,25 +76,25 @@ func NewMockStorage() *MockStorage {
 }
 
 var (
-	_ ReadonlyStorage = (*MockStorage)(nil)
-	_ Storage         = (*MockStorage)(nil)
+	_ std.ReadonlyStorage = (*MockStorage)(nil)
+	_ std.Storage         = (*MockStorage)(nil)
 )
 
 func (s *MockStorage) Get(key []byte) ([]byte, error) {
 	return s.storage.Get(key)
 }
 
-func (s *MockStorage) Range(start, end []byte, order Order) (iter Iterator, err error) {
+func (s *MockStorage) Range(start, end []byte, order std.Order) (iter std.Iterator, err error) {
 	var iterator dbm.Iterator
 	switch order {
-	case Ascending:
+	case std.Ascending:
 		iterator, err = s.storage.Iterator(start, end)
 		iter = newMockIterator(iterator)
-	case Descending:
+	case std.Descending:
 		iterator, err = s.storage.ReverseIterator(start, end)
 		iter = newMockIterator(iterator)
 	default:
-		err = NewError("failed. unexpected Order")
+		err = types.NewError("failed. unexpected Order")
 	}
 	return
 }
@@ -104,28 +107,26 @@ func (s *MockStorage) Remove(key []byte) error {
 	return s.storage.Delete(key)
 }
 
-type CanonicalAddr []byte
-
 const canonicalLength = 32
 
 // ensure Api interface compliance at compile time
 var (
-	_ Api = (*MockApi)(nil)
+	_ std.Api = (*MockApi)(nil)
 )
 
 type MockApi struct{}
 
-func (api MockApi) CanonicalAddress(human string) (CanonicalAddr, error) {
+func (api MockApi) CanonicalAddress(human string) (types.CanonicalAddr, error) {
 	if len(human) > canonicalLength {
-		return nil, NewError("failed. human encoding too long")
+		return nil, types.NewError("failed. human encoding too long")
 	}
 
 	return []byte(human), nil
 }
 
-func (api MockApi) HumanAddress(canonical CanonicalAddr) (string, error) {
+func (api MockApi) HumanAddress(canonical types.CanonicalAddr) (string, error) {
 	if len(canonical) != canonicalLength {
-		return "", NewError("failed. wrong canonical address length")
+		return "", types.NewError("failed. wrong canonical address length")
 	}
 
 	cutIndex := canonicalLength
@@ -141,7 +142,7 @@ func (api MockApi) HumanAddress(canonical CanonicalAddr) (string, error) {
 
 func (api MockApi) ValidateAddress(human string) error {
 	if len(human) > canonicalLength {
-		return NewError("failed. human encoding too long")
+		return types.NewError("failed. human encoding too long")
 	}
 	return nil
 }
@@ -154,16 +155,16 @@ func (api MockApi) Debug(msg string) {
 
 // ensure Api interface compliance at compile time
 var (
-	_ Querier = (*MockQuerier)(nil)
+	_ std.Querier = (*MockQuerier)(nil)
 )
 
 type MockQuerier struct {
-	Balances map[string][]Coin
+	Balances map[string][]types.Coin
 }
 
-func NewMockQuerier(funds []Coin) *MockQuerier {
+func NewMockQuerier(funds []types.Coin) *MockQuerier {
 	q := MockQuerier{
-		Balances: make(map[string][]Coin),
+		Balances: make(map[string][]types.Coin),
 	}
 	if len(funds) > 0 {
 		q.SetBalance(MOCK_CONTRACT_ADDR, funds)
@@ -172,7 +173,7 @@ func NewMockQuerier(funds []Coin) *MockQuerier {
 }
 
 func (q *MockQuerier) RawQuery(raw []byte) ([]byte, error) {
-	var request QueryRequest
+	var request types.QueryRequest
 	err := request.UnmarshalJSON(raw)
 	if err != nil {
 		return nil, err
@@ -184,54 +185,54 @@ func (q *MockQuerier) RawQuery(raw []byte) ([]byte, error) {
 	return res.MarshalJSON()
 }
 
-func (q *MockQuerier) HandleQuery(request QueryRequest) (JSONType, error) {
+func (q *MockQuerier) HandleQuery(request types.QueryRequest) (std.JSONType, error) {
 	switch {
 	case request.Bank != nil:
 		return q.HandleBank(request.Bank)
 	case request.Staking != nil:
-		return nil, NewError("Staking queries not implemented")
+		return nil, types.NewError("Staking queries not implemented")
 	case request.Wasm != nil:
-		return nil, NewError("Wasm queries not implemented")
+		return nil, types.NewError("Wasm queries not implemented")
 	case request.Custom != nil:
-		return nil, NewError("Custom queries not implemented")
+		return nil, types.NewError("Custom queries not implemented")
 	default:
-		return nil, NewError("Unknown QueryRequest variant")
+		return nil, types.NewError("Unknown types.QueryRequest variant")
 	}
 }
 
-func (q *MockQuerier) HandleBank(request *BankQuery) (JSONType, error) {
+func (q *MockQuerier) HandleBank(request *types.BankQuery) (std.JSONType, error) {
 	switch {
 	case request.Balance != nil:
 		balances := q.GetBalance(request.Balance.Address)
-		coin := Coin{Denom: request.Balance.Denom, Amount: "0"}
+		coin := types.Coin{Denom: request.Balance.Denom, Amount: "0"}
 		for _, c := range balances {
 			if c.Denom == coin.Denom {
 				coin.Amount = c.Amount
 				break
 			}
 		}
-		return &BalanceResponse{Amount: coin}, nil
+		return &types.BalanceResponse{Amount: coin}, nil
 	case request.AllBalances != nil:
 		balances := q.GetBalance(request.AllBalances.Address)
-		return &AllBalancesResponse{Amount: balances}, nil
+		return &types.AllBalancesResponse{Amount: balances}, nil
 	default:
-		return nil, NewError("Unknown BankQuery variant")
+		return nil, types.NewError("Unknown types.BankQuery variant")
 	}
 }
 
-func (q *MockQuerier) SetBalance(addr string, balance []Coin) {
+func (q *MockQuerier) SetBalance(addr string, balance []types.Coin) {
 	// clone coins so we don't accidentally edit them
-	var empty []Coin
+	var empty []types.Coin
 	q.Balances[addr] = append(empty, balance...)
 }
 
-func (q *MockQuerier) GetBalance(addr string) []Coin {
+func (q *MockQuerier) GetBalance(addr string) []types.Coin {
 	bal := q.Balances[addr]
 	if len(bal) == 0 {
 		return bal
 	}
 	// if not empty, clone data
-	var empty []Coin
+	var empty []types.Coin
 	return append(empty, bal...)
 }
 

@@ -2,6 +2,8 @@ package types
 
 import "strconv"
 
+type CanonicalAddr []byte
+
 // Coin is a string representation of the sdk.Coin type (more portable than sdk.Int)
 type Coin struct {
 	Denom  string // type, eg. "ATOM"
