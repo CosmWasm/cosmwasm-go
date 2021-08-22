@@ -2,9 +2,10 @@ package src
 
 import (
 	"github.com/cosmwasm/cosmwasm-go/std"
+	"github.com/cosmwasm/cosmwasm-go/std/types"
 )
 
-func Instantiate(deps *std.Deps, env std.Env, info std.MessageInfo, msg []byte) (*std.ContractResult, error) {
+func Instantiate(deps *std.Deps, env types.Env, info types.MessageInfo, msg []byte) (*types.ContractResult, error) {
 	deps.Api.Debug("here we go 🚀")
 
 	initMsg := InitMsg{}
@@ -33,13 +34,13 @@ func Instantiate(deps *std.Deps, env std.Env, info std.MessageInfo, msg []byte) 
 	if err != nil {
 		return nil, err
 	}
-	res := &std.Response{
-		Attributes: []std.EventAttribute{{"Let the", "hacking begin"}},
+	res := &types.Response{
+		Attributes: []types.EventAttribute{{"Let the", "hacking begin"}},
 	}
-	return &std.ContractResult{Ok: res}, nil
+	return &types.ContractResult{Ok: res}, nil
 }
 
-func Migrate(deps *std.Deps, env std.Env, info std.MessageInfo, msg []byte) (*std.ContractResult, error) {
+func Migrate(deps *std.Deps, env types.Env, info types.MessageInfo, msg []byte) (*types.ContractResult, error) {
 	migrateMsg := MigrateMsg{}
 	err := migrateMsg.UnmarshalJSON(msg)
 	if err != nil {
@@ -56,11 +57,11 @@ func Migrate(deps *std.Deps, env std.Env, info std.MessageInfo, msg []byte) (*st
 		return nil, err
 	}
 
-	res := &std.Response{Data: []byte("migrated")}
-	return &std.ContractResult{Ok: res}, nil
+	res := &types.Response{Data: []byte("migrated")}
+	return &types.ContractResult{Ok: res}, nil
 }
 
-func Execute(deps *std.Deps, env std.Env, info std.MessageInfo, data []byte) (*std.ContractResult, error) {
+func Execute(deps *std.Deps, env types.Env, info types.MessageInfo, data []byte) (*types.ContractResult, error) {
 	msg := HandleMsg{}
 	err := msg.UnmarshalJSON(data)
 	if err != nil {
@@ -78,50 +79,50 @@ func Execute(deps *std.Deps, env std.Env, info std.MessageInfo, data []byte) (*s
 	case msg.MemoryLoop != nil:
 		return executeMemoryLoop(deps, &env, &info)
 	case msg.AllocateLargeMemory != nil:
-		return nil, std.NewError("Not implemented: AllocateLargeMemory")
+		return nil, types.NewError("Not implemented: AllocateLargeMemory")
 	case msg.Panic != nil:
 		return executePanic(deps, &env, &info)
 	case msg.UserErrorsInApiCalls != nil:
-		return nil, std.NewError("Not implemented: UserErrorInApiCalls")
+		return nil, types.NewError("Not implemented: UserErrorInApiCalls")
 	default:
-		return nil, std.NewError("Unknown HandleMsg")
+		return nil, types.NewError("Unknown HandleMsg")
 	}
 }
 
-func executeRelease(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.ContractResult, error) {
+func executeRelease(deps *std.Deps, env *types.Env, info *types.MessageInfo) (*types.ContractResult, error) {
 	state, err := LoadState(deps.Storage)
 	if err != nil {
 		return nil, err
 	}
 
 	if info.Sender != state.Verifier {
-		return nil, std.NewError("Unauthorized")
+		return nil, types.NewError("Unauthorized")
 	}
 	amount, err := std.QuerierWrapper{deps.Querier}.QueryAllBalances(env.Contract.Address)
 	if err != nil {
 		return nil, err
 	}
 
-	msg := std.NewSubMsg(std.CosmosMsg{
-		Bank: &std.BankMsg{
-			Send: &std.SendMsg{
+	msg := types.NewSubMsg(types.CosmosMsg{
+		Bank: &types.BankMsg{
+			Send: &types.SendMsg{
 				ToAddress: state.Beneficiary,
 				Amount:    amount,
 			},
 		},
 	})
 
-	res := &std.Response{
-		Attributes: []std.EventAttribute{
+	res := &types.Response{
+		Attributes: []types.EventAttribute{
 			{"action", "release"},
 			{"destination", state.Beneficiary},
 		},
-		Messages: []std.SubMsg{msg},
+		Messages: []types.SubMsg{msg},
 	}
-	return &std.ContractResult{Ok: res}, nil
+	return &types.ContractResult{Ok: res}, nil
 }
 
-func executeCpuLoop(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.ContractResult, error) {
+func executeCpuLoop(deps *std.Deps, env *types.Env, info *types.MessageInfo) (*types.ContractResult, error) {
 	var counter uint64 = 0
 	for {
 		counter += 1
@@ -129,33 +130,33 @@ func executeCpuLoop(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.C
 			counter = 0
 		}
 	}
-	return &std.ContractResult{}, nil
+	return &types.ContractResult{}, nil
 }
 
-func executeMemoryLoop(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.ContractResult, error) {
+func executeMemoryLoop(deps *std.Deps, env *types.Env, info *types.MessageInfo) (*types.ContractResult, error) {
 	counter := 1
 	data := []int{1}
 	for {
 		counter += 1
 		data = append(data, counter)
 	}
-	return &std.ContractResult{}, nil
+	return &types.ContractResult{}, nil
 }
 
-func executeStorageLoop(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.ContractResult, error) {
+func executeStorageLoop(deps *std.Deps, env *types.Env, info *types.MessageInfo) (*types.ContractResult, error) {
 	var counter uint64 = 0
 	for {
 		data := []byte{0, 0, 0, 0, 0, 0, byte(counter / 256), byte(counter % 256)}
 		deps.Storage.Set([]byte("test.key"), data)
 	}
-	return &std.ContractResult{}, nil
+	return &types.ContractResult{}, nil
 }
 
-func executePanic(deps *std.Deps, env *std.Env, info *std.MessageInfo) (*std.ContractResult, error) {
+func executePanic(deps *std.Deps, env *types.Env, info *types.MessageInfo) (*types.ContractResult, error) {
 	panic("This page intentionally faulted")
 }
 
-func Query(deps *std.Deps, env std.Env, data []byte) (*std.QueryResponse, error) {
+func Query(deps *std.Deps, env types.Env, data []byte) (*types.QueryResponse, error) {
 	msg := QueryMsg{}
 	err := msg.UnmarshalJSON(data)
 	if err != nil {
@@ -170,9 +171,9 @@ func Query(deps *std.Deps, env std.Env, data []byte) (*std.QueryResponse, error)
 	case msg.OtherBalance != nil:
 		res, err = queryOtherBalance(deps, &env, msg.OtherBalance)
 	case msg.Recurse != nil:
-		err = std.NewError("Not implemented: Recurse")
+		err = types.NewError("Not implemented: Recurse")
 	default:
-		err = std.NewError("Unknown QueryMsg")
+		err = types.NewError("Unknown QueryMsg")
 	}
 	if err != nil {
 		return nil, err
@@ -183,11 +184,11 @@ func Query(deps *std.Deps, env std.Env, data []byte) (*std.QueryResponse, error)
 	if err != nil {
 		return nil, err
 	}
-	return std.BuildQueryResponseBinary(bz), nil
+	return types.BuildQueryResponseBinary(bz), nil
 
 }
 
-func queryVerifier(deps *std.Deps, env *std.Env) (*VerifierResponse, error) {
+func queryVerifier(deps *std.Deps, env *types.Env) (*VerifierResponse, error) {
 	state, err := LoadState(deps.Storage)
 	if err != nil {
 		return nil, err
@@ -198,13 +199,13 @@ func queryVerifier(deps *std.Deps, env *std.Env) (*VerifierResponse, error) {
 	}, nil
 }
 
-func queryOtherBalance(deps *std.Deps, env *std.Env, msg *OtherBalance) (*std.AllBalancesResponse, error) {
+func queryOtherBalance(deps *std.Deps, env *types.Env, msg *OtherBalance) (*types.AllBalancesResponse, error) {
 	amount, err := std.QuerierWrapper{Querier: deps.Querier}.QueryAllBalances(msg.Address)
 	if err != nil {
 		return nil, err
 	}
 
-	return &std.AllBalancesResponse{
+	return &types.AllBalancesResponse{
 		Amount: amount,
 	}, nil
 }
