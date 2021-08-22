@@ -8,7 +8,7 @@ import (
 	"github.com/cosmwasm/cosmwasm-go/std/types"
 )
 
-func StdErrResult(err error, _prefix string) unsafe.Pointer {
+func StdErrResult(err error) unsafe.Pointer {
 	wrapped := types.ContractResult{Err: err.Error()}
 	bz, _ := wrapped.MarshalJSON()
 	return Package_message(bz)
@@ -35,24 +35,24 @@ func DoInstantiate(instantiateFn func(*Deps, types.Env, types.MessageInfo, []byt
 	envData := TranslateToSlice(uintptr(envPtr))
 	err := env.UnmarshalJSON(envData)
 	if err != nil {
-		return StdErrResult(err, "Parse types.Env")
+		return StdErrResult(err)
 	}
 
 	info, err := parseInfo(infoPtr)
 	if err != nil {
-		return StdErrResult(err, "Parse Info")
+		return StdErrResult(err)
 	}
 
 	deps := make_dependencies()
 	msgData := Translate_range_custom(uintptr(msgPtr))
 	ok, err := instantiateFn(&deps, env, info, msgData)
 	if ok == nil || err != nil {
-		return StdErrResult(err, "Instantiate")
+		return StdErrResult(err)
 	}
 
 	data, err := ok.MarshalJSON()
 	if err != nil {
-		return StdErrResult(err, "Marshal Response")
+		return StdErrResult(err)
 	}
 	return Package_message(data)
 }
@@ -63,24 +63,24 @@ func DoExecute(executeFn func(*Deps, types.Env, types.MessageInfo, []byte) (*typ
 	envData := TranslateToSlice(uintptr(envPtr))
 	err := env.UnmarshalJSON(envData)
 	if err != nil {
-		return StdErrResult(err, "Parse types.Env")
+		return StdErrResult(err)
 	}
 
 	info, err := parseInfo(infoPtr)
 	if err != nil {
-		return StdErrResult(err, "Parse Info")
+		return StdErrResult(err)
 	}
 
 	deps := make_dependencies()
 	msgData := Translate_range_custom(uintptr(msgPtr))
 	ok, err := executeFn(&deps, env, info, msgData)
 	if ok == nil || err != nil {
-		return StdErrResult(err, "Handle")
+		return StdErrResult(err)
 	}
 
 	data, err := ok.MarshalJSON()
 	if err != nil {
-		return StdErrResult(err, "Marshal Response")
+		return StdErrResult(err)
 	}
 	return Package_message(data)
 }
@@ -91,24 +91,24 @@ func DoMigrate(migrateFn func(*Deps, types.Env, types.MessageInfo, []byte) (*typ
 	envData := TranslateToSlice(uintptr(envPtr))
 	err := env.UnmarshalJSON(envData)
 	if err != nil {
-		return StdErrResult(err, "Parse types.Env")
+		return StdErrResult(err)
 	}
 
 	info, err := parseInfo(infoPtr)
 	if err != nil {
-		return StdErrResult(err, "Parse Info")
+		return StdErrResult(err)
 	}
 
 	deps := make_dependencies()
 	msgData := Translate_range_custom(uintptr(msgPtr))
 	ok, err := migrateFn(&deps, env, info, msgData)
 	if ok == nil {
-		return StdErrResult(err, "Migrate")
+		return StdErrResult(err)
 	}
 
 	data, err := ok.MarshalJSON()
 	if err != nil {
-		return StdErrResult(err, "Marshal Response")
+		return StdErrResult(err)
 	}
 	return Package_message(data)
 }
@@ -120,18 +120,18 @@ func DoQuery(queryFn func(*Deps, types.Env, []byte) (*types.QueryResponse, error
 	envData := TranslateToSlice(uintptr(envPtr))
 	err := env.UnmarshalJSON(envData)
 	if err != nil {
-		return StdErrResult(err, "Parse types.Env")
+		return StdErrResult(err)
 	}
 
 	deps := make_dependencies()
 	ok, err := queryFn(&deps, env, msgData)
 	if ok == nil {
-		return StdErrResult(err, "Query")
+		return StdErrResult(err)
 	}
 
 	data, err := ok.MarshalJSON()
 	if err != nil {
-		return StdErrResult(err, "Marshal Response")
+		return StdErrResult(err)
 	}
 	return Package_message(data)
 }

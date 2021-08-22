@@ -66,7 +66,7 @@ func (storage ExternalStorage) Get(key []byte) (value []byte, err error) {
 	C.free(unsafe.Pointer(keyPtr))
 
 	if read == nil {
-		return nil, types.GenericError("key not existed")
+		return nil, types.NotFound{Kind: "db key"}
 	}
 
 	b := TranslateToSlice(uintptr(read))
@@ -237,7 +237,7 @@ func (querier ExternalQuerier) RawQuery(request []byte) ([]byte, error) {
 	C.free(reqPtr)
 
 	if ret == nil {
-		return nil, types.GenericError("failed to query chain: unknown error")
+		return nil, types.SystemError{Unknown: &types.Unknown{}}
 	}
 
 	response := TranslateToSlice(uintptr(ret))
@@ -249,7 +249,7 @@ func (querier ExternalQuerier) RawQuery(request []byte) ([]byte, error) {
 		return nil, err
 	}
 	if qres.Error != nil {
-		return nil, types.GenericError(qres.Error.Error())
+		return nil, qres.Error
 	}
 	if qres.Ok.Error != "" {
 		return nil, types.GenericError(qres.Ok.Error)
