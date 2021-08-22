@@ -66,7 +66,7 @@ func (storage ExternalStorage) Get(key []byte) (value []byte, err error) {
 	C.free(unsafe.Pointer(keyPtr))
 
 	if read == nil {
-		return nil, types.NewError("key not existed")
+		return nil, types.GenericError("key not existed")
 	}
 
 	b := TranslateToSlice(uintptr(read))
@@ -87,7 +87,7 @@ func (storage ExternalStorage) Range(start, end []byte, order Order) (Iterator, 
 		C.free(ptrEnd)
 
 		if iterId < 0 {
-			return nil, types.NewError("error creating iterator (via db_scan): " + string(int(iterId)))
+			return nil, types.GenericError("error creating iterator (via db_scan): " + string(int(iterId)))
 		}
 
 		return ExternalIterator{uint32(iterId)}, nil
@@ -134,20 +134,20 @@ func (iterator ExternalIterator) Next() (key, value []byte, err error) {
 		ret := nil //C.db_next(C.uint(iterator.IteratorId))
 
 		if ret == nil {
-			return nil, nil, types.NewError("unknown error from db_next ")
+			return nil, nil, types.GenericError("unknown error from db_next ")
 		}
 
 		key = TranslateToSlice(uintptr(regionKey))
 		value = TranslateToSlice(uintptr(regionNextValue))
 
 		if len(key) == 0 {
-			return nil, nil, types.NewError("empty key get from db_next")
+			return nil, nil, types.GenericError("empty key get from db_next")
 		}
 
 		return key, value, nil
 
 	*/
-	return nil, nil, types.NewError("unsupported for now")
+	return nil, nil, types.GenericError("unsupported for now")
 }
 
 // ====== API ======
@@ -171,7 +171,7 @@ func (api ExternalApi) CanonicalAddress(human string) (types.CanonicalAddr, erro
 
 	if ret < 0 {
 		// TODO: how to get actual error message?
-		return nil, types.NewError("addr_canonicalize returned error")
+		return nil, types.GenericError("addr_canonicalize returned error")
 	}
 
 	canoAddress := TranslateToSlice(uintptr(regionCanon))
@@ -190,7 +190,7 @@ func (api ExternalApi) HumanAddress(canonical types.CanonicalAddr) (string, erro
 
 	if ret < 0 {
 		// TODO: how to get actual error message?
-		return "", types.NewError("addr_humanize returned error")
+		return "", types.GenericError("addr_humanize returned error")
 	}
 
 	humanAddress := TranslateToSlice(uintptr(regionHuman))
@@ -208,7 +208,7 @@ func (api ExternalApi) ValidateAddress(human string) error {
 
 	if ret < 0 {
 		// TODO: how to get actual error message?
-		return types.NewError("addr_validate returned error")
+		return types.GenericError("addr_validate returned error")
 	}
 	return nil
 }
@@ -237,7 +237,7 @@ func (querier ExternalQuerier) RawQuery(request []byte) ([]byte, error) {
 	C.free(reqPtr)
 
 	if ret == nil {
-		return nil, types.NewError("failed to query chain: unknown error")
+		return nil, types.GenericError("failed to query chain: unknown error")
 	}
 
 	response := TranslateToSlice(uintptr(ret))
@@ -249,10 +249,10 @@ func (querier ExternalQuerier) RawQuery(request []byte) ([]byte, error) {
 		return nil, err
 	}
 	if qres.Error != nil {
-		return nil, types.NewError(qres.Error.Error())
+		return nil, types.GenericError(qres.Error.Error())
 	}
 	if qres.Ok.Error != "" {
-		return nil, types.NewError(qres.Ok.Error)
+		return nil, types.GenericError(qres.Ok.Error)
 	}
 	return qres.Ok.Ok, nil
 }

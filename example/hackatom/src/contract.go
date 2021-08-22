@@ -79,13 +79,13 @@ func Execute(deps *std.Deps, env types.Env, info types.MessageInfo, data []byte)
 	case msg.MemoryLoop != nil:
 		return executeMemoryLoop(deps, &env, &info)
 	case msg.AllocateLargeMemory != nil:
-		return nil, types.NewError("Not implemented: AllocateLargeMemory")
+		return nil, types.GenericError("Not implemented: AllocateLargeMemory")
 	case msg.Panic != nil:
 		return executePanic(deps, &env, &info)
 	case msg.UserErrorsInApiCalls != nil:
-		return nil, types.NewError("Not implemented: UserErrorInApiCalls")
+		return nil, types.GenericError("Not implemented: UserErrorInApiCalls")
 	default:
-		return nil, types.NewError("Unknown HandleMsg")
+		return nil, types.GenericError("Unknown HandleMsg")
 	}
 }
 
@@ -171,9 +171,9 @@ func Query(deps *std.Deps, env types.Env, data []byte) (*types.QueryResponse, er
 	case msg.OtherBalance != nil:
 		res, err = queryOtherBalance(deps, &env, msg.OtherBalance)
 	case msg.Recurse != nil:
-		err = types.NewError("Not implemented: Recurse")
+		err = types.GenericError("Not implemented: Recurse")
 	default:
-		err = types.NewError("Unknown QueryMsg")
+		err = types.GenericError("Unknown QueryMsg")
 	}
 	if err != nil {
 		return nil, err

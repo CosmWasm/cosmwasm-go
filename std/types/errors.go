@@ -3,7 +3,7 @@ package types
 import "strconv"
 
 // TODO: rename call to GenericError
-func NewError(msg string) error {
+func GenericError(msg string) error {
 	return GenericErr{Msg: msg}
 }
 

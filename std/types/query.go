@@ -22,7 +22,7 @@ func BuildQueryResponseBinary(msg []byte) *QueryResponse {
 
 func (q QueryResponse) Data() ([]byte, error) {
 	if q.Error != "" {
-		return nil, NewError(q.Error)
+		return nil, GenericError(q.Error)
 	}
 	return q.Ok, nil
 }
