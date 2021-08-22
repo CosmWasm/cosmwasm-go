@@ -1,38 +1,14 @@
 package types
 
-func NewError(msg string) error {
-	return ContractError{Err: msg}
-}
+import "strconv"
 
 type ContractError struct {
 	Err string `json:"error"`
 }
 
-func (e ContractError) Error() string {
-	return e.Err
-}
-
-//tinyjson:skip
-type OutOfGasError struct{}
-
-var _ error = OutOfGasError{}
-
-func (o OutOfGasError) Error() string {
-	return "Out of gas"
-}
-
-// StdError captures all errors returned from the Rust code as StdError.
-// Exactly one of the fields should be set.
-type StdError struct {
-	GenericErr    *GenericErr    `json:"generic_err,omitempty"`
-	InvalidBase64 *InvalidBase64 `json:"invalid_base64,omitempty"`
-	InvalidUtf8   *InvalidUtf8   `json:"invalid_utf8,omitempty"`
-	NotFound      *NotFound      `json:"not_found,omitempty"`
-	NullPointer   *NullPointer   `json:"null_pointer,omitempty"`
-	ParseErr      *ParseErr      `json:"parse_err,omitempty"`
-	SerializeErr  *SerializeErr  `json:"serialize_err,omitempty"`
-	Unauthorized  *Unauthorized  `json:"unauthorized,omitempty"`
-	Underflow     *Underflow     `json:"underflow,omitempty"`
+// TODO: rename call to GenericError
+func NewError(msg string) error {
+	return GenericErr{Msg: msg}
 }
 
 var (
@@ -45,75 +21,83 @@ var (
 	_ error = SerializeErr{}
 	_ error = Unauthorized{}
 	_ error = Underflow{}
+	_ error = InvalidDataSize{}
+	_ error = Overflow{}
+	_ error = DivideByZero{}
+	_ error = OutOfGasError{}
 )
 
-func (e StdError) Error() string {
-	bz, _ := e.MarshalJSON()
-	return string(bz)
-}
-
+//tinyjson:skip
 type GenericErr struct {
 	Msg string
 }
 
 func (e GenericErr) Error() string {
-	return "GenericErr: " + e.Msg
+	return "Generic error: " + e.Msg
 }
 
+//tinyjson:skip
 type InvalidBase64 struct {
 	Msg string
 }
 
 func (e InvalidBase64) Error() string {
-	return "InvalidBase64: " + e.Msg
+	return "Invalid Base64 string: " + e.Msg
 }
 
+//tinyjson:skip
 type InvalidUtf8 struct {
 	Msg string
 }
 
 func (e InvalidUtf8) Error() string {
-	return "InvalidUtf8: " + e.Msg
+	return "Cannot decode UTF8 bytes into string: " + e.Msg
 }
 
+//tinyjson:skip
 type NotFound struct {
 	Kind string
 }
 
 func (e NotFound) Error() string {
-	return "NotFound: " + e.Kind
+	return e.Kind + " not found"
 }
 
+//tinyjson:skip
 type NullPointer struct{}
 
 func (e NullPointer) Error() string {
 	return `NullPointer`
 }
 
+//tinyjson:skip
 type ParseErr struct {
 	Target string
 	Msg    string
 }
 
 func (e ParseErr) Error() string {
-	return "ParseErr (" + e.Target + "): " + e.Msg
+	return "Error parsing into type " + e.Target + ": " + e.Msg
 }
 
+//tinyjson:skip
 type SerializeErr struct {
 	Source string
 	Msg    string
 }
 
 func (e SerializeErr) Error() string {
-	return "SerializeErr (" + e.Source + "): " + e.Msg
+	return "Error serializing type " + e.Source + ": " + e.Msg
 }
 
+//tinyjson:skip
 type Unauthorized struct{}
 
 func (e Unauthorized) Error() string {
 	return "Unauthorized"
 }
 
+//tinyjson:skip
 type Underflow struct {
 	Minuend    string
 	Subtrahend string
@@ -121,4 +105,47 @@ type Underflow struct {
 
 func (e Underflow) Error() string {
 	return "Underflow subtract " + e.Minuend + " from " + e.Subtrahend
+}
+
+//tinyjson:skip
+type Overflow struct {
+	Operation string
+	Op1       string
+	Op2       string
+}
+
+func (e Overflow) Error() string {
+	return "Overflow: Cannot " + e.Operation + " with " + e.Op1 + " and " + e.Op2
+}
+
+func OverflowError(Operation string, Op1 string, Op2 string) Overflow {
+	return Overflow{
+		Operation: Operation,
+		Op1:       Op1,
+		Op2:       Op2,
+	}
+}
+
+//tinyjson:skip
+type DivideByZero struct{}
+
+func (e DivideByZero) Error() string {
+	return "Divide by zero"
+}
+
+//tinyjson:skip
+type InvalidDataSize struct {
+	Expected uint64
+	Actual   uint64
+}
+
+func (e InvalidDataSize) Error() string {
+	return "Invalid data size: expected=" + strconv.FormatUint(e.Expected, 10) + " actual=" + strconv.FormatUint(e.Actual, 10)
+}
+
+//tinyjson:skip
+type OutOfGasError struct{}
+
+func (o OutOfGasError) Error() string {
+	return "Out of gas"
 }
