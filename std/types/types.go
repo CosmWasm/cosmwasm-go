@@ -37,7 +37,7 @@ func (m RawMessage) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON sets *m to a copy of data.
 func (m *RawMessage) UnmarshalJSON(data []byte) error {
 	if m == nil {
-		return NewError("json.RawMessage: UnmarshalJSON on nil pointer")
+		return GenericError("json.RawMessage: UnmarshalJSON on nil pointer")
 	}
 	*m = append((*m)[0:0], data...)
 	return nil
