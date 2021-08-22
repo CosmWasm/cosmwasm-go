@@ -16,14 +16,14 @@ generate: tiny-build generate-std generate-contracts
 
 generate-std:
 	./bin/tinyjson -all -snake_case \
-		./std/env.go \
-		./std/errors.go \
-		./std/systemerror.go \
-		./std/types.go \
-		./std/msg.go \
-		./std/subcall.go \
-		./std/query.go \
-		./std/ibc.go
+		./std/types/env.go \
+		./std/types/errors.go \
+		./std/types/ibc.go \
+		./std/types/msg.go \
+		./std/types/query.go \
+		./std/types/subcall.go \
+		./std/types/systemerror.go \
+		./std/types/types.go \
 
 generate-contracts:
 	./bin/tinyjson -all -snake_case \

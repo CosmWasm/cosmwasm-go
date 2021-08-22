@@ -1,4 +1,4 @@
-package std
+package types
 
 // ------- query detail types ---------
 type QueryResponse struct {

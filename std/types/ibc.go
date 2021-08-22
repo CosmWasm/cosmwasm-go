@@ -1,4 +1,4 @@
-package std
+package types
 
 type IBCMsg struct {
 	Transfer     *TransferMsg     `json:"transfer,omitempty"`
