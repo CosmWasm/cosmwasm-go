@@ -30,7 +30,7 @@ if [ ! -d "$DIR" ]; then
 fi
 
 echo "Compiling $CONTRACT with tinygo..."
-docker run --rm -w /code -v "${ROOT}:/code" ${TINYGO_IMAGE} tinygo build -tags "cosmwasm easyjson_nounsafe" -no-debug -target wasi -o "/code/${CONTRACT}.wasm" "/code/example/${CONTRACT}/main.go"
+docker run --rm -w /code -v "${ROOT}:/code" ${TINYGO_IMAGE} tinygo build -tags "cosmwasm tinyjson_nounsafe" -no-debug -target wasi -o "/code/${CONTRACT}.wasm" "/code/example/${CONTRACT}/main.go"
 ls -l "${ROOT}/${CONTRACT}.wasm"
 
 WATFILE="${ROOT}/${CONTRACT}.wat"

@@ -7,7 +7,7 @@ import (
 	"unsafe"
 )
 
-//easyjson:skip
+//tinyjson:skip
 type MemRegion struct {
 	Offset   uint32
 	Capacity uint32
@@ -16,14 +16,14 @@ type MemRegion struct {
 
 const REGION_HEAD_SIZE uint32 = 12
 
-//easyjson:skip
+//tinyjson:skip
 type SliceHeader_tinyGo struct {
 	Data uintptr
 	Len  uintptr
 	Cap  uintptr
 }
 
-//easyjson:skip
+//tinyjson:skip
 type SliceHeader_Go struct {
 	Data uintptr
 	Len  int
