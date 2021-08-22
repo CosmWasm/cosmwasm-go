@@ -76,6 +76,13 @@ func (e ParseErr) Error() string {
 	return "Error parsing into type " + e.Target + ": " + e.Msg
 }
 
+func ParseError(target string, msg string) ParseErr {
+	return ParseErr{
+		Target: target,
+		Msg:    msg,
+	}
+}
+
 //tinyjson:skip
 type SerializeErr struct {
 	Source string
@@ -84,6 +91,13 @@ type SerializeErr struct {
 
 func (e SerializeErr) Error() string {
 	return "Error serializing type " + e.Source + ": " + e.Msg
+}
+
+func SerializeError(source string, msg string) SerializeErr {
+	return SerializeErr{
+		Source: source,
+		Msg:    msg,
+	}
 }
 
 //tinyjson:skip
