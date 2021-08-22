@@ -4,14 +4,12 @@ package std
 
 import (
 	"unsafe"
+
+	"github.com/cosmwasm/cosmwasm-go/std/types"
 )
 
-func StdErrResult(err error, prefix string) unsafe.Pointer {
-	wrapped := ContractError{Err: err.Error()}
-	// ignore this now... maybe enable later for debug?
-	// if prefix != "" {
-	// 	raw = prefix + ": " + raw
-	// }
+func StdErrResult(err error, _prefix string) unsafe.Pointer {
+	wrapped := types.ContractError{Err: err.Error()}
 	bz, _ := wrapped.MarshalJSON()
 	return Package_message(bz)
 }
@@ -24,20 +22,20 @@ func make_dependencies() Deps {
 	}
 }
 
-func parseInfo(infoPtr uint32) (MessageInfo, error) {
+func parseInfo(infoPtr uint32) (types.MessageInfo, error) {
 	infoData := TranslateToSlice(uintptr(infoPtr))
-	var info MessageInfo
+	var info types.MessageInfo
 	err := info.UnmarshalJSON(infoData)
 	return info, err
 }
 
 // ========== instantiate ==============
-func DoInstantiate(instantiateFn func(*Deps, Env, MessageInfo, []byte) (*ContractResult, error), envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
-	env := Env{}
+func DoInstantiate(instantiateFn func(*Deps, types.Env, types.MessageInfo, []byte) (*types.ContractResult, error), envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
+	env := types.Env{}
 	envData := TranslateToSlice(uintptr(envPtr))
 	err := env.UnmarshalJSON(envData)
 	if err != nil {
-		return StdErrResult(err, "Parse Env")
+		return StdErrResult(err, "Parse types.Env")
 	}
 
 	info, err := parseInfo(infoPtr)
@@ -60,12 +58,12 @@ func DoInstantiate(instantiateFn func(*Deps, Env, MessageInfo, []byte) (*Contrac
 }
 
 // ========= execute ============
-func DoExecute(executeFn func(*Deps, Env, MessageInfo, []byte) (*ContractResult, error), envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
-	env := Env{}
+func DoExecute(executeFn func(*Deps, types.Env, types.MessageInfo, []byte) (*types.ContractResult, error), envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
+	env := types.Env{}
 	envData := TranslateToSlice(uintptr(envPtr))
 	err := env.UnmarshalJSON(envData)
 	if err != nil {
-		return StdErrResult(err, "Parse Env")
+		return StdErrResult(err, "Parse types.Env")
 	}
 
 	info, err := parseInfo(infoPtr)
@@ -88,12 +86,12 @@ func DoExecute(executeFn func(*Deps, Env, MessageInfo, []byte) (*ContractResult,
 }
 
 // ========= migrate ============
-func DoMigrate(migrateFn func(*Deps, Env, MessageInfo, []byte) (*ContractResult, error), envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
-	env := Env{}
+func DoMigrate(migrateFn func(*Deps, types.Env, types.MessageInfo, []byte) (*types.ContractResult, error), envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
+	env := types.Env{}
 	envData := TranslateToSlice(uintptr(envPtr))
 	err := env.UnmarshalJSON(envData)
 	if err != nil {
-		return StdErrResult(err, "Parse Env")
+		return StdErrResult(err, "Parse types.Env")
 	}
 
 	info, err := parseInfo(infoPtr)
@@ -116,13 +114,13 @@ func DoMigrate(migrateFn func(*Deps, Env, MessageInfo, []byte) (*ContractResult,
 }
 
 // =========== query ===================
-func DoQuery(queryFn func(*Deps, Env, []byte) (*QueryResponse, error), envPtr, msgPtr uint32) unsafe.Pointer {
+func DoQuery(queryFn func(*Deps, types.Env, []byte) (*types.QueryResponse, error), envPtr, msgPtr uint32) unsafe.Pointer {
 	msgData := Translate_range_custom(uintptr(msgPtr))
-	env := Env{}
+	env := types.Env{}
 	envData := TranslateToSlice(uintptr(envPtr))
 	err := env.UnmarshalJSON(envData)
 	if err != nil {
-		return StdErrResult(err, "Parse Env")
+		return StdErrResult(err, "Parse types.Env")
 	}
 
 	deps := make_dependencies()
