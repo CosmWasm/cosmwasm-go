@@ -39,7 +39,6 @@ WATFILE="${ROOT}/${CONTRACT}.wat"
 docker run --rm -v "${ROOT}:/code" ${EMSCRIPTEN} wasm2wat "/code/${CONTRACT}.wasm" > "${WATFILE}"
 
 ls -l "${ROOT}/${CONTRACT}.wasm"
-note
 grep import "${WATFILE}"
 
 echo "Any floating point?"
