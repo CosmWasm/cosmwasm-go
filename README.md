@@ -88,37 +88,15 @@ instructions on how to get started.
 Both of these support the following commands: `make unit-test`, `make build`, 
 and `make test`.
 
-## Build system
-
-We use docker tooling to get consistent builds acorss dev machines.
-In my minimal experience, these seem to also produce deterministic
-builds, but I would like others to try this out on other machines.
-The following produces the same sha256 hash everytime I run it:
-
-```
-cd example/hackatom
-make build && sha256sum hackatom.wasm
-
-# this will test the wasm code
-go test ./integration
-```
-
-However, the docker image for our custom TinyGo is not yet published.
-In order to build locally you can do the following:
-
-```
-git clone https://github.com/confio/tinygo.git
-git checkout cw-0.19.0
-docker build -t cosmwasm/tinygo:0.19.0 -f Dockerfile.wasm .
-```
-
-Once it is finished, you should be able to successfully run `make build` on hackatom
-
 ## Performance
 
 Many people ask how these compare to the rust contracts. I have yet to
 do a detailed comparion, but now that we have two versions of the same
 hackatom contract, we can do a rough side-by-side analysis.
+
+Once this is more or less feature-complete, we need to do a more detailed
+analysis. I assume contract size will be significantly larger when it has
+all the features we have in Rust.
 
 **The good:**
 
@@ -132,3 +110,9 @@ but that is only about 20Kb of the size)
 Before I switched to tinyjson, this used significantly more gas.
 Now, it seems to use about 1.5-2x more gas than the Rust contracts.
 And the compiled size is about 50% of the Rust size.
+
+## Development
+
+This library is **very experimental**. If you want to try to build contracts
+or hack on the library itself, please check out [DEVELOPMENT.md](./DEVELOPMENT.md)
+for more details.
