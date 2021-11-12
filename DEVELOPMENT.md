@@ -5,26 +5,26 @@ This file explains how to use the library as a developer, and also how to extend
 ## TinyGo
 
 We made a [fork of TinyGo](https://github.com/confio/tinygo) to add support for CosmWasm.
-It is based off of 0.19, and the [latest TinyGo release](https://github.com/confio/tinygo) is 0.20
-at the time of this writing, so we can consider an update there somehow.
-(There are merge conflicts with how I customize Wasm compilation, so this is non-trivial)
+It is based off of 0.20, the [latest TinyGo release](https://github.com/confio/tinygo)
+at the time of this writing.
+(Please note merge conflicts during rebasing on newer tinygo versions are to be expected, so this is non-trivial)
 
 We maintain a Docker image for the TinyGo compiler targeting CosmWasm on [Docker Hub](https://hub.docker.com/r/cosmwasm/tinygo/tags).
 You can get the latest version simply via:
 
 ```shell script
-docker pull cosmwasm/tinygo:0.19.1
+docker pull cosmwasm/tinygo:0.20.0
 ```
 
 If the latest version is not available, you can build from source:
 
 ```
 git clone https://github.com/confio/tinygo.git
-git checkout cw-0.19.1
+git checkout cw-0.20.0
 docker build -t cosmwasm/tinygo:0.19.1 -f Dockerfile.wasm .
 
 # and maybe publish
-docker push cosmwasm/tinygo:0.19.1
+docker push cosmwasm/tinygo:0.20.0
 ```
 
 

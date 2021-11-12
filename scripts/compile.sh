@@ -3,7 +3,7 @@
 set -o errexit -o nounset -o pipefail
 command -v shellcheck > /dev/null && shellcheck "$0"
 
-TINYGO_IMAGE="cosmwasm/tinygo:0.19.0"
+TINYGO_IMAGE="cosmwasm/tinygo:0.20.0"
 EMSCRIPTEN="polkasource/webassembly-wabt:v1.0.11"
 
 SCRIPT_DIR="$(realpath "$(dirname "$0")")"
@@ -33,11 +33,13 @@ echo "Compiling $CONTRACT with tinygo..."
 docker run --rm -w /code -v "${ROOT}:/code" ${TINYGO_IMAGE} tinygo build -tags "cosmwasm tinyjson_nounsafe" -no-debug -target wasi -o "/code/${CONTRACT}.wasm" "/code/example/${CONTRACT}/main.go"
 ls -l "${ROOT}/${CONTRACT}.wasm"
 
+# FIXME: we can remove this whole EMSCRIPTEN stuff in the future... or just as an optional verification check (outside of compile)
+
 WATFILE="${ROOT}/${CONTRACT}.wat"
 docker run --rm -v "${ROOT}:/code" ${EMSCRIPTEN} wasm2wat "/code/${CONTRACT}.wasm" > "${WATFILE}"
 
 ls -l "${ROOT}/${CONTRACT}.wasm"
-
+note
 grep import "${WATFILE}"
 
 echo "Any floating point?"
