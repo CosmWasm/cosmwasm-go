@@ -42,6 +42,6 @@ test-contracts:
 examples: hackatom
 
 hackatom:
-	./scripts/compile.sh hackatom
-	@ wasm-nm -e hackatom.wasm
-	@ wasm-nm -i hackatom.wasm
+	VERSION=0.19.0 ./scripts/compile.sh hackatom
+	./scripts/check.sh hackatom.wasm
+	./scripts/strip_floats.sh hackatom.wasm
