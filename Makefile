@@ -42,6 +42,7 @@ test-contracts:
 examples: hackatom
 
 hackatom:
-	VERSION=0.19.0 ./scripts/compile.sh hackatom
+	@echo "VERSION=0.19.0 make hackatom - will run with different cosmwasm/tinygo image" 
+	./scripts/compile.sh hackatom
 	./scripts/check.sh hackatom.wasm
 	./scripts/strip_floats.sh hackatom.wasm
