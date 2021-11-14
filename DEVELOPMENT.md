@@ -21,7 +21,7 @@ If the latest version is not available, you can build from source:
 ```
 git clone https://github.com/confio/tinygo.git
 git checkout cw-0.20.0
-docker build -t cosmwasm/tinygo:0.19.1 -f Dockerfile.wasm .
+docker build -t cosmwasm/tinygo:0.20.0 -f Dockerfile.wasm .
 
 # and maybe publish
 docker push cosmwasm/tinygo:0.20.0
