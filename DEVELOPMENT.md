@@ -119,4 +119,36 @@ type GenericErr struct {
 
 ### Bootstrapping Errors
 
-TODO: when we delete files, but they depend on the code...
+One issue with codegen is the bootstrapping problem. That is, you need to codegen
+on the primitive structs to get the `MarshalJSON()` methods on it, which you need
+to call in your code. The `tinyjson` codegen will fail if it creates code that doesn't
+compile, so this can be a blocker.
+
+For example, once I have a working contract that is using a number of structs,
+if I delete all the `*_tinyjson.go` files, it will no longer be able to codegen.
+This happens when there are multiple files to compile. It will codegen the first one,
+then try to compile and if we need the bindings from the second one, it will fail.
+
+This works:
+
+```shell
+rm -f example/hackatom/src/state_tinyjson.go
+./bin/tinyjson -all -snake_case \
+		./example/hackatom/src/state.go
+```
+
+This fails:
+
+```shell
+rm -f example/hackatom/src/*_tinyjson.go
+./bin/tinyjson -all -snake_case \
+		./example/hackatom/src/msg.go
+		./example/hackatom/src/state.go
+```
+
+This is a bit annoying, but can be worked around. I follow a few techniques to deal with this:
+
+1. Define all types and use `tinyjson` and `git commit` them before writing code that uses them. This gives you a fallback.
+2. If you need to regenerate, delete and compile one by one. (Or simply regnerate without deleting. Remember you commited to git before, `git checkout <file>` is your friend)
+3. If you really get stuck, manually create an xxx_tinyjson.go file, that just contains stubs for `func (a XXX) MarshalJSON() ([]byte, error)` and `func (a *XXX) UnmarshalJSON([]byte) error` so it will compile. It will overwrite that with proper code later.
+4. If that is too much, just comment out all usages of `MarshalJSON()` and `UnmarshalJSON()`, run `tinyjson` and then uncomment them.
