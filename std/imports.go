@@ -159,7 +159,7 @@ var (
 
 type ExternalApi struct{}
 
-func (api ExternalApi) CanonicalAddress(human string) (types.CanonicalAddr, error) {
+func (api ExternalApi) CanonicalAddress(human string) (types.CanonicalAddress, error) {
 	humanAddr := []byte(human)
 	humanPtr := C.malloc(C.ulong(len(humanAddr)))
 	regionHuman := TranslateToRegion(humanAddr, uintptr(humanPtr))
@@ -179,7 +179,7 @@ func (api ExternalApi) CanonicalAddress(human string) (types.CanonicalAddr, erro
 	return canoAddress, nil
 }
 
-func (api ExternalApi) HumanAddress(canonical types.CanonicalAddr) (string, error) {
+func (api ExternalApi) HumanAddress(canonical types.CanonicalAddress) (string, error) {
 	canonPtr := C.malloc(C.ulong(len(canonical)))
 	regionCanon := TranslateToRegion(canonical, uintptr(canonPtr))
 
@@ -248,11 +248,11 @@ func (querier ExternalQuerier) RawQuery(request []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	if qres.Error != nil {
-		return nil, qres.Error
+	if qres.Err != nil {
+		return nil, qres.Err
 	}
-	if qres.Ok.Error != "" {
-		return nil, types.GenericError(qres.Ok.Error)
+	if qres.Ok.Err != "" {
+		return nil, types.GenericError(qres.Ok.Err)
 	}
 	return qres.Ok.Ok, nil
 }

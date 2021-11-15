@@ -40,6 +40,8 @@ func tinyjson50c1e60aDecodeGithubComCosmwasmCosmwasmGoStdTypes(in *jlexer.Lexer,
 			out.ToAddress = string(in.String())
 		case "amount":
 			(out.Amount).UnmarshalTinyJSON(in)
+		case "timeout":
+			(out.Timeout).UnmarshalTinyJSON(in)
 		default:
 			in.SkipRecursive()
 		}
@@ -68,6 +70,11 @@ func tinyjson50c1e60aEncodeGithubComCosmwasmCosmwasmGoStdTypes(out *jwriter.Writ
 		const prefix string = ",\"amount\":"
 		out.RawString(prefix)
 		(in.Amount).MarshalTinyJSON(out)
+	}
+	{
+		const prefix string = ",\"timeout\":"
+		out.RawString(prefix)
+		(in.Timeout).MarshalTinyJSON(out)
 	}
 	out.RawByte('}')
 }
@@ -123,6 +130,8 @@ func tinyjson50c1e60aDecodeGithubComCosmwasmCosmwasmGoStdTypes1(in *jlexer.Lexer
 			} else {
 				out.Data = in.Bytes()
 			}
+		case "timeout":
+			(out.Timeout).UnmarshalTinyJSON(in)
 		default:
 			in.SkipRecursive()
 		}
@@ -146,6 +155,11 @@ func tinyjson50c1e60aEncodeGithubComCosmwasmCosmwasmGoStdTypes1(out *jwriter.Wri
 		const prefix string = ",\"data\":"
 		out.RawString(prefix)
 		out.Base64Bytes(in.Data)
+	}
+	{
+		const prefix string = ",\"timeout\":"
+		out.RawString(prefix)
+		(in.Timeout).MarshalTinyJSON(out)
 	}
 	out.RawByte('}')
 }

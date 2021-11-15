@@ -2,7 +2,9 @@ package types
 
 import "strconv"
 
-// TODO: rename call to GenericError
+// question: do we need these types?
+// they mirror cosmwasm_std:errors.rs useful if we use them in our internally libraries
+
 func GenericError(msg string) error {
 	return GenericErr{Msg: msg}
 }

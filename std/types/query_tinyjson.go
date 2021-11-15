@@ -54,6 +54,16 @@ func tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes(in *jlexer.Lexer,
 				}
 				(*out.Raw).UnmarshalTinyJSON(in)
 			}
+		case "contract_info":
+			if in.IsNull() {
+				in.Skip()
+				out.ContractInfo = nil
+			} else {
+				if out.ContractInfo == nil {
+					out.ContractInfo = new(ContractInfoQuery)
+				}
+				(*out.ContractInfo).UnmarshalTinyJSON(in)
+			}
 		default:
 			in.SkipRecursive()
 		}
@@ -83,6 +93,16 @@ func tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes(out *jwriter.Writ
 			out.RawString(prefix)
 		}
 		(*in.Raw).MarshalTinyJSON(out)
+	}
+	if in.ContractInfo != nil {
+		const prefix string = ",\"contract_info\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		(*in.ContractInfo).MarshalTinyJSON(out)
 	}
 	out.RawByte('}')
 }
@@ -863,7 +883,7 @@ func tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes9(in *jlexer.Lexer
 				out.Ok = in.Bytes()
 			}
 		case "error":
-			out.Error = string(in.String())
+			out.Err = string(in.String())
 		default:
 			in.SkipRecursive()
 		}
@@ -884,7 +904,7 @@ func tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes9(out *jwriter.Wri
 		out.RawString(prefix[1:])
 		out.Base64Bytes(in.Ok)
 	}
-	if in.Error != "" {
+	if in.Err != "" {
 		const prefix string = ",\"error\":"
 		if first {
 			first = false
@@ -892,7 +912,7 @@ func tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes9(out *jwriter.Wri
 		} else {
 			out.RawString(prefix)
 		}
-		out.String(string(in.Error))
+		out.String(string(in.Err))
 	}
 	out.RawByte('}')
 }
@@ -1121,12 +1141,12 @@ func tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes11(in *jlexer.Lexe
 		case "error":
 			if in.IsNull() {
 				in.Skip()
-				out.Error = nil
+				out.Err = nil
 			} else {
-				if out.Error == nil {
-					out.Error = new(SystemError)
+				if out.Err == nil {
+					out.Err = new(SystemError)
 				}
-				(*out.Error).UnmarshalTinyJSON(in)
+				(*out.Err).UnmarshalTinyJSON(in)
 			}
 		default:
 			in.SkipRecursive()
@@ -1148,7 +1168,7 @@ func tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes11(out *jwriter.Wr
 		out.RawString(prefix[1:])
 		(*in.Ok).MarshalTinyJSON(out)
 	}
-	if in.Error != nil {
+	if in.Err != nil {
 		const prefix string = ",\"error\":"
 		if first {
 			first = false
@@ -1156,7 +1176,7 @@ func tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes11(out *jwriter.Wr
 		} else {
 			out.RawString(prefix)
 		}
-		(*in.Error).MarshalTinyJSON(out)
+		(*in.Err).MarshalTinyJSON(out)
 	}
 	out.RawByte('}')
 }
@@ -1536,7 +1556,167 @@ func (v *Delegation) UnmarshalJSON(data []byte) error {
 func (v *Delegation) UnmarshalTinyJSON(l *jlexer.Lexer) {
 	tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes15(l, v)
 }
-func tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes16(in *jlexer.Lexer, out *BondedDenomResponse) {
+func tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes16(in *jlexer.Lexer, out *ContractInfoResponse) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeFieldName(false)
+		in.WantColon()
+		if in.IsNull() {
+			in.Skip()
+			in.WantComma()
+			continue
+		}
+		switch key {
+		case "code_id":
+			out.CodeID = uint64(in.Uint64())
+		case "creator":
+			out.Creator = string(in.String())
+		case "admin":
+			out.Admin = string(in.String())
+		case "pinned":
+			out.Pinned = bool(in.Bool())
+		case "ibc_port":
+			out.IBCPort = string(in.String())
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes16(out *jwriter.Writer, in ContractInfoResponse) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"code_id\":"
+		out.RawString(prefix[1:])
+		out.Uint64(uint64(in.CodeID))
+	}
+	{
+		const prefix string = ",\"creator\":"
+		out.RawString(prefix)
+		out.String(string(in.Creator))
+	}
+	{
+		const prefix string = ",\"admin\":"
+		out.RawString(prefix)
+		out.String(string(in.Admin))
+	}
+	{
+		const prefix string = ",\"pinned\":"
+		out.RawString(prefix)
+		out.Bool(bool(in.Pinned))
+	}
+	{
+		const prefix string = ",\"ibc_port\":"
+		out.RawString(prefix)
+		out.String(string(in.IBCPort))
+	}
+	out.RawByte('}')
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v ContractInfoResponse) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes16(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalTinyJSON supports tinyjson.Marshaler interface
+func (v ContractInfoResponse) MarshalTinyJSON(w *jwriter.Writer) {
+	tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes16(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *ContractInfoResponse) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes16(&r, v)
+	return r.Error()
+}
+
+// UnmarshalTinyJSON supports tinyjson.Unmarshaler interface
+func (v *ContractInfoResponse) UnmarshalTinyJSON(l *jlexer.Lexer) {
+	tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes16(l, v)
+}
+func tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes17(in *jlexer.Lexer, out *ContractInfoQuery) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeFieldName(false)
+		in.WantColon()
+		if in.IsNull() {
+			in.Skip()
+			in.WantComma()
+			continue
+		}
+		switch key {
+		case "contract_addr":
+			out.ContractAddr = string(in.String())
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes17(out *jwriter.Writer, in ContractInfoQuery) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"contract_addr\":"
+		out.RawString(prefix[1:])
+		out.String(string(in.ContractAddr))
+	}
+	out.RawByte('}')
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v ContractInfoQuery) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes17(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalTinyJSON supports tinyjson.Marshaler interface
+func (v ContractInfoQuery) MarshalTinyJSON(w *jwriter.Writer) {
+	tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes17(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *ContractInfoQuery) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes17(&r, v)
+	return r.Error()
+}
+
+// UnmarshalTinyJSON supports tinyjson.Unmarshaler interface
+func (v *ContractInfoQuery) UnmarshalTinyJSON(l *jlexer.Lexer) {
+	tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes17(l, v)
+}
+func tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes18(in *jlexer.Lexer, out *BondedDenomResponse) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -1567,7 +1747,7 @@ func tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes16(in *jlexer.Lexe
 		in.Consumed()
 	}
 }
-func tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes16(out *jwriter.Writer, in BondedDenomResponse) {
+func tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes18(out *jwriter.Writer, in BondedDenomResponse) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -1582,27 +1762,27 @@ func tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes16(out *jwriter.Wr
 // MarshalJSON supports json.Marshaler interface
 func (v BondedDenomResponse) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes16(&w, v)
+	tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes18(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalTinyJSON supports tinyjson.Marshaler interface
 func (v BondedDenomResponse) MarshalTinyJSON(w *jwriter.Writer) {
-	tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes16(w, v)
+	tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes18(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *BondedDenomResponse) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes16(&r, v)
+	tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes18(&r, v)
 	return r.Error()
 }
 
 // UnmarshalTinyJSON supports tinyjson.Unmarshaler interface
 func (v *BondedDenomResponse) UnmarshalTinyJSON(l *jlexer.Lexer) {
-	tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes16(l, v)
+	tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes18(l, v)
 }
-func tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes17(in *jlexer.Lexer, out *BankQuery) {
+func tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes19(in *jlexer.Lexer, out *BankQuery) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -1651,7 +1831,7 @@ func tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes17(in *jlexer.Lexe
 		in.Consumed()
 	}
 }
-func tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes17(out *jwriter.Writer, in BankQuery) {
+func tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes19(out *jwriter.Writer, in BankQuery) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -1677,27 +1857,27 @@ func tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes17(out *jwriter.Wr
 // MarshalJSON supports json.Marshaler interface
 func (v BankQuery) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes17(&w, v)
+	tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes19(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalTinyJSON supports tinyjson.Marshaler interface
 func (v BankQuery) MarshalTinyJSON(w *jwriter.Writer) {
-	tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes17(w, v)
+	tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes19(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *BankQuery) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes17(&r, v)
+	tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes19(&r, v)
 	return r.Error()
 }
 
 // UnmarshalTinyJSON supports tinyjson.Unmarshaler interface
 func (v *BankQuery) UnmarshalTinyJSON(l *jlexer.Lexer) {
-	tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes17(l, v)
+	tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes19(l, v)
 }
-func tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes18(in *jlexer.Lexer, out *BalanceResponse) {
+func tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes20(in *jlexer.Lexer, out *BalanceResponse) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -1728,7 +1908,7 @@ func tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes18(in *jlexer.Lexe
 		in.Consumed()
 	}
 }
-func tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes18(out *jwriter.Writer, in BalanceResponse) {
+func tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes20(out *jwriter.Writer, in BalanceResponse) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -1743,27 +1923,27 @@ func tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes18(out *jwriter.Wr
 // MarshalJSON supports json.Marshaler interface
 func (v BalanceResponse) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes18(&w, v)
+	tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes20(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalTinyJSON supports tinyjson.Marshaler interface
 func (v BalanceResponse) MarshalTinyJSON(w *jwriter.Writer) {
-	tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes18(w, v)
+	tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes20(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *BalanceResponse) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes18(&r, v)
+	tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes20(&r, v)
 	return r.Error()
 }
 
 // UnmarshalTinyJSON supports tinyjson.Unmarshaler interface
 func (v *BalanceResponse) UnmarshalTinyJSON(l *jlexer.Lexer) {
-	tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes18(l, v)
+	tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes20(l, v)
 }
-func tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes19(in *jlexer.Lexer, out *BalanceQuery) {
+func tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes21(in *jlexer.Lexer, out *BalanceQuery) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -1796,7 +1976,7 @@ func tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes19(in *jlexer.Lexe
 		in.Consumed()
 	}
 }
-func tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes19(out *jwriter.Writer, in BalanceQuery) {
+func tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes21(out *jwriter.Writer, in BalanceQuery) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -1816,27 +1996,27 @@ func tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes19(out *jwriter.Wr
 // MarshalJSON supports json.Marshaler interface
 func (v BalanceQuery) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes19(&w, v)
+	tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes21(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalTinyJSON supports tinyjson.Marshaler interface
 func (v BalanceQuery) MarshalTinyJSON(w *jwriter.Writer) {
-	tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes19(w, v)
+	tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes21(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *BalanceQuery) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes19(&r, v)
+	tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes21(&r, v)
 	return r.Error()
 }
 
 // UnmarshalTinyJSON supports tinyjson.Unmarshaler interface
 func (v *BalanceQuery) UnmarshalTinyJSON(l *jlexer.Lexer) {
-	tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes19(l, v)
+	tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes21(l, v)
 }
-func tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes20(in *jlexer.Lexer, out *AllValidatorsResponse) {
+func tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes22(in *jlexer.Lexer, out *AllValidatorsResponse) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -1888,7 +2068,7 @@ func tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes20(in *jlexer.Lexe
 		in.Consumed()
 	}
 }
-func tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes20(out *jwriter.Writer, in AllValidatorsResponse) {
+func tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes22(out *jwriter.Writer, in AllValidatorsResponse) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -1912,27 +2092,27 @@ func tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes20(out *jwriter.Wr
 // MarshalJSON supports json.Marshaler interface
 func (v AllValidatorsResponse) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes20(&w, v)
+	tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes22(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalTinyJSON supports tinyjson.Marshaler interface
 func (v AllValidatorsResponse) MarshalTinyJSON(w *jwriter.Writer) {
-	tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes20(w, v)
+	tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes22(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *AllValidatorsResponse) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes20(&r, v)
+	tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes22(&r, v)
 	return r.Error()
 }
 
 // UnmarshalTinyJSON supports tinyjson.Unmarshaler interface
 func (v *AllValidatorsResponse) UnmarshalTinyJSON(l *jlexer.Lexer) {
-	tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes20(l, v)
+	tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes22(l, v)
 }
-func tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes21(in *jlexer.Lexer, out *AllValidatorsQuery) {
+func tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes23(in *jlexer.Lexer, out *AllValidatorsQuery) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -1961,7 +2141,7 @@ func tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes21(in *jlexer.Lexe
 		in.Consumed()
 	}
 }
-func tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes21(out *jwriter.Writer, in AllValidatorsQuery) {
+func tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes23(out *jwriter.Writer, in AllValidatorsQuery) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -1971,27 +2151,27 @@ func tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes21(out *jwriter.Wr
 // MarshalJSON supports json.Marshaler interface
 func (v AllValidatorsQuery) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes21(&w, v)
+	tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes23(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalTinyJSON supports tinyjson.Marshaler interface
 func (v AllValidatorsQuery) MarshalTinyJSON(w *jwriter.Writer) {
-	tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes21(w, v)
+	tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes23(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *AllValidatorsQuery) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes21(&r, v)
+	tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes23(&r, v)
 	return r.Error()
 }
 
 // UnmarshalTinyJSON supports tinyjson.Unmarshaler interface
 func (v *AllValidatorsQuery) UnmarshalTinyJSON(l *jlexer.Lexer) {
-	tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes21(l, v)
+	tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes23(l, v)
 }
-func tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes22(in *jlexer.Lexer, out *AllDelegationsResponse) {
+func tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes24(in *jlexer.Lexer, out *AllDelegationsResponse) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -2043,7 +2223,7 @@ func tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes22(in *jlexer.Lexe
 		in.Consumed()
 	}
 }
-func tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes22(out *jwriter.Writer, in AllDelegationsResponse) {
+func tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes24(out *jwriter.Writer, in AllDelegationsResponse) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -2067,27 +2247,27 @@ func tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes22(out *jwriter.Wr
 // MarshalJSON supports json.Marshaler interface
 func (v AllDelegationsResponse) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes22(&w, v)
+	tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes24(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalTinyJSON supports tinyjson.Marshaler interface
 func (v AllDelegationsResponse) MarshalTinyJSON(w *jwriter.Writer) {
-	tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes22(w, v)
+	tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes24(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *AllDelegationsResponse) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes22(&r, v)
+	tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes24(&r, v)
 	return r.Error()
 }
 
 // UnmarshalTinyJSON supports tinyjson.Unmarshaler interface
 func (v *AllDelegationsResponse) UnmarshalTinyJSON(l *jlexer.Lexer) {
-	tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes22(l, v)
+	tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes24(l, v)
 }
-func tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes23(in *jlexer.Lexer, out *AllDelegationsQuery) {
+func tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes25(in *jlexer.Lexer, out *AllDelegationsQuery) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -2118,7 +2298,7 @@ func tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes23(in *jlexer.Lexe
 		in.Consumed()
 	}
 }
-func tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes23(out *jwriter.Writer, in AllDelegationsQuery) {
+func tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes25(out *jwriter.Writer, in AllDelegationsQuery) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -2133,27 +2313,27 @@ func tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes23(out *jwriter.Wr
 // MarshalJSON supports json.Marshaler interface
 func (v AllDelegationsQuery) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes23(&w, v)
+	tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes25(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalTinyJSON supports tinyjson.Marshaler interface
 func (v AllDelegationsQuery) MarshalTinyJSON(w *jwriter.Writer) {
-	tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes23(w, v)
+	tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes25(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *AllDelegationsQuery) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes23(&r, v)
+	tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes25(&r, v)
 	return r.Error()
 }
 
 // UnmarshalTinyJSON supports tinyjson.Unmarshaler interface
 func (v *AllDelegationsQuery) UnmarshalTinyJSON(l *jlexer.Lexer) {
-	tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes23(l, v)
+	tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes25(l, v)
 }
-func tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes24(in *jlexer.Lexer, out *AllBalancesResponse) {
+func tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes26(in *jlexer.Lexer, out *AllBalancesResponse) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -2205,7 +2385,7 @@ func tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes24(in *jlexer.Lexe
 		in.Consumed()
 	}
 }
-func tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes24(out *jwriter.Writer, in AllBalancesResponse) {
+func tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes26(out *jwriter.Writer, in AllBalancesResponse) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -2229,27 +2409,27 @@ func tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes24(out *jwriter.Wr
 // MarshalJSON supports json.Marshaler interface
 func (v AllBalancesResponse) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes24(&w, v)
+	tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes26(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalTinyJSON supports tinyjson.Marshaler interface
 func (v AllBalancesResponse) MarshalTinyJSON(w *jwriter.Writer) {
-	tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes24(w, v)
+	tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes26(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *AllBalancesResponse) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes24(&r, v)
+	tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes26(&r, v)
 	return r.Error()
 }
 
 // UnmarshalTinyJSON supports tinyjson.Unmarshaler interface
 func (v *AllBalancesResponse) UnmarshalTinyJSON(l *jlexer.Lexer) {
-	tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes24(l, v)
+	tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes26(l, v)
 }
-func tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes25(in *jlexer.Lexer, out *AllBalancesQuery) {
+func tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes27(in *jlexer.Lexer, out *AllBalancesQuery) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -2280,7 +2460,7 @@ func tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes25(in *jlexer.Lexe
 		in.Consumed()
 	}
 }
-func tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes25(out *jwriter.Writer, in AllBalancesQuery) {
+func tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes27(out *jwriter.Writer, in AllBalancesQuery) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -2295,23 +2475,23 @@ func tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes25(out *jwriter.Wr
 // MarshalJSON supports json.Marshaler interface
 func (v AllBalancesQuery) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes25(&w, v)
+	tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes27(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalTinyJSON supports tinyjson.Marshaler interface
 func (v AllBalancesQuery) MarshalTinyJSON(w *jwriter.Writer) {
-	tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes25(w, v)
+	tinyjsonAa6e548eEncodeGithubComCosmwasmCosmwasmGoStdTypes27(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *AllBalancesQuery) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes25(&r, v)
+	tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes27(&r, v)
 	return r.Error()
 }
 
 // UnmarshalTinyJSON supports tinyjson.Unmarshaler interface
 func (v *AllBalancesQuery) UnmarshalTinyJSON(l *jlexer.Lexer) {
-	tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes25(l, v)
+	tinyjsonAa6e548eDecodeGithubComCosmwasmCosmwasmGoStdTypes27(l, v)
 }

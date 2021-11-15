@@ -1,5 +1,7 @@
 package types
 
+// TODO: look at using this strong type from wasmvm:subcall.go
+// for now, it adda a bunch of custom json parsing and need to be careful.
 type replyOn int
 
 const (

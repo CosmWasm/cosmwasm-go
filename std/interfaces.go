@@ -39,9 +39,9 @@ type Iterator interface {
 }
 
 type Api interface {
-	CanonicalAddress(human string) (types.CanonicalAddr, error)
-	HumanAddress(canonical types.CanonicalAddr) (string, error)
-	ValidateAddress(human string) error
+	CanonicalAddress(human types.HumanAddress) (types.CanonicalAddress, error)
+	HumanAddress(canonical types.CanonicalAddress) (types.HumanAddress, error)
+	ValidateAddress(human types.HumanAddress) error
 	Debug(msg string)
 }
 

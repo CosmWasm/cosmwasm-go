@@ -1,17 +1,37 @@
 package types
 
 // ------- query detail types ---------
+// QueryResponse is the Go counterpart of `ContractResult<Binary>`.
+// The JSON annotations are used for deserializing directly. There is a custom serializer below.
+// type QueryResponse queryResponseImpl
+
+// type queryResponseImpl struct {
 type QueryResponse struct {
-	Ok    []byte `json:"ok,omitempty"`
-	Error string `json:"error,omitempty"`
+	Ok  []byte `json:"ok,omitempty"`
+	Err string `json:"error,omitempty"`
 }
+
+// TODO: after tinygo gen, try to ensure we handle this properly (all empty as ok)
+// Or maybe we only need that for Rust contracts to parse fine??
+
+// // A custom serializer that allows us to map QueryResponse instances to the Rust
+// // enum `ContractResult<Binary>`
+// func (q QueryResponse) MarshalJSON() ([]byte, error) {
+// 	// In case both Ok and Err are empty, this is interpreted and seralized
+// 	// as an Ok case with no data because errors must not be empty.
+// 	if len(q.Ok) == 0 && len(q.Err) == 0 {
+// 		return []byte(`{"ok":""}`), nil
+// 	}
+// 	return queryResponseImpl(q).MarshalJSON()
+// }
 
 // This is a 2-level result
 type QuerierResult struct {
-	Ok    *QueryResponse `json:"ok,omitempty"`
-	Error *SystemError   `json:"error,omitempty"`
+	Ok  *QueryResponse `json:"ok,omitempty"`
+	Err *SystemError   `json:"error,omitempty"`
 }
 
+// TODO: I think this can be removed (we may need to update calling code)
 func BuildQueryResponse(msg string) *QueryResponse {
 	return &QueryResponse{Ok: []byte(msg)}
 }
@@ -21,8 +41,8 @@ func BuildQueryResponseBinary(msg []byte) *QueryResponse {
 }
 
 func (q QueryResponse) Data() ([]byte, error) {
-	if q.Error != "" {
-		return nil, GenericError(q.Error)
+	if q.Err != "" {
+		return nil, GenericError(q.Err)
 	}
 	return q.Ok, nil
 }
@@ -150,8 +170,9 @@ type StargateResponse struct {
 }
 
 type WasmQuery struct {
-	Smart *SmartQuery `json:"smart,omitempty"`
-	Raw   *RawQuery   `json:"raw,omitempty"`
+	Smart        *SmartQuery        `json:"smart,omitempty"`
+	Raw          *RawQuery          `json:"raw,omitempty"`
+	ContractInfo *ContractInfoQuery `json:"contract_info,omitempty"`
 }
 
 // SmartQuery respone is raw bytes ([]byte)
@@ -166,110 +187,17 @@ type RawQuery struct {
 	Key          []byte `json:"key"`
 }
 
-// }
-// // QueryRequest is an rust enum and only (exactly) one of the fields should be set
-// // Should we do a cleaner approach in Go? (type/data?)
-// type QueryRequest struct {
-// 	Bank    *BankQuery    `json:"bank,omitempty"`
-// 	Custom  *RawMessage   `json:"custom,omitempty"`
-// 	Staking *StakingQuery `json:"staking,omitempty"`
-// 	Wasm    *WasmQuery    `json:"wasm,omitempty"`
-// }
+type ContractInfoQuery struct {
+	// Bech32 encoded sdk.AccAddress of the contract
+	ContractAddr string `json:"contract_addr"`
+}
 
-// type BankQuery struct {
-// 	Balance     *BalanceQuery     `json:"balance,omitempty"`
-// 	AllBalances *AllBalancesQuery `json:"all_balances,omitempty"`
-// }
-
-// type BalanceQuery struct {
-// 	Address string `json:"address"`
-// 	Denom   string `json:"denom"`
-// }
-
-// // BalanceResponse is the expected response to BalanceQuery
-// type BalanceResponse struct {
-// 	Amount Coin `json:"amount"`
-// }
-
-// type AllBalancesQuery struct {
-// 	Address string `json:"address"`
-// }
-
-// // AllBalancesResponse is the expected response to AllBalancesQuery
-// type AllBalancesResponse struct {
-// 	Amount []Coin `json:"amount,emptyslice"`
-// }
-
-// type StakingQuery struct {
-// 	Validators     *struct{}            `json:",omitempty"`
-// 	AllDelegations *AllDelegationsQuery `json:",omitempty"`
-// 	Delegation     *DelegationQuery     `json:",omitempty"`
-// 	BondedDenom    *struct{}            `json:",omitempty"`
-// }
-
-// // ValidatorsResponse is the expected response to ValidatorsQuery
-// type ValidatorsResponse struct {
-// 	Validators []Validator `json:",emptyslice"`
-// }
-// type Validator struct {
-// 	Address string
-// 	// decimal string, eg "0.02"
-// 	Commission string
-// 	// decimal string, eg "0.02"
-// 	MaxCommission string
-// 	// decimal string, eg "0.02"
-// 	MaxChangeRate string
-// }
-
-// type AllDelegationsQuery struct {
-// 	Delegator string
-// }
-
-// type DelegationQuery struct {
-// 	Delegator string
-// 	Validator string
-// }
-
-// // AllDelegationsResponse is the expected response to AllDelegationsQuery
-// type AllDelegationsResponse struct {
-// 	Delegations []Delegation `json:",emptyslice"`
-// }
-// type Delegation struct {
-// 	Delegator string `json:"delegator"`
-// 	Validator string `json:"validator"`
-// 	Amount    Coin   `json:"amount"`
-// }
-
-// // DelegationResponse is the expected response to DelegationsQuery
-// type DelegationResponse struct {
-// 	Delegation *FullDelegation `json:",omitempty"`
-// }
-
-// type FullDelegation struct {
-// 	Delegator          string
-// 	Validator          string
-// 	Amount             Coin
-// 	AccumulatedRewards []Coin `json:",emptyslice"`
-// 	CanRedelegate      Coin
-// }
-
-// type BondedDenomResponse struct {
-// 	Denom string
-// }
-
-// type WasmQuery struct {
-// 	Smart *SmartQuery `json:",omitempty"`
-// 	Raw   *RawQuery   `json:",omitempty"`
-// }
-
-// // SmartQuery respone is raw bytes ([]byte)
-// type SmartQuery struct {
-// 	ContractAddr string
-// 	Msg          []byte
-// }
-
-// // RawQuery response is raw bytes ([]byte)
-// type RawQuery struct {
-// 	ContractAddr string
-// 	Key          []byte
-// }
+type ContractInfoResponse struct {
+	CodeID  uint64 `json:"code_id"`
+	Creator string `json:"creator"`
+	// Set to the admin who can migrate contract, if any
+	Admin  string `json:"admin,omit_empty"`
+	Pinned bool   `json:"pinned"`
+	// Set if the contract is IBC enabled
+	IBCPort string `json:"ibc_port,omit_empty"`
+}

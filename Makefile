@@ -9,7 +9,7 @@ tiny-build:
 	go build -o ./bin/tinyjson github.com/CosmWasm/tinyjson/tinyjson
 
 clean:
-	rm -f std/*_tinyjson.go
+	rm -f std/types/*_tinyjson.go
 	rm -f example/hackatom/src/*_tinyjson.go
 
 generate: tiny-build generate-std generate-contracts
@@ -17,6 +17,7 @@ generate: tiny-build generate-std generate-contracts
 generate-std:
 	./bin/tinyjson -all -snake_case \
 		./std/types/env.go \
+		./std/types/fraction.go \
 		./std/types/ibc.go \
 		./std/types/msg.go \
 		./std/types/query.go \

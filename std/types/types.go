@@ -2,11 +2,16 @@ package types
 
 import "strconv"
 
-type CanonicalAddr []byte
+// HumanAddress is a printable (typically bech32 encoded) address string. Just use it as a label for developers.
+type HumanAddress = string
+
+// CanonicalAddress uses standard base64 encoding, just use it as a label for developers
+type CanonicalAddress = []byte
 
 // Coin is a string representation of the sdk.Coin type (more portable than sdk.Int)
 type Coin struct {
-	Denom  string // type, eg. "ATOM"
+	Denom string // type, eg. "ATOM"
+	// TODO: this should be uint128 with string encoding
 	Amount string // string encoing of decimal value, eg. "12.3456"
 }
 

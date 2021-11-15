@@ -8,8 +8,9 @@ package types
 //
 // Env are json encoded to a byte slice before passing to the wasm contract.
 type Env struct {
-	Block    BlockInfo
-	Contract ContractInfo
+	Block       BlockInfo
+	Contract    ContractInfo
+	Transaction *TransactionInfo `json:"transaction_info,omitempty"`
 }
 
 type BlockInfo struct {
@@ -30,4 +31,13 @@ type MessageInfo struct {
 type ContractInfo struct {
 	// bech32 encoding of sdk.AccAddress of the contract, to be used when sending messages
 	Address string
+}
+
+type TransactionInfo struct {
+	// Position of this transaction in the block.
+	// The first transaction has index 0
+	//
+	// Along with BlockInfo.Height, this allows you to get a unique
+	// transaction identifier for the chain for future queries
+	Index uint32 `json:"index"`
 }
