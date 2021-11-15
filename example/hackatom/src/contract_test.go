@@ -48,9 +48,9 @@ func TestInitAndQuery(t *testing.T) {
 	res, err := Instantiate(deps, env, info, mustEncode(t, initMsg))
 	require.NoError(t, err)
 	require.NotNil(t, res)
-	assert.Equal(t, 0, len(res.Ok.Messages))
-	require.Equal(t, 1, len(res.Ok.Attributes))
-	attr := res.Ok.Attributes[0]
+	assert.Equal(t, 0, len(res.Messages))
+	require.Equal(t, 1, len(res.Attributes))
+	attr := res.Attributes[0]
 	assert.Equal(t, "Let the", attr.Key)
 	assert.Equal(t, "hacking begin", attr.Value)
 
@@ -58,9 +58,8 @@ func TestInitAndQuery(t *testing.T) {
 	data, err := Query(deps, env, qmsg)
 	require.NoError(t, err)
 	var qres VerifierResponse
-	bin, err := data.Data()
 	require.NoError(t, err)
-	err = json.Unmarshal(bin, &qres)
+	err = json.Unmarshal(data, &qres)
 	require.NoError(t, err)
 	assert.Equal(t, VERIFIER, qres.Verifier)
 }
@@ -71,7 +70,7 @@ func TestPanic(t *testing.T) {
 	info := mocks.MockInfo(FUNDER, nil)
 	handleMsg := []byte(`{"panic":{}}`)
 	require.Panics(t, func() {
-		Execute(deps, env, info, handleMsg)
+		_, _ = Execute(deps, env, info, handleMsg)
 	})
 }
 
@@ -100,15 +99,15 @@ func TestRelease(t *testing.T) {
 				require.NoError(t, err)
 				require.NotNil(t, res)
 
-				require.Equal(t, 1, len(res.Ok.Messages))
-				msg := res.Ok.Messages[0]
+				require.Equal(t, 1, len(res.Messages))
+				msg := res.Messages[0]
 				expected := types.CosmosMsg{Bank: &types.BankMsg{Send: &types.SendMsg{
 					ToAddress: BENEFICIARY,
 					Amount:    tc.funds,
 				}}}
 				assert.Equal(t, expected, msg.Msg)
-				assert.Equal(t, 2, len(res.Ok.Attributes))
-				assert.Equal(t, []types.EventAttribute{{"action", "release"}, {"destination", BENEFICIARY}}, res.Ok.Attributes)
+				assert.Equal(t, 2, len(res.Attributes))
+				assert.Equal(t, []types.EventAttribute{{"action", "release"}, {"destination", BENEFICIARY}}, res.Attributes)
 			}
 		})
 	}

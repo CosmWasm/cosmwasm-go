@@ -20,8 +20,8 @@ func execute(env_ptr, info_ptr, msg_ptr uint32) unsafe.Pointer {
 }
 
 //export migrate
-func migrate(env_ptr, info_ptr, msg_ptr uint32) unsafe.Pointer {
-	return std.DoMigrate(src.Migrate, env_ptr, info_ptr, msg_ptr)
+func migrate(env_ptr, msg_ptr uint32) unsafe.Pointer {
+	return std.DoMigrate(src.Migrate, env_ptr, msg_ptr)
 }
 
 //export query
