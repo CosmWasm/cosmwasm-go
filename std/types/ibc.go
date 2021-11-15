@@ -1,5 +1,7 @@
 package types
 
+/*** taken from wasmvm:types/msg.go (so this compiles with easyjson) ***/
+
 type IBCMsg struct {
 	Transfer     *TransferMsg     `json:"transfer,omitempty"`
 	SendPacket   *SendPacketMsg   `json:"send_packet,omitempty"`
@@ -7,21 +9,23 @@ type IBCMsg struct {
 }
 
 type TransferMsg struct {
-	ChannelID string `json:"channel_id"`
-	ToAddress string `json:"to_address"`
-	Amount    Coin   `json:"amount"`
-	// Timeout   IBCTimeout `json:"timeout"`
+	ChannelID string     `json:"channel_id"`
+	ToAddress string     `json:"to_address"`
+	Amount    Coin       `json:"amount"`
+	Timeout   IBCTimeout `json:"timeout"`
 }
 
 type SendPacketMsg struct {
-	ChannelID string `json:"channel_id"`
-	Data      []byte `json:"data"`
-	// Timeout   IBCTimeout `json:"timeout"`
+	ChannelID string     `json:"channel_id"`
+	Data      []byte     `json:"data"`
+	Timeout   IBCTimeout `json:"timeout"`
 }
 
 type CloseChannelMsg struct {
 	ChannelID string `json:"channel_id"`
 }
+
+/*** taken from wasmvm:types/queries.go (so this compiles with easyjson) ***/
 
 // IBCQuery defines a query request from the contract into the chain.
 // This is the counterpart of [IbcQuery](https://github.com/CosmWasm/cosmwasm/blob/v0.14.0-beta1/packages/std/src/ibc.rs#L61-L83).
@@ -60,6 +64,8 @@ type ChannelResponse struct {
 	// may be empty if there is no matching channel
 	Channel *IBCChannel `json:"channel,omitempty"`
 }
+
+/**** Below from wasmvm:types/ibc.go *****/
 
 type IBCEndpoint struct {
 	PortID    string `json:"port_id"`

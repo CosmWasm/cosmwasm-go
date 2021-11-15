@@ -17,6 +17,7 @@ generate: tiny-build generate-std generate-contracts
 generate-std:
 	./bin/tinyjson -all -snake_case \
 		./std/types/env.go \
+		./std/types/fraction.go \
 		./std/types/ibc.go \
 		./std/types/msg.go \
 		./std/types/query.go \
