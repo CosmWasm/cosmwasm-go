@@ -69,7 +69,7 @@ func TestMockApi_CanonicalAddress(t *testing.T) {
 	ea := MockApi{}
 	humanAddr := "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 	longHumanAddr := humanAddr + "a"
-	expectedCanonAddr := types.CanonicalAddr(humanAddr)
+	expectedCanonAddr := types.CanonicalAddress(humanAddr)
 
 	canonAddr, err := ea.CanonicalAddress(longHumanAddr)
 	require.Error(t, err)
@@ -83,21 +83,21 @@ func TestMockApi_CanonicalAddress(t *testing.T) {
 func TestMockApi_HumanAddress(t *testing.T) {
 	ea := MockApi{}
 	expectedHumanAddr := "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-	expectedCanonAddr := types.CanonicalAddr(expectedHumanAddr)
+	expectedCanonAddr := types.CanonicalAddress(expectedHumanAddr)
 
 	humanAddr, err := ea.HumanAddress(expectedCanonAddr)
 	require.NoError(t, err)
 	require.Equal(t, expectedHumanAddr, humanAddr)
 
 	// error report
-	longCanonAddr := make(types.CanonicalAddr, canonicalLength)
+	longCanonAddr := make(types.CanonicalAddress, canonicalLength)
 	copy(longCanonAddr, expectedCanonAddr)
 	longCanonAddr = append(longCanonAddr, 'a')
 	humanAddr, err = ea.HumanAddress(longCanonAddr)
 	require.Error(t, err)
 	require.Equal(t, "", humanAddr)
 
-	inputCanonAddr := make(types.CanonicalAddr, canonicalLength)
+	inputCanonAddr := make(types.CanonicalAddress, canonicalLength)
 	copy(inputCanonAddr, expectedCanonAddr)
 	inputCanonAddr[9] = 0
 	humanAddr, err = ea.HumanAddress(inputCanonAddr)

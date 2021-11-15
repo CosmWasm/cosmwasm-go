@@ -116,7 +116,7 @@ var (
 
 type MockApi struct{}
 
-func (api MockApi) CanonicalAddress(human string) (types.CanonicalAddr, error) {
+func (api MockApi) CanonicalAddress(human string) (types.CanonicalAddress, error) {
 	if len(human) > canonicalLength {
 		return nil, types.GenericError("failed. human encoding too long")
 	}
@@ -124,7 +124,7 @@ func (api MockApi) CanonicalAddress(human string) (types.CanonicalAddr, error) {
 	return []byte(human), nil
 }
 
-func (api MockApi) HumanAddress(canonical types.CanonicalAddr) (string, error) {
+func (api MockApi) HumanAddress(canonical types.CanonicalAddress) (string, error) {
 	if len(canonical) != canonicalLength {
 		return "", types.GenericError("failed. wrong canonical address length")
 	}
