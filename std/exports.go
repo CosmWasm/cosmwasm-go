@@ -11,7 +11,9 @@ import (
 
 type (
 	// InstantiateFunc defines the function ran by contracts in instantiation.
-	InstantiateFunc func(*Deps, types.Env, types.MessageInfo, []byte) (*types.Response, error)
+	InstantiateFunc func(deps *Deps, env types.Env, messageInfo types.MessageInfo, messageBytes []byte) (*types.Response, error)
+	// ExecuteFunc defines the function ran by contracts in message execution.
+	ExecuteFunc func(deps *Deps, env types.Env, messageInfo types.MessageInfo, messageBytes []byte) (*types.Response, error)
 )
 
 func StdErrResult(err error) unsafe.Pointer {
@@ -67,8 +69,9 @@ func DoInstantiate(instantiateFunc InstantiateFunc, envPtr, infoPtr, msgPtr uint
 	return Package_message(data)
 }
 
-// ========= execute ============
-func DoExecute(executeFn func(*Deps, types.Env, types.MessageInfo, []byte) (*types.ContractResult, error), envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
+// DoExecute converts the environment, info and message pointers to concrete golang objects
+// and executes contract's message execution logic.
+func DoExecute(executeFunc ExecuteFunc, envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
 	env := types.Env{}
 	envData := TranslateToSlice(uintptr(envPtr))
 	err := env.UnmarshalJSON(envData)
@@ -83,12 +86,14 @@ func DoExecute(executeFn func(*Deps, types.Env, types.MessageInfo, []byte) (*typ
 
 	deps := make_dependencies()
 	msgData := Translate_range_custom(uintptr(msgPtr))
-	ok, err := executeFn(&deps, env, info, msgData)
-	if ok == nil || err != nil {
+	resp, err := executeFunc(&deps, env, info, msgData)
+	if err != nil {
 		return StdErrResult(err)
 	}
 
-	data, err := ok.MarshalJSON()
+	result := &types.ContractResult{Ok: resp}
+
+	data, err := result.MarshalJSON()
 	if err != nil {
 		return StdErrResult(err)
 	}

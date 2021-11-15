@@ -4,10 +4,14 @@ import (
 	"github.com/cosmwasm/cosmwasm-go/std/types"
 )
 
-// =========== Deps --> context =======
+// Deps contains the dependencies passed to a contract's mutating entrypoints.
 type Deps struct {
+	// Storage provides access to the data persistence layer at write and read level.
 	Storage Storage
-	Api     Api
+	// Api provides access to common utilities such as address
+	// parsing and verification.
+	Api Api
+	// Querier is used to query information from other contracts.
 	Querier Querier
 }
 
