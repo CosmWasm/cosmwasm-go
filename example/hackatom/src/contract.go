@@ -40,7 +40,7 @@ func Instantiate(deps *std.Deps, env types.Env, info types.MessageInfo, msg []by
 	return res, nil
 }
 
-func Migrate(deps *std.Deps, env types.Env, info types.MessageInfo, msg []byte) (*types.ContractResult, error) {
+func Migrate(deps *std.Deps, env types.Env, info types.MessageInfo, msg []byte) (*types.Response, error) {
 	migrateMsg := MigrateMsg{}
 	err := migrateMsg.UnmarshalJSON(msg)
 	if err != nil {
@@ -58,7 +58,7 @@ func Migrate(deps *std.Deps, env types.Env, info types.MessageInfo, msg []byte) 
 	}
 
 	res := &types.Response{Data: []byte("migrated")}
-	return &types.ContractResult{Ok: res}, nil
+	return res, nil
 }
 
 func Execute(deps *std.Deps, env types.Env, info types.MessageInfo, data []byte) (*types.ContractResult, error) {

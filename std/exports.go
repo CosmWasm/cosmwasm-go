@@ -14,6 +14,8 @@ type (
 	InstantiateFunc func(deps *Deps, env types.Env, messageInfo types.MessageInfo, messageBytes []byte) (*types.Response, error)
 	// ExecuteFunc defines the function ran by contracts in message execution.
 	ExecuteFunc func(deps *Deps, env types.Env, messageInfo types.MessageInfo, messageBytes []byte) (*types.Response, error)
+	// MigrateFunc defines the function ran by contracts in migration.
+	MigrateFunc func(deps *Deps, env types.Env, messageInfo types.MessageInfo, messageBytes []byte) (*types.Response, error)
 )
 
 func StdErrResult(err error) unsafe.Pointer {
@@ -100,8 +102,9 @@ func DoExecute(executeFunc ExecuteFunc, envPtr, infoPtr, msgPtr uint32) unsafe.P
 	return Package_message(data)
 }
 
-// ========= migrate ============
-func DoMigrate(migrateFn func(*Deps, types.Env, types.MessageInfo, []byte) (*types.ContractResult, error), envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
+// DoMigrate converts the environment, info and message pointers to concrete golang objects
+// and execute the contract migration logic.
+func DoMigrate(migrateFunc MigrateFunc, envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
 	env := types.Env{}
 	envData := TranslateToSlice(uintptr(envPtr))
 	err := env.UnmarshalJSON(envData)
@@ -116,15 +119,19 @@ func DoMigrate(migrateFn func(*Deps, types.Env, types.MessageInfo, []byte) (*typ
 
 	deps := make_dependencies()
 	msgData := Translate_range_custom(uintptr(msgPtr))
-	ok, err := migrateFn(&deps, env, info, msgData)
-	if ok == nil {
+	resp, err := migrateFunc(&deps, env, info, msgData)
+	if resp == nil {
 		return StdErrResult(err)
 	}
 
-	data, err := ok.MarshalJSON()
+	result := &types.ContractResult{
+		Ok: resp,
+	}
+	data, err := result.MarshalJSON()
 	if err != nil {
 		return StdErrResult(err)
 	}
+
 	return Package_message(data)
 }
 
