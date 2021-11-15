@@ -170,5 +170,5 @@ func deallocate(pointer unsafe.Pointer) {
 	Deallocate(pointer)
 }
 
-//export interface_version_7
-func interface_version_7() {}
+//export interface_version_8
+func interface_version_8() {}
