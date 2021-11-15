@@ -58,9 +58,8 @@ func TestInitAndQuery(t *testing.T) {
 	data, err := Query(deps, env, qmsg)
 	require.NoError(t, err)
 	var qres VerifierResponse
-	bin, err := data.Data()
 	require.NoError(t, err)
-	err = json.Unmarshal(bin, &qres)
+	err = json.Unmarshal(data, &qres)
 	require.NoError(t, err)
 	assert.Equal(t, VERIFIER, qres.Verifier)
 }
@@ -71,7 +70,7 @@ func TestPanic(t *testing.T) {
 	info := mocks.MockInfo(FUNDER, nil)
 	handleMsg := []byte(`{"panic":{}}`)
 	require.Panics(t, func() {
-		Execute(deps, env, info, handleMsg)
+		_, _ = Execute(deps, env, info, handleMsg)
 	})
 }
 

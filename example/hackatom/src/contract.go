@@ -156,7 +156,7 @@ func executePanic(deps *std.Deps, env *types.Env, info *types.MessageInfo) (*typ
 	panic("This page intentionally faulted")
 }
 
-func Query(deps *std.Deps, env types.Env, data []byte) (*types.QueryResponse, error) {
+func Query(deps *std.Deps, env types.Env, data []byte) ([]byte, error) {
 	msg := QueryMsg{}
 	err := msg.UnmarshalJSON(data)
 	if err != nil {
@@ -184,7 +184,7 @@ func Query(deps *std.Deps, env types.Env, data []byte) (*types.QueryResponse, er
 	if err != nil {
 		return nil, err
 	}
-	return types.BuildQueryResponseBinary(bz), nil
+	return bz, nil
 
 }
 

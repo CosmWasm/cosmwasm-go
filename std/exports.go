@@ -16,6 +16,8 @@ type (
 	ExecuteFunc func(deps *Deps, env types.Env, messageInfo types.MessageInfo, messageBytes []byte) (*types.Response, error)
 	// MigrateFunc defines the function ran by contracts in migration.
 	MigrateFunc func(deps *Deps, env types.Env, messageInfo types.MessageInfo, messageBytes []byte) (*types.Response, error)
+	// QueryFunc defines the function ran by the contracts in query execution.
+	QueryFunc func(deps *Deps, env types.Env, messageBytes []byte) ([]byte, error)
 )
 
 func StdErrResult(err error) unsafe.Pointer {
@@ -135,8 +137,9 @@ func DoMigrate(migrateFunc MigrateFunc, envPtr, infoPtr, msgPtr uint32) unsafe.P
 	return Package_message(data)
 }
 
-// =========== query ===================
-func DoQuery(queryFn func(*Deps, types.Env, []byte) (*types.QueryResponse, error), envPtr, msgPtr uint32) unsafe.Pointer {
+// DoQuery converts the environment and info pointers to concrete golang objects
+// and executes the contract's query logic.
+func DoQuery(queryFunc QueryFunc, envPtr, msgPtr uint32) unsafe.Pointer {
 	msgData := Translate_range_custom(uintptr(msgPtr))
 	env := types.Env{}
 	envData := TranslateToSlice(uintptr(envPtr))
@@ -146,12 +149,15 @@ func DoQuery(queryFn func(*Deps, types.Env, []byte) (*types.QueryResponse, error
 	}
 
 	deps := make_dependencies()
-	ok, err := queryFn(&deps, env, msgData)
-	if ok == nil {
+	respBytes, err := queryFunc(&deps, env, msgData)
+	if err != nil {
 		return StdErrResult(err)
 	}
 
-	data, err := ok.MarshalJSON()
+	result := &types.QueryResponse{
+		Ok: respBytes,
+	}
+	data, err := result.MarshalJSON()
 	if err != nil {
 		return StdErrResult(err)
 	}
