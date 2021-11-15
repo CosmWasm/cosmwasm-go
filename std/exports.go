@@ -15,7 +15,7 @@ type (
 	// ExecuteFunc defines the function ran by contracts in message execution.
 	ExecuteFunc func(deps *Deps, env types.Env, messageInfo types.MessageInfo, messageBytes []byte) (*types.Response, error)
 	// MigrateFunc defines the function ran by contracts in migration.
-	MigrateFunc func(deps *Deps, env types.Env, messageInfo types.MessageInfo, messageBytes []byte) (*types.Response, error)
+	MigrateFunc func(deps *Deps, env types.Env, messageBytes []byte) (*types.Response, error)
 	// QueryFunc defines the function ran by the contracts in query execution.
 	QueryFunc func(deps *Deps, env types.Env, messageBytes []byte) ([]byte, error)
 )
@@ -106,7 +106,7 @@ func DoExecute(executeFunc ExecuteFunc, envPtr, infoPtr, msgPtr uint32) unsafe.P
 
 // DoMigrate converts the environment, info and message pointers to concrete golang objects
 // and execute the contract migration logic.
-func DoMigrate(migrateFunc MigrateFunc, envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
+func DoMigrate(migrateFunc MigrateFunc, envPtr, msgPtr uint32) unsafe.Pointer {
 	env := types.Env{}
 	envData := TranslateToSlice(uintptr(envPtr))
 	err := env.UnmarshalJSON(envData)
@@ -114,14 +114,9 @@ func DoMigrate(migrateFunc MigrateFunc, envPtr, infoPtr, msgPtr uint32) unsafe.P
 		return StdErrResult(err)
 	}
 
-	info, err := parseInfo(infoPtr)
-	if err != nil {
-		return StdErrResult(err)
-	}
-
 	deps := make_dependencies()
 	msgData := Translate_range_custom(uintptr(msgPtr))
-	resp, err := migrateFunc(&deps, env, info, msgData)
+	resp, err := migrateFunc(&deps, env, msgData)
 	if resp == nil {
 		return StdErrResult(err)
 	}
