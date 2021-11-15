@@ -1,3 +1,4 @@
+//go:build cosmwasm
 // +build cosmwasm
 
 package std
@@ -6,6 +7,11 @@ import (
 	"unsafe"
 
 	"github.com/cosmwasm/cosmwasm-go/std/types"
+)
+
+type (
+	// InstantiateFunc defines the function ran by contracts in instantiation.
+	InstantiateFunc func(*Deps, types.Env, types.MessageInfo, []byte) (*types.Response, error)
 )
 
 func StdErrResult(err error) unsafe.Pointer {
@@ -29,8 +35,9 @@ func parseInfo(infoPtr uint32) (types.MessageInfo, error) {
 	return info, err
 }
 
-// ========== instantiate ==============
-func DoInstantiate(instantiateFn func(*Deps, types.Env, types.MessageInfo, []byte) (*types.ContractResult, error), envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
+// DoInstantiate converts the environment, info and message pointers to concrete golang objects
+// and executes the contract's instantiation function, returning a reference of the result.
+func DoInstantiate(instantiateFunc InstantiateFunc, envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
 	env := types.Env{}
 	envData := TranslateToSlice(uintptr(envPtr))
 	err := env.UnmarshalJSON(envData)
@@ -45,12 +52,15 @@ func DoInstantiate(instantiateFn func(*Deps, types.Env, types.MessageInfo, []byt
 
 	deps := make_dependencies()
 	msgData := Translate_range_custom(uintptr(msgPtr))
-	ok, err := instantiateFn(&deps, env, info, msgData)
-	if ok == nil || err != nil {
+	resp, err := instantiateFunc(&deps, env, info, msgData)
+	if err != nil {
 		return StdErrResult(err)
 	}
 
-	data, err := ok.MarshalJSON()
+	result := &types.ContractResult{
+		Ok: resp,
+	}
+	data, err := result.MarshalJSON()
 	if err != nil {
 		return StdErrResult(err)
 	}

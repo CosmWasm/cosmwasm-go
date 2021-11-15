@@ -5,7 +5,7 @@ import (
 	"github.com/cosmwasm/cosmwasm-go/std/types"
 )
 
-func Instantiate(deps *std.Deps, env types.Env, info types.MessageInfo, msg []byte) (*types.ContractResult, error) {
+func Instantiate(deps *std.Deps, env types.Env, info types.MessageInfo, msg []byte) (*types.Response, error) {
 	deps.Api.Debug("here we go 🚀")
 
 	initMsg := InitMsg{}
@@ -37,7 +37,7 @@ func Instantiate(deps *std.Deps, env types.Env, info types.MessageInfo, msg []by
 	res := &types.Response{
 		Attributes: []types.EventAttribute{{"Let the", "hacking begin"}},
 	}
-	return &types.ContractResult{Ok: res}, nil
+	return res, nil
 }
 
 func Migrate(deps *std.Deps, env types.Env, info types.MessageInfo, msg []byte) (*types.ContractResult, error) {
