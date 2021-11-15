@@ -70,7 +70,7 @@ func DoInstantiate(instantiateFunc InstantiateFunc, envPtr, infoPtr, msgPtr uint
 }
 
 // DoExecute converts the environment, info and message pointers to concrete golang objects
-// and executes contract's message execution logic.
+// and executes the contract's message execution logic.
 func DoExecute(executeFunc ExecuteFunc, envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
 	env := types.Env{}
 	envData := TranslateToSlice(uintptr(envPtr))
