@@ -47,4 +47,43 @@ go test ./integration
 
 Once it is finished, you should be able to successfully run `make build` on hackatom
 
- 
+## Building TinyJSON
+
+We touched on [TinyJSON in the README](./README.md#json) but didn't explain how to build.
+You need to run codegen on all structs and call `bz, err := msg.MarshalJSON()` rather
+than `bz, err := json.MarshalJSON(msg)`.
+
+### JSON Struct Definitions
+
+You can use the same JSON definitions as anywhere with two nice improvements.
+If you just want to snake_case the names, to match Rust style, you don't need to add
+annotations like this everywhere:
+
+```go
+type Msg struct {
+  FooBar string `json:"foo_bar"`
+}
+```
+
+Just include the `-snake_case` flag and it will auto-generate that. Furthermore,
+when working for serialization compatible with Rust contracts, there are many places
+where we want to use `Foo []MyType` but have to define some `type MyTypes []MyType` that
+overrides the Marshalling to always serialize an empty array `[]` not `null`.
+In this case, you can define that behavior with a simple json argument `emptyslice`,
+which is a custom addition in the `tinyjson` compiler.
+
+```go
+type AllValidatorsResponse struct {
+	Validators []Validator `json:"validators,emptyslice"`
+}
+```
+
+The downside is that further customization of the `MarshalJSON()` method of a struct is non-trivial
+and is considered "unsupported advanced use-case" currently.
+
+### Build Process
+
+Makefile usage, how to add to your contract
+### Bootstrapping Errors
+
+TODO: when we delete files, but they depend on the code...
