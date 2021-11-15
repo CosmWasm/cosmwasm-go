@@ -46,5 +46,5 @@ hackatom:
 	@echo "VERSION=latest make hackatom - will run with different cosmwasm/tinygo image" 
 	./scripts/compile.sh hackatom
 	./scripts/check.sh hackatom.wasm
-	cp hackatom.wasm example/hackatom
+	mv hackatom.wasm example/hackatom
 	# ./scripts/strip_floats.sh hackatom.wasm
