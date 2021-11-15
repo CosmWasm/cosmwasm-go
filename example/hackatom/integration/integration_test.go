@@ -29,7 +29,11 @@ const FUNDER = "creator"
 
 // this can be used for a quick setup if you don't have nay other requirements
 func defaultInit(t *testing.T, funds []types.Coin) *systest.Instance {
-	instance := systest.NewInstance(t, CONTRACT, 100_000_000, funds)
+	// wasm gas is huge now, like 150000 gas for one wasm op, rather than 1 before.
+	// all numbers here must be measured in wasm gas. (note that one Terragas = 1_000_000_000_000
+	// is benchmarked at roughly 1ms of execution time), so we offer 15ms execution time here as huge!
+	// https://github.com/CosmWasm/cosmwasm/blob/main/docs/GAS.md
+	instance := systest.NewInstance(t, CONTRACT, 15_000_000_000_000, funds)
 
 	env := mocks.MockEnv()
 	info := mocks.MockInfo(FUNDER, funds)
@@ -45,7 +49,7 @@ func defaultInit(t *testing.T, funds []types.Coin) *systest.Instance {
 }
 
 func TestInitAndQuery(t *testing.T) {
-	instance := systest.NewInstance(t, CONTRACT, 100_000_000, nil)
+	instance := systest.NewInstance(t, CONTRACT, 15_000_000_000_000, nil)
 
 	env := mocks.MockEnv()
 	info := mocks.MockInfo(FUNDER, nil)
