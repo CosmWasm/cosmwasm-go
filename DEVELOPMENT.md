@@ -9,22 +9,24 @@ It is based off of 0.20, the [latest TinyGo release](https://github.com/confio/t
 at the time of this writing.
 (Please note merge conflicts during rebasing on newer tinygo versions are to be expected, so this is non-trivial)
 
+Note: 0.19.0 runs only on arm not intel/amd. It does produce final images with no floating point ops. 0.20 builds on both but includes some floating point ops. [See github issue #74](https://github.com/confio/cosmwasm-go/issues/74)
+
 We maintain a Docker image for the TinyGo compiler targeting CosmWasm on [Docker Hub](https://hub.docker.com/r/cosmwasm/tinygo/tags).
 You can get the latest version simply via:
 
 ```shell script
-docker pull cosmwasm/tinygo:0.20.0
+docker pull cosmwasm/tinygo:0.19.0
 ```
 
 If the latest version is not available, you can build from source:
 
 ```
 git clone https://github.com/confio/tinygo.git
-git checkout cw-0.20.0
-docker build -t cosmwasm/tinygo:0.20.0 -f Dockerfile.wasm .
+git checkout cw-0.19.0
+docker build -t cosmwasm/tinygo:0.19.0 -f Dockerfile.wasm .
 
 # and maybe publish
-docker push cosmwasm/tinygo:0.20.0
+docker push cosmwasm/tinygo:0.19.0
 ```
 
 

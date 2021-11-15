@@ -41,8 +41,10 @@ test-contracts:
 
 examples: hackatom
 
+# we need to move this to example/hackatom, so it will be run in the integration tests in CI
 hackatom:
-	@echo "VERSION=0.19.0 make hackatom - will run with different cosmwasm/tinygo image" 
+	@echo "VERSION=latest make hackatom - will run with different cosmwasm/tinygo image" 
 	./scripts/compile.sh hackatom
 	./scripts/check.sh hackatom.wasm
-	./scripts/strip_floats.sh hackatom.wasm
+	cp hackatom.wasm example/hackatom
+	# ./scripts/strip_floats.sh hackatom.wasm
