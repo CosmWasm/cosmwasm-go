@@ -48,9 +48,9 @@ func TestInitAndQuery(t *testing.T) {
 	res, err := Instantiate(deps, env, info, mustEncode(t, initMsg))
 	require.NoError(t, err)
 	require.NotNil(t, res)
-	assert.Equal(t, 0, len(res.Ok.Messages))
-	require.Equal(t, 1, len(res.Ok.Attributes))
-	attr := res.Ok.Attributes[0]
+	assert.Equal(t, 0, len(res.Messages))
+	require.Equal(t, 1, len(res.Attributes))
+	attr := res.Attributes[0]
 	assert.Equal(t, "Let the", attr.Key)
 	assert.Equal(t, "hacking begin", attr.Value)
 
