@@ -61,7 +61,7 @@ func Migrate(deps *std.Deps, env types.Env, info types.MessageInfo, msg []byte) 
 	return res, nil
 }
 
-func Execute(deps *std.Deps, env types.Env, info types.MessageInfo, data []byte) (*types.ContractResult, error) {
+func Execute(deps *std.Deps, env types.Env, info types.MessageInfo, data []byte) (*types.Response, error) {
 	msg := HandleMsg{}
 	err := msg.UnmarshalJSON(data)
 	if err != nil {
@@ -89,7 +89,7 @@ func Execute(deps *std.Deps, env types.Env, info types.MessageInfo, data []byte)
 	}
 }
 
-func executeRelease(deps *std.Deps, env *types.Env, info *types.MessageInfo) (*types.ContractResult, error) {
+func executeRelease(deps *std.Deps, env *types.Env, info *types.MessageInfo) (*types.Response, error) {
 	state, err := LoadState(deps.Storage)
 	if err != nil {
 		return nil, err
@@ -119,10 +119,10 @@ func executeRelease(deps *std.Deps, env *types.Env, info *types.MessageInfo) (*t
 		},
 		Messages: []types.SubMsg{msg},
 	}
-	return &types.ContractResult{Ok: res}, nil
+	return res, nil
 }
 
-func executeCpuLoop(deps *std.Deps, env *types.Env, info *types.MessageInfo) (*types.ContractResult, error) {
+func executeCpuLoop(deps *std.Deps, env *types.Env, info *types.MessageInfo) (*types.Response, error) {
 	var counter uint64 = 0
 	for {
 		counter += 1
@@ -130,29 +130,29 @@ func executeCpuLoop(deps *std.Deps, env *types.Env, info *types.MessageInfo) (*t
 			counter = 0
 		}
 	}
-	return &types.ContractResult{}, nil
+	return &types.Response{}, nil
 }
 
-func executeMemoryLoop(deps *std.Deps, env *types.Env, info *types.MessageInfo) (*types.ContractResult, error) {
+func executeMemoryLoop(deps *std.Deps, env *types.Env, info *types.MessageInfo) (*types.Response, error) {
 	counter := 1
 	data := []int{1}
 	for {
 		counter += 1
 		data = append(data, counter)
 	}
-	return &types.ContractResult{}, nil
+	return &types.Response{}, nil
 }
 
-func executeStorageLoop(deps *std.Deps, env *types.Env, info *types.MessageInfo) (*types.ContractResult, error) {
+func executeStorageLoop(deps *std.Deps, env *types.Env, info *types.MessageInfo) (*types.Response, error) {
 	var counter uint64 = 0
 	for {
 		data := []byte{0, 0, 0, 0, 0, 0, byte(counter / 256), byte(counter % 256)}
 		deps.Storage.Set([]byte("test.key"), data)
 	}
-	return &types.ContractResult{}, nil
+	return &types.Response{}, nil
 }
 
-func executePanic(deps *std.Deps, env *types.Env, info *types.MessageInfo) (*types.ContractResult, error) {
+func executePanic(deps *std.Deps, env *types.Env, info *types.MessageInfo) (*types.Response, error) {
 	panic("This page intentionally faulted")
 }
 

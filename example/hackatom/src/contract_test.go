@@ -100,15 +100,15 @@ func TestRelease(t *testing.T) {
 				require.NoError(t, err)
 				require.NotNil(t, res)
 
-				require.Equal(t, 1, len(res.Ok.Messages))
-				msg := res.Ok.Messages[0]
+				require.Equal(t, 1, len(res.Messages))
+				msg := res.Messages[0]
 				expected := types.CosmosMsg{Bank: &types.BankMsg{Send: &types.SendMsg{
 					ToAddress: BENEFICIARY,
 					Amount:    tc.funds,
 				}}}
 				assert.Equal(t, expected, msg.Msg)
-				assert.Equal(t, 2, len(res.Ok.Attributes))
-				assert.Equal(t, []types.EventAttribute{{"action", "release"}, {"destination", BENEFICIARY}}, res.Ok.Attributes)
+				assert.Equal(t, 2, len(res.Attributes))
+				assert.Equal(t, []types.EventAttribute{{"action", "release"}, {"destination", BENEFICIARY}}, res.Attributes)
 			}
 		})
 	}
