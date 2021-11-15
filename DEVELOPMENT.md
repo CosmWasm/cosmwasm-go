@@ -83,7 +83,40 @@ and is considered "unsupported advanced use-case" currently.
 
 ### Build Process
 
-Makefile usage, how to add to your contract
+If you update the serializable structs in the hackatom contract, you need to rebuild the
+JSON bindings before they work properly. This can be done by:
+
+```shell
+# just do this one time to install tinyjson 
+make tiny-build
+
+# run this to regenerate all JSON codegen for hackatom
+make generate-contracts
+```
+
+If we look at how this works, we see:
+
+```Makefile
+generate-contracts:
+	./bin/tinyjson -all -snake_case \
+		./example/hackatom/src/state.go \
+		./example/hackatom/src/msg.go
+```
+
+If you add a new contract, you can add a similar command, and list all the
+files containing structs that should have JSON bindings.
+
+Note that this will generate JSON bindings for *all structs* in those files.
+This is not always what you want, and if there are structs that do not need
+such bindings, you can just add an annotation to skip them in the codegen state:
+
+```go
+//tinyjson:skip
+type GenericErr struct {
+	Msg string
+}
+```
+
 ### Bootstrapping Errors
 
 TODO: when we delete files, but they depend on the code...
