@@ -565,7 +565,7 @@ func (u *Uint128) FromBig(i *big.Int) error {
 	return nil
 }
 
-// FromString populates the Uint128 with
+// FromString populates the Uint128 with a base0 string.
 func (u *Uint128) FromString(s string) error {
 	bigInt, ok := new(big.Int).SetString(s, 0)
 	if !ok {
