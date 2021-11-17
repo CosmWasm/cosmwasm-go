@@ -3,8 +3,10 @@ package math
 import (
 	"crypto/rand"
 	"encoding/binary"
+	"errors"
 	"math"
 	"math/big"
+	"reflect"
 	"testing"
 )
 
@@ -15,7 +17,7 @@ func randUint128() Uint128 {
 		panic(err)
 	}
 	u := &Uint128{}
-	err = u.FromBytes(randBuf)
+	err = u.FromLEBytes(randBuf)
 	if err != nil {
 		panic(err)
 	}
@@ -41,14 +43,14 @@ func TestUint128(t *testing.T) {
 		}
 
 		b := make([]byte, 16)
-		x.PutBytes(b)
+		x.PutLEBytes(b)
 		u128 := &Uint128{}
-		err := u128.FromBytes(b)
+		err := u128.FromLEBytes(b)
 		if err != nil {
 			t.Fatal(err)
 		}
 		if *u128 != x {
-			t.Fatal("FromBytes is not the inverse of PutBytes for", x)
+			t.Fatal("FromLEBytes is not the inverse of PutLEBytes for", x)
 		}
 
 		if !x.Equals(x) {
@@ -211,25 +213,25 @@ func TestOverflowAndUnderflow(t *testing.T) {
 	x := MaxUint128()
 	y := NewUint128(10, 10)
 	z := NewUint128FromUint64(10)
-	checkPanic := func(fn func(), msg string) {
+	checkPanic := func(fn func(), err error) {
 		defer func() {
 			r := recover()
-			if s, ok := r.(error); !ok || s.Error() != msg {
-				t.Errorf("expected %q, got %q", msg, r)
+			if s, ok := r.(error); !ok || !errors.Is(err, s) {
+				t.Errorf("expected %q, got %q", err, r)
 			}
 		}()
 		fn()
 	}
 
 	// should panic
-	checkPanic(func() { _ = x.Add(y) }, "overflow")
-	checkPanic(func() { _ = x.Add64(10) }, "overflow")
-	checkPanic(func() { _ = y.Sub(x) }, "underflow")
-	checkPanic(func() { _ = z.Sub64(math.MaxInt64) }, "underflow")
-	checkPanic(func() { _ = x.Mul(y) }, "overflow")
-	checkPanic(func() { _ = NewUint128(0, 10).Mul(NewUint128(0, 10)) }, "overflow")
-	checkPanic(func() { _ = NewUint128(0, 1).Mul(NewUint128(0, 1)) }, "overflow")
-	checkPanic(func() { _ = x.Mul64(math.MaxInt64) }, "overflow")
+	checkPanic(func() { _ = x.Add(y) }, errOverflow)
+	checkPanic(func() { _ = x.Add64(10) }, errOverflow)
+	checkPanic(func() { _ = y.Sub(x) }, errUnderflow)
+	checkPanic(func() { _ = z.Sub64(math.MaxInt64) }, errUnderflow)
+	checkPanic(func() { _ = x.Mul(y) }, errOverflow)
+	checkPanic(func() { _ = NewUint128(0, 10).Mul(NewUint128(0, 10)) }, errOverflow)
+	checkPanic(func() { _ = NewUint128(0, 1).Mul(NewUint128(0, 1)) }, errOverflow)
+	checkPanic(func() { _ = x.Mul64(math.MaxInt64) }, errOverflow)
 }
 
 func TestLeadingZeros(t *testing.T) {
@@ -335,7 +337,7 @@ func TestUint128_FromBytes(t *testing.T) {
 		tc := tc
 		t.Run(name, func(t *testing.T) {
 			u := &Uint128{}
-			err := u.FromBytes(tc.bytes)
+			err := u.FromLEBytes(tc.bytes)
 			if tc.errors && err == nil {
 				t.Fatalf("error expected")
 			}
@@ -382,6 +384,71 @@ func TestUint128_SafeQuoRem64(t *testing.T) {
 			if remainder != tc.remainder {
 				t.Fatalf("unexpected remainder, wanted: %d got: %d", tc.remainder, remainder)
 			}
+		})
+	}
+}
+
+func TestUint128_PutBEBytes(t *testing.T) {
+	type test struct {
+		u128 Uint128
+	}
+
+	tests := map[string]test{
+		"ok": {
+			u128: maxUint128,
+		},
+	}
+
+	for name, tc := range tests {
+		tc := tc
+		t.Run(name, func(t *testing.T) {
+			b := make([]byte, 16)
+			tc.u128.PutBEBytes(b)
+			got := &Uint128{}
+			err := got.FromBEBytes(b)
+			if err != nil {
+				t.Fatalf("unexpected error: %s", err)
+			}
+
+			if !reflect.DeepEqual(tc.u128, *got) {
+				t.Fatalf("from bytes to bytes unmatch: %s - %s", tc.u128, got)
+			}
+		})
+	}
+}
+
+func TestUint128_FromBEBytes(t *testing.T) {
+	type test struct {
+		b            []byte
+		expectedU128 Uint128
+		err          error
+	}
+
+	tests := map[string]test{
+		"ok": {
+			b:            []byte{0xf, 0xf, 0xf, 0xf, 0xf, 0xf, 0xf, 0xf, 0xf, 0xf, 0xf, 0xf, 0xf, 0xf, 0xf, 0xf},
+			expectedU128: maxUint128,
+			err:          nil,
+		},
+		"invalid length": {
+			b:   []byte{0x1},
+			err: errInvalidUint128Size,
+		},
+	}
+
+	for name, tc := range tests {
+		tc := tc
+		t.Run(name, func(t *testing.T) {
+			got := &Uint128{}
+			err := got.FromBEBytes(tc.b)
+			if err != nil && tc.err == nil {
+				t.Fatalf("unexpected error: %s", err)
+			}
+
+			if !errors.Is(err, tc.err) {
+				t.Fatalf("expected error: %s, got: %s", tc.err, err)
+			}
+
 		})
 	}
 }
