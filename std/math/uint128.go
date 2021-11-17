@@ -2,7 +2,7 @@ package math
 
 import (
 	"encoding/binary"
-	"fmt"
+	"errors"
 	"math"
 	"math/big"
 	"math/bits"
@@ -11,6 +11,15 @@ import (
 var (
 	zeroUint128 = Uint128{}
 	maxUint128  = NewUint128(math.MaxUint64, math.MaxUint64)
+)
+
+var (
+	errOverflow             = errors.New("math: overflow")
+	errUnderflow            = errors.New("math: underflow")
+	errDivideByZero         = errors.New("math: divide by zero")
+	errNegativeValue        = errors.New("math: negative value")
+	errInvalidUint128Size   = errors.New("math: invalid uint128 size")
+	errInvalidUint128String = errors.New("math: invalid uint128 string")
 )
 
 const (
@@ -151,7 +160,7 @@ func (u Uint128) SafeAdd(v Uint128) (Uint128, error) {
 	lo, carry := bits.Add64(u.Lo, v.Lo, 0)
 	hi, carry := bits.Add64(u.Hi, v.Hi, carry)
 	if carry != 0 {
-		return Uint128{}, fmt.Errorf("overflow")
+		return Uint128{}, errOverflow
 	}
 	return Uint128{lo, hi}, nil
 }
@@ -179,7 +188,7 @@ func (u Uint128) SafeAdd64(v uint64) (Uint128, error) {
 	lo, carry := bits.Add64(u.Lo, v, 0)
 	hi, carry := bits.Add64(u.Hi, 0, carry)
 	if carry != 0 {
-		return Uint128{}, fmt.Errorf("overflow")
+		return Uint128{}, errOverflow
 	}
 	return Uint128{lo, hi}, nil
 }
@@ -207,7 +216,7 @@ func (u Uint128) SafeSub(v Uint128) (Uint128, error) {
 	lo, borrow := bits.Sub64(u.Lo, v.Lo, 0)
 	hi, borrow := bits.Sub64(u.Hi, v.Hi, borrow)
 	if borrow != 0 {
-		return Uint128{}, fmt.Errorf("underflow")
+		return Uint128{}, errUnderflow
 	}
 	return Uint128{lo, hi}, nil
 }
@@ -235,7 +244,7 @@ func (u Uint128) SafeSub64(v uint64) (Uint128, error) {
 	lo, borrow := bits.Sub64(u.Lo, v, 0)
 	hi, borrow := bits.Sub64(u.Hi, 0, borrow)
 	if borrow != 0 {
-		return Uint128{}, fmt.Errorf("underflow")
+		return Uint128{}, errUnderflow
 	}
 	return Uint128{lo, hi}, nil
 }
@@ -265,7 +274,7 @@ func (u Uint128) SafeMul(v Uint128) (Uint128, error) {
 	hi, c0 := bits.Add64(hi, p1, 0)
 	hi, c1 := bits.Add64(hi, p3, c0)
 	if (u.Hi != 0 && v.Hi != 0) || p0 != 0 || p2 != 0 || c1 != 0 {
-		return Uint128{}, fmt.Errorf("overflow")
+		return Uint128{}, errOverflow
 	}
 	return Uint128{lo, hi}, nil
 }
@@ -293,7 +302,7 @@ func (u Uint128) SafeMul64(v uint64) (Uint128, error) {
 	p0, p1 := bits.Mul64(u.Hi, v)
 	hi, c0 := bits.Add64(hi, p1, 0)
 	if p0 != 0 || c0 != 0 {
-		return Uint128{}, fmt.Errorf("overflow")
+		return Uint128{}, errOverflow
 	}
 	return Uint128{lo, hi}, nil
 }
@@ -354,7 +363,7 @@ func (u Uint128) QuoRem(v Uint128) (q, r Uint128) {
 // SafeQuoRem returns q = u/v and u%v, returning an error on division by zero or quotient overflow.
 func (u Uint128) SafeQuoRem(v Uint128) (q Uint128, r Uint128, err error) {
 	if v == zeroUint128 {
-		return Uint128{}, Uint128{}, fmt.Errorf("zero division")
+		return Uint128{}, Uint128{}, errDivideByZero
 	}
 
 	if v.Hi == 0 {
@@ -396,7 +405,7 @@ func (u Uint128) QuoRem64(v uint64) (Uint128, uint64) {
 // SafeQuoRem64 returns q = u/v r = u%v returning an error on division by zero or quotient overflow.
 func (u Uint128) SafeQuoRem64(v uint64) (q Uint128, r uint64, err error) {
 	if v == 0 {
-		return Uint128{}, 0, fmt.Errorf("division by zero")
+		return Uint128{}, 0, errDivideByZero
 	}
 
 	// compute the quotient and remainder
@@ -566,7 +575,7 @@ func (u *Uint128) From64(v uint64) {
 // FromBytes populates the Uint128 value given bytes.
 func (u *Uint128) FromBytes(b []byte) error {
 	if len(b) != Uint128Size {
-		return fmt.Errorf("unexpected Uint128 byte size, wanted: %d got: %d", Uint128Size, len(b))
+		return errInvalidUint128Size
 	}
 
 	u.Lo = binary.LittleEndian.Uint64(b[:8])
@@ -579,9 +588,9 @@ func (u *Uint128) FromBytes(b []byte) error {
 // overflows 128 bits.
 func (u *Uint128) FromBig(i *big.Int) error {
 	if i.Sign() < 0 {
-		return fmt.Errorf("value cannot be negative")
+		return errNegativeValue
 	} else if i.BitLen() > Uint128BitSize {
-		return fmt.Errorf("overflow")
+		return errOverflow
 	}
 	u.Lo = i.Uint64()
 	u.Hi = new(big.Int).Rsh(i, 64).Uint64()
@@ -592,12 +601,12 @@ func (u *Uint128) FromBig(i *big.Int) error {
 func (u *Uint128) FromString(s string) error {
 	bigInt, ok := new(big.Int).SetString(s, 0)
 	if !ok {
-		return fmt.Errorf("invalid Uint128 string")
+		return errInvalidUint128String
 	}
 
 	err := u.FromBig(bigInt)
 	if err != nil {
-		return fmt.Errorf("invalid Uin128 string: %w", err)
+		return errInvalidUint128String
 	}
 
 	return nil
