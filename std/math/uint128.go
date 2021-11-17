@@ -306,16 +306,39 @@ func (u Uint128) MulWrap64(v uint64) Uint128 {
 	return Uint128{lo, hi}
 }
 
-// Div returns u/v.
+// Div returns u/v. Panics if v is invalid.
 func (u Uint128) Div(v Uint128) Uint128 {
-	q, _ := u.QuoRem(v)
+	q, err := u.SafeDiv(v)
+	if err != nil {
+		panic(err)
+	}
 	return q
 }
 
-// Div64 returns u/v.
+// SafeDiv returns u/v or an error if v is invalid.
+func (u Uint128) SafeDiv(v Uint128) (q Uint128, err error) {
+	q, _, err = u.SafeQuoRem(v)
+	if err != nil {
+		return Uint128{}, err
+	}
+
+	return q, nil
+}
+
+// Div64 returns u/v. Panics if v is invalid.
 func (u Uint128) Div64(v uint64) Uint128 {
 	q, _ := u.QuoRem64(v)
 	return q
+}
+
+// SafeDiv64 returns u/v or an error if v is invalid.
+func (u Uint128) SafeDiv64(v uint64) (q Uint128, err error) {
+	q, _, err = u.SafeQuoRem64(v)
+	if err != nil {
+		return Uint128{}, err
+	}
+
+	return q, nil
 }
 
 // QuoRem returns q = u/v and r = u%v, panicking on division by zero.
