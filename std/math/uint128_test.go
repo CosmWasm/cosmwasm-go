@@ -10,6 +10,13 @@ import (
 	"testing"
 )
 
+func toBig(u Uint128) *big.Int {
+	i := new(big.Int).SetUint64(u.Hi)
+	i = i.Lsh(i, 64)
+	i = i.Xor(i, new(big.Int).SetUint64(u.Lo))
+	return i
+}
+
 func randUint128() Uint128 {
 	randBuf := make([]byte, 16)
 	_, err := rand.Read(randBuf)
@@ -35,13 +42,6 @@ func TestUint128(t *testing.T) {
 			x = x.Lsh(64)
 		}
 
-		if u128, err := NewUint128FromBig(x.Big()); err != nil || u128 != x {
-			if err != nil {
-				t.Fatalf("unexpected error: %s", err)
-			}
-			t.Fatal("FromBig is not the inverse of Big for", x)
-		}
-
 		b := make([]byte, 16)
 		x.PutLEBytes(b)
 		u128 := &Uint128{}
@@ -60,27 +60,17 @@ func TestUint128(t *testing.T) {
 			t.Fatalf("%v does not equal itself", x.Lo)
 		}
 
-		if x.Cmp(y) != x.Big().Cmp(y.Big()) {
-			t.Fatalf("mismatch: cmp(%v,%v) should equal %v, got %v", x, y, x.Big().Cmp(y.Big()), x.Cmp(y))
+		if x.Cmp(y) != toBig(x).Cmp(toBig(y)) {
+			t.Fatalf("mismatch: cmp(%v,%v) should equal %v, got %v", x, y, toBig(x).Cmp(toBig(y)), x.Cmp(y))
 		} else if x.Cmp(x) != 0 {
 			t.Fatalf("%v does not equal itself", x)
 		}
 
-		if x.Cmp64(y.Lo) != x.Big().Cmp(NewUint128FromUint64(y.Lo).Big()) {
-			t.Fatalf("mismatch: cmp64(%v,%v) should equal %v, got %v", x, y.Lo, x.Big().Cmp(NewUint128FromUint64(y.Lo).Big()), x.Cmp64(y.Lo))
+		if x.Cmp64(y.Lo) != toBig(x).Cmp(toBig(NewUint128FromUint64(y.Lo))) {
+			t.Fatalf("mismatch: cmp64(%v,%v) should equal %v, got %v", x, y.Lo, toBig(x).Cmp(toBig(NewUint128FromUint64(y.Lo))), x.Cmp64(y.Lo))
 		} else if NewUint128FromUint64(x.Lo).Cmp64(x.Lo) != 0 {
 			t.Fatalf("%v does not equal itself", x.Lo)
 		}
-	}
-
-	// test errors
-	err := (&Uint128{}).FromBig(big.NewInt(-1))
-	if err == nil {
-		t.Fatalf("expected error on negative value")
-	}
-	err = (&Uint128{}).FromBig(new(big.Int).Lsh(big.NewInt(1), 129))
-	if err == nil {
-		t.Fatalf("expected error on overflow")
 	}
 }
 
@@ -112,7 +102,7 @@ func TestArithmetic(t *testing.T) {
 	}
 	checkBinOpX := func(x Uint128, op string, y Uint128, fn func(x, y Uint128) Uint128, fnb func(z, x, y *big.Int) *big.Int) {
 		t.Helper()
-		rb := fnb(new(big.Int), x.Big(), y.Big())
+		rb := fnb(new(big.Int), toBig(x), toBig(y))
 		defer func() {
 			if r := recover(); r != nil {
 				if rb.BitLen() <= 128 && rb.Sign() >= 0 {
@@ -123,29 +113,29 @@ func TestArithmetic(t *testing.T) {
 			}
 		}()
 		r := fn(x, y)
-		if r.Big().Cmp(rb) != 0 {
+		if toBig(r).Cmp(rb) != 0 {
 			t.Fatalf("mismatch: %v%v%v should equal %v, got %v", x, op, y, rb, r)
 		}
 	}
 	checkBinOp := func(x Uint128, op string, y Uint128, fn func(x, y Uint128) Uint128, fnb func(z, x, y *big.Int) *big.Int) {
 		t.Helper()
 		r := fn(x, y)
-		rb := mod128(fnb(new(big.Int), x.Big(), y.Big()))
-		if r.Big().Cmp(rb) != 0 {
+		rb := mod128(fnb(new(big.Int), toBig(x), toBig(y)))
+		if toBig(r).Cmp(rb) != 0 {
 			t.Fatalf("mismatch: %v%v%v should equal %v, got %v", x, op, y, rb, r)
 		}
 	}
 	checkShiftOp := func(x Uint128, op string, n uint, fn func(x Uint128, n uint) Uint128, fnb func(z, x *big.Int, n uint) *big.Int) {
 		t.Helper()
 		r := fn(x, n)
-		rb := mod128(fnb(new(big.Int), x.Big(), n))
-		if r.Big().Cmp(rb) != 0 {
+		rb := mod128(fnb(new(big.Int), toBig(x), n))
+		if toBig(r).Cmp(rb) != 0 {
 			t.Fatalf("mismatch: %v%v%v should equal %v, got %v", x, op, n, rb, r)
 		}
 	}
 	checkBinOp64X := func(x Uint128, op string, y uint64, fn func(x Uint128, y uint64) Uint128, fnb func(z, x, y *big.Int) *big.Int) {
 		t.Helper()
-		xb, yb := x.Big(), NewUint128FromUint64(y).Big()
+		xb, yb := toBig(x), toBig(NewUint128FromUint64(y))
 		rb := fnb(new(big.Int), xb, yb)
 		defer func() {
 			if r := recover(); r != nil {
@@ -157,16 +147,16 @@ func TestArithmetic(t *testing.T) {
 			}
 		}()
 		r := fn(x, y)
-		if r.Big().Cmp(rb) != 0 {
+		if toBig(r).Cmp(rb) != 0 {
 			t.Fatalf("mismatch: %v%v%v should equal %v, got %v", x, op, y, rb, r)
 		}
 	}
 	checkBinOp64 := func(x Uint128, op string, y uint64, fn func(x Uint128, y uint64) Uint128, fnb func(z, x, y *big.Int) *big.Int) {
 		t.Helper()
-		xb, yb := x.Big(), NewUint128FromUint64(y).Big()
+		xb, yb := toBig(x), toBig(NewUint128FromUint64(y))
 		r := fn(x, y)
 		rb := mod128(fnb(new(big.Int), xb, yb))
-		if r.Big().Cmp(rb) != 0 {
+		if toBig(r).Cmp(rb) != 0 {
 			t.Fatalf("mismatch: %v%v%v should equal %v, got %v", x, op, y, rb, r)
 		}
 	}
@@ -303,8 +293,8 @@ func TestLeadingZeros(t *testing.T) {
 func TestString(t *testing.T) {
 	for i := 0; i < 1000; i++ {
 		x := randUint128()
-		if x.String() != x.Big().String() {
-			t.Fatalf("mismatch:\n%v !=\n%v", x.String(), x.Big().String())
+		if x.String() != toBig(x).String() {
+			t.Fatalf("mismatch:\n%v !=\n%v", x.String(), toBig(x))
 		}
 	}
 	// Test 0 string
@@ -562,14 +552,14 @@ func BenchmarkDivision(b *testing.B) {
 		}
 	})
 	b.Run("big.Int 128/64", func(b *testing.B) {
-		xb, yb := x128.Big(), y64.Big()
+		xb, yb := toBig(x128), toBig(y64)
 		q := new(big.Int)
 		for i := 0; i < b.N; i++ {
 			q = q.Div(xb, yb)
 		}
 	})
 	b.Run("big.Int 128/128", func(b *testing.B) {
-		xb, yb := x128.Big(), y128.Big()
+		xb, yb := toBig(x128), toBig(y128)
 		q := new(big.Int)
 		for i := 0; i < b.N; i++ {
 			q = q.Div(xb, yb)
@@ -584,7 +574,7 @@ func BenchmarkString(b *testing.B) {
 		binary.LittleEndian.Uint64(buf[:8]),
 		binary.LittleEndian.Uint64(buf[8:]),
 	)
-	xb := x.Big()
+	xb := toBig(x)
 	b.Run("Uint128", func(b *testing.B) {
 		b.ReportAllocs()
 		for i := 0; i < b.N; i++ {

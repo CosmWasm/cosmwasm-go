@@ -4,7 +4,6 @@ import (
 	"encoding/binary"
 	"errors"
 	"math"
-	"math/big"
 	"math/bits"
 )
 
@@ -42,16 +41,6 @@ func MaxUint128() Uint128 {
 // NewUint128 returns the Uint128 value (lo,hi).
 func NewUint128(lo, hi uint64) Uint128 {
 	return Uint128{lo, hi}
-}
-
-// NewUint128FromBig returns a new Uint128 from a *big.Int.
-func NewUint128FromBig(i *big.Int) (Uint128, error) {
-	u := &Uint128{}
-	err := u.FromBig(i)
-	if err != nil {
-		return Uint128{}, err
-	}
-	return *u, nil
 }
 
 // NewUint128FromUint64 returns an Uint128 from an uint64
@@ -564,14 +553,6 @@ func (u *Uint128) PutBEBytes(b []byte) {
 	binary.BigEndian.PutUint64(b[8:], u.Lo)
 }
 
-// Big returns u as a *big.Int.
-func (u Uint128) Big() *big.Int {
-	i := new(big.Int).SetUint64(u.Hi)
-	i = i.Lsh(i, 64)
-	i = i.Xor(i, new(big.Int).SetUint64(u.Lo))
-	return i
-}
-
 // From64 converts v to a Uint128 value.
 func (u *Uint128) From64(v uint64) {
 	u.Lo = v
@@ -602,30 +583,7 @@ func (u *Uint128) FromBEBytes(b []byte) error {
 	return nil
 }
 
-// FromBig converts i to an Uint128 value. It errors if i is negative or
-// overflows 128 bits.
-func (u *Uint128) FromBig(i *big.Int) error {
-	if i.Sign() < 0 {
-		return errNegativeValue
-	} else if i.BitLen() > Uint128BitSize {
-		return errOverflow
-	}
-	u.Lo = i.Uint64()
-	u.Hi = new(big.Int).Rsh(i, 64).Uint64()
-	return nil
-}
-
 // FromString populates the Uint128 with a base0 string.
 func (u *Uint128) FromString(s string) error {
-	bigInt, ok := new(big.Int).SetString(s, 0)
-	if !ok {
-		return errInvalidUint128String
-	}
-
-	err := u.FromBig(bigInt)
-	if err != nil {
-		return errInvalidUint128String
-	}
-
-	return nil
+	panic("not implemented")
 }
