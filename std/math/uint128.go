@@ -608,7 +608,10 @@ func (u *Uint128) FromString(s string) error {
 		if err != nil {
 			return err
 		}
-		res = res.Add64(val)
+		res, err = res.SafeAdd64(val)
+		if err != nil {
+			return err
+		}
 	}
 	*u = res
 	return nil
