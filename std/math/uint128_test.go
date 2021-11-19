@@ -10,6 +10,16 @@ import (
 	"testing"
 )
 
+var maxUint128Big = func() *big.Int {
+	x := new(big.Int)
+	x, ok := x.SetString("340282366920938463463374607431768211455", 0)
+	if !ok {
+		panic("unable to set max big int for tests")
+	}
+
+	return x
+}()
+
 func toBig(u Uint128) *big.Int {
 	i := new(big.Int).SetUint64(u.Hi)
 	i = i.Lsh(i, 64)
@@ -439,6 +449,81 @@ func TestUint128_FromBEBytes(t *testing.T) {
 				t.Fatalf("expected error: %s, got: %s", tc.err, err)
 			}
 
+		})
+	}
+}
+
+func randomUint128String(t *testing.T) (string, Uint128) {
+	i, err := rand.Int(rand.Reader, maxUint128Big)
+	if err != nil {
+		t.Fatalf("failed test precondition: %s", err)
+	}
+
+	// impossible this happens, but just wanna make sure
+	if i.Sign() < 0 {
+		panic("value cannot be negative")
+	} else if i.BitLen() > 128 {
+		panic("value overflows Uint128")
+	}
+	return i.String(), NewUint128(i.Uint64(), new(big.Int).Rsh(i, 64).Uint64())
+}
+
+func TestUint128_FromString(t *testing.T) {
+	type test struct {
+		str             string
+		expectedUint128 Uint128
+		expectedErr     error
+	}
+
+	okStr, okU128 := randomUint128String(t)
+	tests := map[string]test{
+		"ok": {
+			str:             okStr,
+			expectedUint128: okU128,
+			expectedErr:     nil,
+		},
+		"ok zero": {
+			str:             "0",
+			expectedUint128: Uint128{},
+			expectedErr:     nil,
+		},
+		"empty string": {
+			str:             "",
+			expectedUint128: Uint128{},
+			expectedErr:     errInvalidUint128String,
+		},
+
+		"non numeric string": {
+			str:             "0a",
+			expectedUint128: Uint128{},
+			expectedErr:     errInvalidUint128String,
+		},
+
+		"invalid length": {
+			str:             "1000000000000000000000000000000000000000000",
+			expectedErr:     errInvalidUint128String,
+			expectedUint128: Uint128{},
+		},
+	}
+
+	for name, tc := range tests {
+		tc := tc
+		t.Run(name, func(t *testing.T) {
+			gotU128 := ZeroUint128()
+			gotErr := (&gotU128).FromString(tc.str)
+			if !errors.Is(gotErr, tc.expectedErr) {
+				t.Fatalf("unexpected error, want: %s, got: %s", tc.expectedErr, gotErr)
+			}
+
+			if gotErr != nil {
+				return
+			}
+
+			if !tc.expectedUint128.Equals(gotU128) {
+				t.Fatalf("unexpected result:\n\twanted: %s (%d, %d)\n\tgot: %s (%d, %d)",
+					tc.expectedUint128, tc.expectedUint128.Lo, tc.expectedUint128.Hi,
+					gotU128, gotU128.Lo, gotU128.Hi)
+			}
 		})
 	}
 }

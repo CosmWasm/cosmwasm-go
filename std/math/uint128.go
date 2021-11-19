@@ -325,7 +325,10 @@ func (u Uint128) SafeDiv(v Uint128) (q Uint128, err error) {
 
 // Div64 returns u/v. Panics if v is invalid.
 func (u Uint128) Div64(v uint64) Uint128 {
-	q, _ := u.QuoRem64(v)
+	q, err := u.SafeDiv64(v)
+	if err != nil {
+		panic(err)
+	}
 	return q
 }
 
@@ -585,5 +588,28 @@ func (u *Uint128) FromBEBytes(b []byte) error {
 
 // FromString populates the Uint128 with a base0 string.
 func (u *Uint128) FromString(s string) error {
-	panic("not implemented")
+	res := ZeroUint128()
+	var err error
+
+	if len(s) == 0 || len(s) > 40 {
+		return errInvalidUint128String
+	}
+
+	// simple optimisation is to parse out first 19 digits into res (and remove end of string) before starting this loop
+	// this will use more efficient uint64 and likely cover all the work for simple cases.
+
+	for i := 0; i < len(s); i++ {
+		ch := s[i]
+		if ch < '0' || ch > '9' {
+			return errInvalidUint128String
+		}
+		val := uint64(ch - '0')
+		res, err = res.SafeMul64(10)
+		if err != nil {
+			return err
+		}
+		res = res.Add64(val)
+	}
+	*u = res
+	return nil
 }
