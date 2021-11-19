@@ -581,6 +581,10 @@ func TestUint128_UnmarshalJSON(t *testing.T) {
 			jsonBytes:     []byte(`{"amount": 0}`),
 			expectedError: errInvalidUint128String,
 		},
+		"empty string": {
+			jsonBytes:     []byte(`{"amount": ""}`),
+			expectedError: errInvalidUint128String,
+		},
 	}
 
 	for name, tc := range tests {
