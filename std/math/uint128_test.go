@@ -477,14 +477,23 @@ func TestUint128_FromString(t *testing.T) {
 
 	okStr, okU128 := randomUint128String(t)
 	tests := map[string]test{
-		"ok": {
-			str:             okStr,
-			expectedUint128: okU128,
-			expectedErr:     nil,
-		},
 		"ok zero": {
 			str:             "0",
-			expectedUint128: Uint128{},
+			expectedUint128: zeroUint128,
+			expectedErr:     nil,
+		},
+		"ok u64": {
+			str:             "123456",
+			expectedUint128: Uint128{Lo: 123456},
+			expectedErr:     nil,
+		},
+		"ok bigger than u64": {
+			str:             "340282366920938463463374607431768211455",
+			expectedUint128: maxUint128,
+		},
+		"ok random": {
+			str:             okStr,
+			expectedUint128: okU128,
 			expectedErr:     nil,
 		},
 		"empty string": {
