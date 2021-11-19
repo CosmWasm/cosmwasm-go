@@ -616,3 +616,27 @@ func (u *Uint128) FromString(s string) error {
 	*u = res
 	return nil
 }
+
+// UnmarshalJSON populates Uint128 from a json string value.
+func (u *Uint128) UnmarshalJSON(b []byte) error {
+	// we need to manually check that the length is valid
+	// a json string will have two double quotes at least
+	// NOTE: the empty string case is handled by Uint128.FromString
+	if len(b) < 2 {
+		return errInvalidUint128String
+	}
+	// check that the first element and the last elements are double quotes
+	// if not it means that we're trying to parse not a json string
+	if b[0] != '"' || b[len(b)-1] != '"' {
+		return errInvalidUint128String
+	}
+
+	// parse the real string, removing the starting and ending double quotes
+	return u.FromString(string(b[1 : len(b)-1]))
+}
+
+// MarshalJSON implements json.Marshaler and returns
+// Uint128.String converted to bytes.
+func (u *Uint128) MarshalJSON() (b []byte, err error) {
+	return []byte(u.String()), nil
+}

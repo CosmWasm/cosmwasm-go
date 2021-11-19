@@ -3,6 +3,7 @@ package math
 import (
 	"crypto/rand"
 	"encoding/binary"
+	"encoding/json"
 	"errors"
 	"math"
 	"math/big"
@@ -537,6 +538,65 @@ func TestUint128_FromString(t *testing.T) {
 				return
 			}
 
+			if !tc.expectedUint128.Equals(gotU128) {
+				t.Fatalf("unexpected result:\n\twanted: %s (%d, %d)\n\tgot: %s (%d, %d)",
+					tc.expectedUint128, tc.expectedUint128.Lo, tc.expectedUint128.Hi,
+					gotU128, gotU128.Lo, gotU128.Hi)
+			}
+		})
+	}
+}
+
+func TestUint128_UnmarshalJSON(t *testing.T) {
+	type jsonTestType struct {
+		Amount Uint128 `json:"amount"`
+	}
+	type test struct {
+		jsonBytes       []byte
+		expectedUint128 Uint128
+		expectedError   error
+	}
+
+	tests := map[string]test{
+		"ok zero": {
+			jsonBytes:       []byte(`{"amount":"0"}`),
+			expectedUint128: zeroUint128,
+			expectedError:   nil,
+		},
+		"ok u64": {
+			jsonBytes:       []byte(`{"amount": "5804835"}`),
+			expectedUint128: NewUint128FromUint64(5804835),
+		},
+		"ok u128": {
+			jsonBytes:       []byte(`{"amount": "1204595495959596854934"}`),
+			expectedUint128: NewUint128(5557131168475999894, 65),
+		},
+
+		"no double quotes": {
+			jsonBytes:     []byte(`{"amount": {"something": "else"}}`),
+			expectedError: errInvalidUint128String,
+		},
+
+		"invalid size": {
+			jsonBytes:     []byte(`{"amount": 0}`),
+			expectedError: errInvalidUint128String,
+		},
+	}
+
+	for name, tc := range tests {
+		tc := tc
+		t.Run(name, func(t *testing.T) {
+			jsonType := new(jsonTestType)
+			err := json.Unmarshal(tc.jsonBytes, jsonType)
+			if !errors.Is(err, tc.expectedError) {
+				t.Fatalf("unexpected error: %s", err)
+			}
+
+			if err != nil {
+				return
+			}
+
+			gotU128 := jsonType.Amount
 			if !tc.expectedUint128.Equals(gotU128) {
 				t.Fatalf("unexpected result:\n\twanted: %s (%d, %d)\n\tgot: %s (%d, %d)",
 					tc.expectedUint128, tc.expectedUint128.Lo, tc.expectedUint128.Hi,
