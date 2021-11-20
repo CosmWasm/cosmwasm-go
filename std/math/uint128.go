@@ -638,5 +638,5 @@ func (u *Uint128) UnmarshalJSON(b []byte) error {
 // MarshalJSON implements json.Marshaler and returns
 // Uint128.String converted to bytes.
 func (u *Uint128) MarshalJSON() (b []byte, err error) {
-	return []byte(u.String()), nil
+	return []byte(`"` + u.String() + `"`), nil
 }
