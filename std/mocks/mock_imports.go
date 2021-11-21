@@ -1,3 +1,4 @@
+//go:build !cosmwasm
 // +build !cosmwasm
 
 package mocks
@@ -80,8 +81,15 @@ var (
 	_ std.Storage         = (*MockStorage)(nil)
 )
 
-func (s *MockStorage) Get(key []byte) ([]byte, error) {
-	return s.storage.Get(key)
+func (s *MockStorage) Get(key []byte) []byte {
+	v, err := s.storage.Get(key)
+	if err != nil {
+		// tm-db says that if the key is not found then the
+		// value is nil, so we can panic here.
+		panic(err)
+	}
+
+	return v
 }
 
 func (s *MockStorage) Range(start, end []byte, order std.Order) (iter std.Iterator, err error) {

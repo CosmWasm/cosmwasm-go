@@ -22,8 +22,10 @@ const (
 	Descending Order = 2
 )
 
+// ReadonlyStorage defines the behaviour of a KV with only read capabilities.
 type ReadonlyStorage interface {
-	Get(key []byte) (value []byte, err error)
+	// Get gets the value of the provided key. If value is nil then the key does not exist.
+	Get(key []byte) (value []byte)
 	Range(start, end []byte, order Order) (Iterator, error)
 }
 

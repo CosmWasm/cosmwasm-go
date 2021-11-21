@@ -1,6 +1,7 @@
 package src
 
 import (
+	"errors"
 	"github.com/cosmwasm/cosmwasm-go/std"
 )
 
@@ -15,13 +16,13 @@ type State struct {
 var StateKey = []byte("config")
 
 func LoadState(storage std.Storage) (*State, error) {
-	data, err := storage.Get(StateKey)
-	if err != nil {
-		return nil, err
+	data := storage.Get(StateKey)
+	if data == nil {
+		return nil, errors.New("not found")
 	}
 
 	var state State
-	err = state.UnmarshalJSON(data)
+	err := state.UnmarshalJSON(data)
 	if err != nil {
 		return nil, err
 	}

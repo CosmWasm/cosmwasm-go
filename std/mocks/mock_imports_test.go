@@ -1,3 +1,4 @@
+//go:build !cosmwasm
 // +build !cosmwasm
 
 package mocks
@@ -18,9 +19,8 @@ func TestMockStorage(t *testing.T) {
 	inexistentKey := []byte("inexistent")
 
 	// setter && getter
-	bytes, err := es.Get(key1)
+	bytes := es.Get(key1)
 	require.Nil(t, bytes)
-	require.NoError(t, err)
 	require.NoError(t, es.Set(key1, value1))
 	require.NoError(t, es.Set(key2, value2))
 	require.NoError(t, es.Set(key3, value3))
@@ -46,8 +46,7 @@ func TestMockStorage(t *testing.T) {
 	// delete
 	require.NoError(t, es.Remove(inexistentKey))
 	require.NoError(t, es.Remove(key1))
-	bytes, err = es.Get(key1)
-	require.NoError(t, err)
+	bytes = es.Get(key1)
 	require.Nil(t, bytes)
 
 }
