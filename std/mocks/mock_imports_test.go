@@ -44,8 +44,8 @@ func TestMockStorage(t *testing.T) {
 	assertKV(t, iter, key1, value1, true)
 
 	// delete
-	require.NoError(t, es.Remove(inexistentKey))
-	require.NoError(t, es.Remove(key1))
+	es.Remove(inexistentKey)
+	es.Remove(key1)
 	bytes = es.Get(key1)
 	require.Nil(t, bytes)
 

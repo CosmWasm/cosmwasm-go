@@ -35,7 +35,8 @@ type Storage interface {
 
 	// Set sets the key and value.
 	Set(key, value []byte)
-	Remove(key []byte) error
+	// Remove removes the value from the db.
+	Remove(key []byte)
 }
 
 type Iterator interface {

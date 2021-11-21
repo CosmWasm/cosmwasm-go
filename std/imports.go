@@ -111,14 +111,13 @@ func (s ExternalStorage) Set(key, value []byte) {
 	C.free(ptrVal)
 }
 
-func (s ExternalStorage) Remove(key []byte) error {
+// Remove implements Storage.Remove.
+func (s ExternalStorage) Remove(key []byte) {
 	keyPtr := C.malloc(C.ulong(len(key)))
 	regionKey := TranslateToRegion(key, uintptr(keyPtr))
 
 	C.db_remove(unsafe.Pointer(regionKey))
 	C.free(keyPtr)
-
-	return nil
 }
 
 var (

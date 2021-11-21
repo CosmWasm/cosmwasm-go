@@ -114,8 +114,11 @@ func (s *MockStorage) Set(key, value []byte) {
 	}
 }
 
-func (s *MockStorage) Remove(key []byte) error {
-	return s.storage.Delete(key)
+func (s *MockStorage) Remove(key []byte) {
+	err := s.storage.Delete(key)
+	if err != nil {
+		panic(err)
+	}
 }
 
 const canonicalLength = 32
