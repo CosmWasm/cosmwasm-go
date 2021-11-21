@@ -92,8 +92,12 @@ func (s *MockStorage) Get(key []byte) []byte {
 	return v
 }
 
-func (s *MockStorage) Range(start, end []byte, order std.Order) (iter std.Iterator, err error) {
-	var iterator dbm.Iterator
+func (s *MockStorage) Range(start, end []byte, order std.Order) (iter std.Iterator) {
+	var (
+		iterator dbm.Iterator
+		err      error
+	)
+
 	switch order {
 	case std.Ascending:
 		iterator, err = s.storage.Iterator(start, end)
@@ -103,6 +107,10 @@ func (s *MockStorage) Range(start, end []byte, order std.Order) (iter std.Iterat
 		iter = newMockIterator(iterator)
 	default:
 		err = types.GenericError("failed. unexpected Order")
+	}
+
+	if err != nil {
+		panic(err)
 	}
 	return
 }

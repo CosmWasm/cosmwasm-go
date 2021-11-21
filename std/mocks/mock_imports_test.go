@@ -29,14 +29,13 @@ func TestMockStorage(t *testing.T) {
 
 	// iterator
 	// ascending
-	iter, err := es.Range([]byte{'a'}, []byte{'d'}, std.Ascending)
-	require.NoError(t, err)
+	iter := es.Range([]byte{'a'}, []byte{'d'}, std.Ascending)
 	assertKV(t, iter, key1, value1, false)
 	assertKV(t, iter, key2, value2, false)
 	assertKV(t, iter, key3, value3, false)
 	assertKV(t, iter, key4, value4, true)
 	// descending
-	iter, err = es.Range([]byte{'b'}, []byte("eeeef"), std.Descending)
+	iter = es.Range([]byte{'b'}, []byte("eeeef"), std.Descending)
 	assertKV(t, iter, key5, value5, false)
 	assertKV(t, iter, key4, value4, false)
 	assertKV(t, iter, key3, value3, false)

@@ -26,7 +26,8 @@ const (
 type ReadonlyStorage interface {
 	// Get gets the value of the provided key. If value is nil then the key does not exist.
 	Get(key []byte) (value []byte)
-	Range(start, end []byte, order Order) (Iterator, error)
+	// Range ranges from start to end byte prefixes with the provided Order flag.
+	Range(start, end []byte, order Order) (iterator Iterator)
 }
 
 // Storage defines the behaviour of a KV with read and write capabilities.

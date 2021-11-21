@@ -78,7 +78,8 @@ func (s ExternalStorage) Get(key []byte) (value []byte) {
 	return b
 }
 
-func (s ExternalStorage) Range(start, end []byte, order Order) (Iterator, error) {
+// Range implements ReadonlyStorage.Range.
+func (s ExternalStorage) Range(start, end []byte, order Order) (iter Iterator) {
 	/*
 		ptrStart := C.malloc(C.ulong(len(start)))
 		regionStart := TranslateToRegion(start, uintptr(ptrStart))
@@ -96,7 +97,7 @@ func (s ExternalStorage) Range(start, end []byte, order Order) (Iterator, error)
 
 		return ExternalIterator{uint32(iterId)}, nil
 	*/
-	return nil, nil
+	return nil
 }
 
 // Set implements Storage.Set.
