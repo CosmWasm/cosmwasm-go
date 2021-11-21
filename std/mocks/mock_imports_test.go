@@ -21,11 +21,11 @@ func TestMockStorage(t *testing.T) {
 	// setter && getter
 	bytes := es.Get(key1)
 	require.Nil(t, bytes)
-	require.NoError(t, es.Set(key1, value1))
-	require.NoError(t, es.Set(key2, value2))
-	require.NoError(t, es.Set(key3, value3))
-	require.NoError(t, es.Set(key4, value4))
-	require.NoError(t, es.Set(key5, value5))
+	es.Set(key1, value1)
+	es.Set(key2, value2)
+	es.Set(key3, value3)
+	es.Set(key4, value4)
+	es.Set(key5, value5)
 
 	// iterator
 	// ascending

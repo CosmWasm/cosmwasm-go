@@ -107,8 +107,11 @@ func (s *MockStorage) Range(start, end []byte, order std.Order) (iter std.Iterat
 	return
 }
 
-func (s *MockStorage) Set(key, value []byte) error {
-	return s.storage.Set(key, value)
+func (s *MockStorage) Set(key, value []byte) {
+	err := s.storage.Set(key, value)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func (s *MockStorage) Remove(key []byte) error {

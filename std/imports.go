@@ -99,7 +99,8 @@ func (s ExternalStorage) Range(start, end []byte, order Order) (Iterator, error)
 	return nil, nil
 }
 
-func (s ExternalStorage) Set(key, value []byte) error {
+// Set implements Storage.Set.
+func (s ExternalStorage) Set(key, value []byte) {
 	ptrKey := C.malloc(C.ulong(len(key)))
 	ptrVal := C.malloc(C.ulong(len(value)))
 	regionKey := TranslateToRegion(key, uintptr(ptrKey))
@@ -108,8 +109,6 @@ func (s ExternalStorage) Set(key, value []byte) error {
 	C.db_write(unsafe.Pointer(regionKey), unsafe.Pointer(regionValue))
 	C.free(ptrKey)
 	C.free(ptrVal)
-
-	return nil
 }
 
 func (s ExternalStorage) Remove(key []byte) error {

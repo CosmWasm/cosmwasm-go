@@ -34,6 +34,8 @@ func SaveState(storage std.Storage, state *State) error {
 	if err != nil {
 		return err
 	}
-	// TODO: storage.Set should not return error
-	return storage.Set(StateKey, bz)
+
+	storage.Set(StateKey, bz)
+
+	return nil
 }

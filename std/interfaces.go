@@ -29,10 +29,12 @@ type ReadonlyStorage interface {
 	Range(start, end []byte, order Order) (Iterator, error)
 }
 
+// Storage defines the behaviour of a KV with read and write capabilities.
 type Storage interface {
 	ReadonlyStorage
 
-	Set(key, value []byte) error
+	// Set sets the key and value.
+	Set(key, value []byte)
 	Remove(key []byte) error
 }
 
