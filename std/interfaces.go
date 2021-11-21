@@ -15,10 +15,13 @@ type Deps struct {
 	Querier Querier
 }
 
+// Order defines how keys are ordered during iteration.
 type Order uint32
 
 const (
-	Ascending  Order = 1
+	// Ascending orders ranged keys from smallest to biggest.
+	Ascending Order = 1
+	// Descending orders ranged keys from biggest to smallest.
 	Descending Order = 2
 )
 
