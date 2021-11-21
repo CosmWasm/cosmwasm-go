@@ -1,3 +1,4 @@
+//go:build cosmwasm
 // +build cosmwasm
 
 package std
@@ -56,9 +57,12 @@ var (
 	_ Storage         = (*ExternalStorage)(nil)
 )
 
+// ExternalStorage provides the implementation to interact
+// with the VM provided storage.
 type ExternalStorage struct{}
 
-func (storage ExternalStorage) Get(key []byte) (value []byte, err error) {
+// Get implements ReadonlyStorage.Get
+func (s ExternalStorage) Get(key []byte) (value []byte) {
 	keyPtr := C.malloc(C.ulong(len(key)))
 	regionKey := TranslateToRegion(key, uintptr(keyPtr))
 
@@ -66,15 +70,15 @@ func (storage ExternalStorage) Get(key []byte) (value []byte, err error) {
 	C.free(unsafe.Pointer(keyPtr))
 
 	if read == nil {
-		return nil, types.NotFound{Kind: "db key"}
+		return nil
 	}
 
 	b := TranslateToSlice(uintptr(read))
 	//maybe have memory leak
-	return b, nil
+	return b
 }
 
-func (storage ExternalStorage) Range(start, end []byte, order Order) (Iterator, error) {
+func (s ExternalStorage) Range(start, end []byte, order Order) (Iterator, error) {
 	/*
 		ptrStart := C.malloc(C.ulong(len(start)))
 		regionStart := TranslateToRegion(start, uintptr(ptrStart))
@@ -95,7 +99,7 @@ func (storage ExternalStorage) Range(start, end []byte, order Order) (Iterator, 
 	return nil, nil
 }
 
-func (storage ExternalStorage) Set(key, value []byte) error {
+func (s ExternalStorage) Set(key, value []byte) error {
 	ptrKey := C.malloc(C.ulong(len(key)))
 	ptrVal := C.malloc(C.ulong(len(value)))
 	regionKey := TranslateToRegion(key, uintptr(ptrKey))
@@ -108,7 +112,7 @@ func (storage ExternalStorage) Set(key, value []byte) error {
 	return nil
 }
 
-func (storage ExternalStorage) Remove(key []byte) error {
+func (s ExternalStorage) Remove(key []byte) error {
 	keyPtr := C.malloc(C.ulong(len(key)))
 	regionKey := TranslateToRegion(key, uintptr(keyPtr))
 
