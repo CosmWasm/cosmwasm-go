@@ -15,23 +15,32 @@ type Deps struct {
 	Querier Querier
 }
 
+// Order defines how keys are ordered during iteration.
 type Order uint32
 
 const (
-	Ascending  Order = 1
+	// Ascending orders ranged keys from smallest to biggest.
+	Ascending Order = 1
+	// Descending orders ranged keys from biggest to smallest.
 	Descending Order = 2
 )
 
+// ReadonlyStorage defines the behaviour of a KV with only read capabilities.
 type ReadonlyStorage interface {
-	Get(key []byte) (value []byte, err error)
-	Range(start, end []byte, order Order) (Iterator, error)
+	// Get gets the value of the provided key. If value is nil then the key does not exist.
+	Get(key []byte) (value []byte)
+	// Range ranges from start to end byte prefixes with the provided Order flag.
+	Range(start, end []byte, order Order) (iterator Iterator)
 }
 
+// Storage defines the behaviour of a KV with read and write capabilities.
 type Storage interface {
 	ReadonlyStorage
 
-	Set(key, value []byte) error
-	Remove(key []byte) error
+	// Set sets the key and value.
+	Set(key, value []byte)
+	// Remove removes the value from the db.
+	Remove(key []byte)
 }
 
 type Iterator interface {

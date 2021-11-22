@@ -1,3 +1,4 @@
+//go:build !cosmwasm
 // +build !cosmwasm
 
 package mocks
@@ -80,12 +81,23 @@ var (
 	_ std.Storage         = (*MockStorage)(nil)
 )
 
-func (s *MockStorage) Get(key []byte) ([]byte, error) {
-	return s.storage.Get(key)
+func (s *MockStorage) Get(key []byte) []byte {
+	v, err := s.storage.Get(key)
+	if err != nil {
+		// tm-db says that if the key is not found then the
+		// value is nil, so we can panic here.
+		panic(err)
+	}
+
+	return v
 }
 
-func (s *MockStorage) Range(start, end []byte, order std.Order) (iter std.Iterator, err error) {
-	var iterator dbm.Iterator
+func (s *MockStorage) Range(start, end []byte, order std.Order) (iter std.Iterator) {
+	var (
+		iterator dbm.Iterator
+		err      error
+	)
+
 	switch order {
 	case std.Ascending:
 		iterator, err = s.storage.Iterator(start, end)
@@ -96,15 +108,25 @@ func (s *MockStorage) Range(start, end []byte, order std.Order) (iter std.Iterat
 	default:
 		err = types.GenericError("failed. unexpected Order")
 	}
+
+	if err != nil {
+		panic(err)
+	}
 	return
 }
 
-func (s *MockStorage) Set(key, value []byte) error {
-	return s.storage.Set(key, value)
+func (s *MockStorage) Set(key, value []byte) {
+	err := s.storage.Set(key, value)
+	if err != nil {
+		panic(err)
+	}
 }
 
-func (s *MockStorage) Remove(key []byte) error {
-	return s.storage.Delete(key)
+func (s *MockStorage) Remove(key []byte) {
+	err := s.storage.Delete(key)
+	if err != nil {
+		panic(err)
+	}
 }
 
 const canonicalLength = 32
