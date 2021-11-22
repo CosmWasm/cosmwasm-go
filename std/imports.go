@@ -74,7 +74,7 @@ func (s ExternalStorage) Get(key []byte) (value []byte) {
 	}
 
 	b := TranslateToSlice(uintptr(read))
-	//maybe have memory leak
+	// TODO maybe have memory leak
 	return b
 }
 

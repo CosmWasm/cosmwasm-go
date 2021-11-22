@@ -18,7 +18,7 @@ var StateKey = []byte("config")
 func LoadState(storage std.Storage) (*State, error) {
 	data := storage.Get(StateKey)
 	if data == nil {
-		return nil, errors.New("not found")
+		return nil, errors.New("state not found") // TODO(fdymylja): replace when errors API is ready
 	}
 
 	var state State
