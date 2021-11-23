@@ -1,6 +1,8 @@
 package src
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"github.com/cosmwasm/cosmwasm-go/std/math"
 	"testing"
@@ -55,6 +57,7 @@ func TestInitAndQuery(t *testing.T) {
 	assert.Equal(t, "Let the", attr.Key)
 	assert.Equal(t, "hacking begin", attr.Value)
 
+	// test verifier
 	qmsg := []byte(`{"verifier":{}}`)
 	data, err := Query(deps, env, qmsg)
 	require.NoError(t, err)
@@ -63,6 +66,25 @@ func TestInitAndQuery(t *testing.T) {
 	err = json.Unmarshal(data, &qres)
 	require.NoError(t, err)
 	assert.Equal(t, VERIFIER, qres.Verifier)
+
+	// test recurse
+	recurse := QueryMsg{Recurse: &Recurse{
+		Depth: 0,
+		Work:  1,
+	}}
+
+	qmsg, err = recurse.MarshalJSON()
+	require.NoError(t, err)
+
+	data, err = Query(deps, env, qmsg)
+	require.NoError(t, err)
+
+	recurseResp := new(RecurseResponse)
+	err = recurseResp.UnmarshalJSON(data)
+	require.NoError(t, err)
+
+	expected := sha256.Sum256([]byte(env.Contract.Address))
+	require.Equal(t, recurseResp.Hashed, hex.EncodeToString(expected[:]))
 }
 
 func TestPanic(t *testing.T) {

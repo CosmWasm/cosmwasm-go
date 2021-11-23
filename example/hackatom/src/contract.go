@@ -2,6 +2,7 @@ package src
 
 import (
 	"crypto/sha256"
+	"encoding/hex"
 	"github.com/cosmwasm/cosmwasm-go/std"
 	"github.com/cosmwasm/cosmwasm-go/std/types"
 )
@@ -200,7 +201,7 @@ func queryRecurse(deps *std.Deps, env *types.Env, recurse *Recurse) ([]byte, err
 
 	if recurse.Depth == 0 {
 		return (RecurseResponse{
-			Hashed: string(result[:]),
+			Hashed: hex.EncodeToString(result[:]),
 		}).MarshalJSON()
 	}
 
