@@ -37,7 +37,9 @@ func tinyjsonA17a9c65DecodeGithubComCosmwasmCosmwasmGoStdTypes(in *jlexer.Lexer,
 		case "denom":
 			out.Denom = string(in.String())
 		case "amount":
-			out.Amount = string(in.String())
+			if data := in.Raw(); in.Ok() {
+				in.AddError((out.Amount).UnmarshalJSON(data))
+			}
 		default:
 			in.SkipRecursive()
 		}
@@ -60,7 +62,7 @@ func tinyjsonA17a9c65EncodeGithubComCosmwasmCosmwasmGoStdTypes(out *jwriter.Writ
 	{
 		const prefix string = ",\"amount\":"
 		out.RawString(prefix)
-		out.String(string(in.Amount))
+		out.Raw((in.Amount).MarshalJSON())
 	}
 	out.RawByte('}')
 }
