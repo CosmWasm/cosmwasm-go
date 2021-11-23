@@ -1,6 +1,8 @@
 package systest
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"path/filepath"
@@ -188,7 +190,15 @@ func TestQueryRecurse(t *testing.T) {
 	msgBytes, err := msg.MarshalJSON()
 	require.NoError(t, err)
 
-	_, gas, err := deps.Query(env, msgBytes)
+	res, gas, err := deps.Query(env, msgBytes)
 	require.NoError(t, err)
 	t.Logf("gas used: %d", gas)
+
+	resp := new(src.RecurseResponse)
+	require.NoError(t, resp.UnmarshalJSON(res))
+
+	expectedHash := sha256.Sum256([]byte(CONTRACT))
+
+	require.Equal(t, hex.EncodeToString(expectedHash[:]), resp.Hashed)
+
 }
