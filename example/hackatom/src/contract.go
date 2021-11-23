@@ -175,7 +175,7 @@ func Query(deps *std.Deps, env types.Env, data []byte) ([]byte, error) {
 	case msg.Recurse != nil:
 		return queryRecurse(deps, &env, msg.Recurse)
 	default:
-		err = types.GenericError("Unknown QueryMsg")
+		err = types.GenericError("Unknown QueryMsg " + string(data))
 	}
 	if err != nil {
 		return nil, err
