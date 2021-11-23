@@ -26,6 +26,11 @@ func NewCoin(amount math.Uint128, denom string) Coin {
 	}
 }
 
+// NewCoinFromUint64 creates a new coin given an uint64 amount and denom.
+func NewCoinFromUint64(amount uint64, denom string) Coin {
+	return NewCoin(math.NewUint128FromUint64(amount), denom)
+}
+
 // RawMessage is a raw encoded JSON value.
 // It implements Marshaler and Unmarshaler and can
 // be used to delay JSON decoding or precompute a JSON encoding.
