@@ -190,14 +190,22 @@ func TestQueryRecurse(t *testing.T) {
 	msgBytes, err := msg.MarshalJSON()
 	require.NoError(t, err)
 
-	res, gas, err := deps.Query(env, msgBytes)
+	request := types.QueryRequest{Wasm: &types.WasmQuery{
+		Smart: &types.SmartQuery{
+			ContractAddr: env.Contract.Address,
+			Msg:          msgBytes,
+		},
+	},
+	}
+
+	res, gas, err := deps.Query(env, mustEncode(t, request))
 	require.NoError(t, err)
 	t.Logf("gas used: %d", gas)
 
 	resp := new(src.RecurseResponse)
 	require.NoError(t, resp.UnmarshalJSON(res))
 
-	expectedHash := sha256.Sum256([]byte(CONTRACT))
+	expectedHash := sha256.Sum256([]byte(env.Contract.Address))
 
 	require.Equal(t, hex.EncodeToString(expectedHash[:]), resp.Hashed)
 
