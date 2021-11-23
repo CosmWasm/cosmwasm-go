@@ -188,12 +188,13 @@ func TestQueryRecurse(t *testing.T) {
 	msgBytes, err := msg.MarshalJSON()
 	require.NoError(t, err)
 
-	request := types.QueryRequest{Wasm: &types.WasmQuery{
-		Smart: &types.SmartQuery{
-			ContractAddr: env.Contract.Address,
-			Msg:          msgBytes,
+	request := types.QueryRequest{
+		Wasm: &types.WasmQuery{
+			Smart: &types.SmartQuery{
+				ContractAddr: env.Contract.Address,
+				Msg:          msgBytes,
+			},
 		},
-	},
 	}
 
 	res, gas, err := deps.Query(env, mustEncode(t, request))
