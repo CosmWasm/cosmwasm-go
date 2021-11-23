@@ -167,3 +167,28 @@ func TestQueryOther(t *testing.T) {
 		})
 	}
 }
+
+func TestQueryRecurse(t *testing.T) {
+	contractFunds := []types.Coin{
+		types.NewCoin(1000, "wei"),
+		types.NewCoin(555, "uatom"),
+	}
+	deps := defaultInit(t, contractFunds)
+	env := mocks.MockEnv()
+
+	msg := src.QueryMsg{
+		Verifier:     nil,
+		OtherBalance: nil,
+		Recurse: &src.Recurse{
+			Depth: 5,
+			Work:  5,
+		},
+	}
+
+	msgBytes, err := msg.MarshalJSON()
+	require.NoError(t, err)
+
+	_, gas, err := deps.Query(env, msgBytes)
+	require.NoError(t, err)
+	t.Logf("gas used: %d", gas)
+}
