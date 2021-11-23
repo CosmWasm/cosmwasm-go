@@ -180,8 +180,8 @@ func TestQueryRecurse(t *testing.T) {
 
 	msg := src.QueryMsg{
 		Recurse: &src.Recurse{
-			Depth: 5,
-			Work:  5,
+			Depth: 0,
+			Work:  5000,
 		},
 	}
 
