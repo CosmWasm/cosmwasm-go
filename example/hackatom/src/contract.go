@@ -1,6 +1,7 @@
 package src
 
 import (
+	"crypto/sha256"
 	"github.com/cosmwasm/cosmwasm-go/std"
 	"github.com/cosmwasm/cosmwasm-go/std/types"
 )
@@ -171,7 +172,7 @@ func Query(deps *std.Deps, env types.Env, data []byte) ([]byte, error) {
 	case msg.OtherBalance != nil:
 		res, err = queryOtherBalance(deps, &env, msg.OtherBalance)
 	case msg.Recurse != nil:
-		err = types.GenericError("Not implemented: Recurse")
+		return queryRecurse(deps, &env, msg.Recurse)
 	default:
 		err = types.GenericError("Unknown QueryMsg")
 	}
@@ -186,6 +187,48 @@ func Query(deps *std.Deps, env types.Env, data []byte) ([]byte, error) {
 	}
 	return bz, nil
 
+}
+
+func queryRecurse(deps *std.Deps, env *types.Env, recurse *Recurse) ([]byte, error) {
+	contractAddrBytes := []byte(env.Contract.Address)
+
+	// perform work
+	var result [32]byte
+	for i := uint32(0); i < recurse.Work; i++ {
+		result = sha256.Sum256(contractAddrBytes)
+	}
+
+	if recurse.Depth == 0 {
+		return (RecurseResponse{
+			Hashed: string(result[:]),
+		}).MarshalJSON()
+	}
+
+	recurseRequest := Recurse{
+		Depth: recurse.Depth - 1,
+		Work:  recurse.Work,
+	}
+
+	recurseBytes, err := recurseRequest.MarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+
+	req := types.QueryRequest{
+		Wasm: &types.WasmQuery{
+			Smart: &types.SmartQuery{
+				ContractAddr: env.Contract.Address,
+				Msg:          recurseBytes,
+			},
+		},
+	}
+
+	reqBytes, err := req.MarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+
+	return deps.Querier.RawQuery(reqBytes)
 }
 
 func queryVerifier(deps *std.Deps, env *types.Env) (*VerifierResponse, error) {
