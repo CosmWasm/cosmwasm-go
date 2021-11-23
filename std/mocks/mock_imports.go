@@ -5,6 +5,7 @@ package mocks
 
 import (
 	"fmt"
+	"github.com/cosmwasm/cosmwasm-go/std/math"
 
 	dbm "github.com/tendermint/tm-db"
 
@@ -226,7 +227,7 @@ func (q *MockQuerier) HandleBank(request *types.BankQuery) (std.JSONType, error)
 	switch {
 	case request.Balance != nil:
 		balances := q.GetBalance(request.Balance.Address)
-		coin := types.Coin{Denom: request.Balance.Denom, Amount: "0"}
+		coin := types.Coin{Denom: request.Balance.Denom, Amount: math.ZeroUint128()}
 		for _, c := range balances {
 			if c.Denom == coin.Denom {
 				coin.Amount = c.Amount

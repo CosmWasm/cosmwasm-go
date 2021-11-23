@@ -1,6 +1,8 @@
 package types
 
-import "strconv"
+import (
+	"github.com/cosmwasm/cosmwasm-go/std/math"
+)
 
 // HumanAddress is a printable (typically bech32 encoded) address string. Just use it as a label for developers.
 type HumanAddress = string
@@ -10,20 +12,23 @@ type CanonicalAddress = []byte
 
 // Coin is a string representation of the sdk.Coin type (more portable than sdk.Int)
 type Coin struct {
-	Denom string // type, eg. "ATOM"
-	// TODO: this should be uint128 with string encoding
-	Amount string // string encoing of decimal value, eg. "12.3456"
+	// Denom defines the name of the coin, example: ATOM
+	Denom string
+	// Amount is the math.Uint128 representation of the amount of coins.
+	Amount math.Uint128
 }
 
-func NewCoin(amount uint64, denom string) Coin {
+// NewCoin creates a new coin given amount and denom.
+func NewCoin(amount math.Uint128, denom string) Coin {
 	return Coin{
 		Denom:  denom,
-		Amount: strconv.FormatUint(amount, 10),
+		Amount: amount,
 	}
 }
 
-func NewCoins(amount uint64, denom string) []Coin {
-	return []Coin{NewCoin(amount, denom)}
+// NewCoinFromUint64 creates a new coin given an uint64 amount and denom.
+func NewCoinFromUint64(amount uint64, denom string) Coin {
+	return NewCoin(math.NewUint128FromUint64(amount), denom)
 }
 
 // RawMessage is a raw encoded JSON value.

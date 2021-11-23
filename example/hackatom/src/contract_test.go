@@ -2,6 +2,7 @@ package src
 
 import (
 	"encoding/json"
+	"github.com/cosmwasm/cosmwasm-go/std/math"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -80,8 +81,16 @@ func TestRelease(t *testing.T) {
 		funds  []types.Coin
 		valid  bool
 	}{
-		"verifier releases": {VERIFIER, types.NewCoins(765432, "wei"), true},
-		"random fails":      {BENEFICIARY, types.NewCoins(765432, "wei"), false},
+		"verifier releases": {
+			signer: VERIFIER,
+			funds:  []types.Coin{types.NewCoin(math.NewUint128FromUint64(765432), "wei")},
+			valid:  true,
+		},
+		"random fails": {
+			signer: BENEFICIARY,
+			funds:  []types.Coin{types.NewCoin(math.NewUint128FromUint64(765432), "wei")},
+			valid:  false,
+		},
 	}
 
 	for name, tc := range cases {
