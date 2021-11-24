@@ -172,7 +172,7 @@ func (api ExternalApi) CanonicalAddress(human string) (types.CanonicalAddress, e
 	ret := C.addr_canonicalize(unsafe.Pointer(regionHuman), unsafe.Pointer(regionCanon))
 	C.free(humanPtr)
 
-	if ret < 0 {
+	if ret != 0 {
 		// TODO: how to get actual error message?
 		return nil, types.GenericError("addr_canonicalize returned error")
 	}

@@ -92,7 +92,9 @@ func Execute(deps *std.Deps, env types.Env, info types.MessageInfo, data []byte)
 	}
 }
 
-// used to signal an empty error, since we cannot use fmt, nil errors would panic when added to a string
+// used to signal an empty error, since we cannot use fmt,
+// nil errors would panic when added to a string as err.Error()
+// would nil dereference panic.
 var noError = errors.New("<nil>")
 
 // isGenericError is the function used to check comparison, we don't
