@@ -219,3 +219,18 @@ func TestUserErrorsInAPICalls(t *testing.T) {
 	t.Logf("consumed gas: %d", gas)
 	require.NoError(t, err)
 }
+
+// Let's test what gets returned when address validation fails
+func TestApiErrorInInit(t *testing.T) {
+	instance := systest.NewInstance(t, CONTRACT, 15_000_000_000_000, nil)
+
+	env := mocks.MockEnv()
+	info := mocks.MockInfo(FUNDER, nil)
+	initMsg := src.InitMsg{
+		Verifier:    "This string is way way way way way too long and must produce an error",
+		Beneficiary: BENEFICIARY,
+	}
+	_, _, err := instance.Instantiate(env, info, mustEncode(t, initMsg))
+	require.Error(t, err)
+	assert.Equal(t, "Foo", err.Error())
+}

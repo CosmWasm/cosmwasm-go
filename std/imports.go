@@ -191,7 +191,7 @@ func (api ExternalApi) HumanAddress(canonical types.CanonicalAddress) (string, e
 	ret := C.addr_humanize(unsafe.Pointer(regionCanon), unsafe.Pointer(regionHuman))
 	C.free(canonPtr)
 
-	if ret < 0 {
+	if ret != 0 {
 		// TODO: how to get actual error message?
 		return "", types.GenericError("addr_humanize returned error")
 	}
