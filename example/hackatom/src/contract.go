@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+
 	"github.com/cosmwasm/cosmwasm-go/std"
 	"github.com/cosmwasm/cosmwasm-go/std/types"
 )
@@ -111,48 +112,33 @@ func executeUserErrorsInApiCall(deps *std.Deps) (*types.Response, error) {
 
 	// case empty
 	_, err := deps.Api.CanonicalAddress("")
-	if !isGenericError(err) {
-		if err == nil {
-			err = noError
-		}
-		return nil, errors.New("canonical empty unexpected error: " + err.Error())
+	if err == nil {
+		return nil, errors.New("unexpected pass with CanonicalAddress(\"\")")
 	}
 	// invalid bech32 addr
 	_, err = deps.Api.CanonicalAddress("bn9hhssomeltvhzgvuqkwjkpwxojfuigltwedayzxljucefikuieillowaticksoistqoynmgcnj219a")
-	if !isGenericError(err) {
-		if err == nil {
-			err = noError
-		}
-		return nil, errors.New("canonical invalid bech32 unexpected error: " + err.Error())
+	if err == nil {
+		return nil, errors.New("unexpected pass with CanonicalAddress(long-string): " + err.Error())
 	}
 
 	// humanization
 
 	// empty
 	_, err = deps.Api.HumanAddress([]byte{})
-	if !isGenericError(err) {
-		if err == nil {
-			err = noError
-		}
-		return nil, errors.New("humanize empty unexpected error: " + err.Error())
+	if err == nil {
+		return nil, errors.New("unexpected pass with HumanAddress([]byte{})")
 	}
 
 	// too short
 	_, err = deps.Api.HumanAddress([]byte{0xAA, 0xBB, 0xCC})
-	if !isGenericError(err) {
-		if err == nil {
-			err = noError
-		}
-		return nil, errors.New("humanize too short unexpected error: " + err.Error())
+	if err == nil {
+		return nil, errors.New("unexpected pass with HumanAddress([]byte{0xAA, 0xBB, 0xCC})")
 	}
 
 	// wrong length
 	_, err = deps.Api.HumanAddress([]byte{0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6})
-	if !isGenericError(err) {
-		if err == nil {
-			err = noError
-		}
-		return nil, errors.New("humanize wrong length unexpected error " + err.Error())
+	if err == nil {
+		return nil, errors.New("unexpected pass with HumanAddress([]byte{too, many, bytes})")
 	}
 
 	return &types.Response{}, nil
