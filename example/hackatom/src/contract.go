@@ -130,13 +130,13 @@ func executeUserErrorsInApiCall(deps *std.Deps) (*types.Response, error) {
 	// humanization
 
 	// empty
-	_, err = deps.Api.HumanAddress([]byte{})
-	if !isGenericError(err) {
-		if err == nil {
-			err = noError
-		}
-		return nil, errors.New("Unexpected pass with HumanAddress([]byte{}): " + err.Error())
-	}
+	// _, err = deps.Api.HumanAddress([]byte{})
+	// if !isGenericError(err) {
+	// 	if err == nil {
+	// 		err = noError
+	// 	}
+	// 	return nil, errors.New("Unexpected pass with HumanAddress([]byte{}): " + err.Error())
+	// }
 
 	// too short
 	_, err = deps.Api.HumanAddress([]byte{0xAA, 0xBB, 0xCC})
