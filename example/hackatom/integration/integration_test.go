@@ -208,8 +208,8 @@ func TestUserErrorsInAPICalls(t *testing.T) {
 		return "", 0, errors.New("BAD MOON RISING")
 	}
 	instance.Api.CanonicalAddress = func(human string) ([]byte, uint64, error) {
-		panic("oh no!")
-		// return nil, 0, errors.New("NGMI")
+		// panic("oh no!")
+		return nil, 0, errors.New("NGMI")
 	}
 
 	_, gas, err := instance.Execute(mocks.MockEnv(), mocks.MockInfo(FUNDER, nil), mustEncode(t, &src.HandleMsg{
