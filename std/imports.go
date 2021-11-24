@@ -4,8 +4,6 @@
 package std
 
 import (
-	"strconv"
-
 	"github.com/cosmwasm/cosmwasm-go/std/types"
 )
 
@@ -195,7 +193,7 @@ func (api ExternalApi) HumanAddress(canonical types.CanonicalAddress) (string, e
 
 	if ret != 0 {
 		msg := TranslateToString(uintptr(ret))
-		return nil, types.GenericError("addr_humanize errored: " + msg)
+		return "", types.GenericError("addr_humanize errored: " + msg)
 	}
 
 	humanAddress := TranslateToString(uintptr(regionHuman))

@@ -222,5 +222,5 @@ func TestApiErrorInInit(t *testing.T) {
 	}
 	_, _, err := instance.Instantiate(env, info, mustEncode(t, initMsg))
 	require.Error(t, err)
-	assert.Equal(t, "Generic error: addr_canonicalize errored: failed. human encoding too long", err.Error())
+	assert.Equal(t, "Generic error: addr_canonicalize errored: Generic error: failed. human encoding too long", err.Error())
 }
