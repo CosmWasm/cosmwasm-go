@@ -143,3 +143,8 @@ func TestRelease(t *testing.T) {
 		})
 	}
 }
+
+func TestUserErrorsInAPICalls(t *testing.T) {
+	_, err := executeUserErrorsInApiCall(mocks.MockDeps(nil))
+	require.NoError(t, err)
+}

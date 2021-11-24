@@ -3,6 +3,7 @@ package src
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"github.com/cosmwasm/cosmwasm-go/std"
 	"github.com/cosmwasm/cosmwasm-go/std/types"
 )
@@ -85,10 +86,74 @@ func Execute(deps *std.Deps, env types.Env, info types.MessageInfo, data []byte)
 	case msg.Panic != nil:
 		return executePanic(deps, &env, &info)
 	case msg.UserErrorsInApiCalls != nil:
-		return nil, types.GenericError("Not implemented: UserErrorInApiCalls")
+		return executeUserErrorsInApiCall(deps)
 	default:
 		return nil, types.GenericError("Unknown HandleMsg")
 	}
+}
+
+// used to signal an empty error, since we cannot use fmt, nil errors would panic when added to a string
+var noError = errors.New("<nil>")
+
+// isGenericError is the function used to check comparison, we don't
+// use errors.Is because types.GenericError is comparable and hence
+// the package would check for the two errors to be identical.
+// TODO: match MockApi error messages with the VM provided API error messages to use errors.Is
+func isGenericError(err error) bool {
+	_, ok := err.(types.GenericErr)
+	return ok
+}
+
+func executeUserErrorsInApiCall(deps *std.Deps) (*types.Response, error) {
+	// canonicalization
+
+	// case empty
+	_, err := deps.Api.CanonicalAddress("")
+	if !isGenericError(err) {
+		if err == nil {
+			err = noError
+		}
+		return nil, errors.New("canonical empty unexpected error: " + err.Error())
+	}
+	// invalid bech32 addr
+	_, err = deps.Api.CanonicalAddress("bn9hhssomeltvhzgvuqkwjkpwxojfuigltwedayzxljucefikuieillowaticksoistqoynmgcnj219a")
+	if !isGenericError(err) {
+		if err == nil {
+			err = noError
+		}
+		return nil, errors.New("canonical invalid bech32 unexpected error: " + err.Error())
+	}
+
+	// humanization
+
+	// empty
+	_, err = deps.Api.HumanAddress([]byte{})
+	if !isGenericError(err) {
+		if err == nil {
+			err = noError
+		}
+		return nil, errors.New("humanize empty unexpected error: " + err.Error())
+	}
+
+	// too short
+	_, err = deps.Api.HumanAddress([]byte{0xAA, 0xBB, 0xCC})
+	if !isGenericError(err) {
+		if err == nil {
+			err = noError
+		}
+		return nil, errors.New("humanize too short unexpected error: " + err.Error())
+	}
+
+	// wrong length
+	_, err = deps.Api.HumanAddress([]byte{0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6})
+	if !isGenericError(err) {
+		if err == nil {
+			err = noError
+		}
+		return nil, errors.New("humanize wrong length unexpected error " + err.Error())
+	}
+
+	return &types.Response{}, nil
 }
 
 func executeRelease(deps *std.Deps, env *types.Env, info *types.MessageInfo) (*types.Response, error) {
