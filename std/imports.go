@@ -176,7 +176,14 @@ func (api ExternalApi) CanonicalAddress(human string) (types.CanonicalAddress, e
 
 	if ret != 0 {
 		// TODO: how to get actual error message?
-		return nil, types.GenericError("addr_canonicalize returned error: " + strconv.Itoa(int(ret)))
+		// consume_string_region_written_by_vm(result as *mut Region)
+		// 		// unsafe fn consume_string_region_written_by_vm(from: *mut Region) -> String {
+		//     let data = consume_region(from);
+		//     // We trust the VM/chain to return correct UTF-8, so let's save some gas
+		//     String::from_utf8_unchecked(data)
+		// }
+		msg := TranslateToSlice(uintptr(ret))
+		return nil, types.GenericError("addr_canonicalize returned error: " + strconv.Itoa(int(ret)) + " = " + string(msg))
 	}
 
 	canoAddress := TranslateToSlice(uintptr(regionCanon))
