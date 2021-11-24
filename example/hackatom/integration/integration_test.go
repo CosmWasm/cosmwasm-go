@@ -4,7 +4,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"path/filepath"
 	"testing"
@@ -203,15 +202,6 @@ func TestQueryRecurse(t *testing.T) {
 
 func TestUserErrorsInAPICalls(t *testing.T) {
 	instance := defaultInit(t, nil)
-
-	instance.Api.HumanAddress = func(canon []byte) (string, uint64, error) {
-		return "", 0, errors.New("BAD MOON RISING")
-	}
-	instance.Api.CanonicalAddress = func(human string) ([]byte, uint64, error) {
-		// panic("oh no!")
-		return nil, 0, errors.New("NGMI")
-	}
-
 	_, gas, err := instance.Execute(mocks.MockEnv(), mocks.MockInfo(FUNDER, nil), mustEncode(t, &src.HandleMsg{
 		UserErrorsInApiCalls: &struct{}{},
 	}))
@@ -232,5 +222,5 @@ func TestApiErrorInInit(t *testing.T) {
 	}
 	_, _, err := instance.Instantiate(env, info, mustEncode(t, initMsg))
 	require.Error(t, err)
-	assert.Equal(t, "Foo", err.Error())
+	assert.Equal(t, "Generic error: addr_canonicalize errored: failed. human encoding too long", err.Error())
 }
