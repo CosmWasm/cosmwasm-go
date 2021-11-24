@@ -198,5 +198,14 @@ func TestQueryRecurse(t *testing.T) {
 	expectedHash := sha256.Sum256([]byte(env.Contract.Address))
 
 	require.Equal(t, hex.EncodeToString(expectedHash[:]), resp.Hashed)
+}
 
+func TestUserErrorsInAPICalls(t *testing.T) {
+	instance := defaultInit(t, nil)
+	_, gas, err := instance.Execute(mocks.MockEnv(), mocks.MockInfo(FUNDER, nil), mustEncode(t, &src.HandleMsg{
+		UserErrorsInApiCalls: &struct{}{},
+	}))
+
+	t.Logf("consumed gas: %d", gas)
+	require.NoError(t, err)
 }
