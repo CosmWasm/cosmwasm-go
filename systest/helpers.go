@@ -9,6 +9,8 @@ import (
 	mocks "github.com/CosmWasm/wasmvm/api"
 	types "github.com/CosmWasm/wasmvm/types"
 
+	unitmocks "github.com/confio/cosmwasm-go/std/mocks"
+
 	"github.com/stretchr/testify/require"
 )
 
@@ -69,13 +71,24 @@ func NewInstance(t *testing.T, contractPath string, gasLimit uint64, funds []typ
 	wasmer, codeID := SetupWasmer(t, contractPath)
 	gasMeter := mocks.NewMockGasMeter(gasLimit)
 
+	// we use callbacks that use the same logic as our unit tests
+	mockApi := mocks.NewMockAPI()
+	mockApi.HumanAddress = func(canon []byte) (string, uint64, error) {
+		human, err := unitmocks.MockApi{}.HumanAddress(canon)
+		return human, 5000, err
+	}
+	mockApi.CanonicalAddress = func(human string) ([]byte, uint64, error) {
+		canon, err := unitmocks.MockApi{}.CanonicalAddress(human)
+		return canon, 4000, err
+	}
+
 	return Instance{
 		Wasmer:   wasmer,
 		CodeID:   codeID,
 		GasLimit: gasLimit,
 		GasMeter: gasMeter,
 		Store:    mocks.NewLookup(gasMeter),
-		Api:      mocks.NewMockAPI(),
+		Api:      mockApi,
 		Querier:  mocks.DefaultQuerier(mocks.MOCK_CONTRACT_ADDR, funds),
 	}
 }
