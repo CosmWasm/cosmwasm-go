@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+
 	"github.com/cosmwasm/cosmwasm-go/std"
 	"github.com/cosmwasm/cosmwasm-go/std/types"
 )
@@ -115,7 +116,7 @@ func executeUserErrorsInApiCall(deps *std.Deps) (*types.Response, error) {
 		if err == nil {
 			err = noError
 		}
-		return nil, errors.New("canonical empty unexpected error: " + err.Error())
+		return nil, errors.New("Unexpected pass with CanonicalAddress(\"\"): " + err.Error())
 	}
 	// invalid bech32 addr
 	_, err = deps.Api.CanonicalAddress("bn9hhssomeltvhzgvuqkwjkpwxojfuigltwedayzxljucefikuieillowaticksoistqoynmgcnj219a")
@@ -123,7 +124,7 @@ func executeUserErrorsInApiCall(deps *std.Deps) (*types.Response, error) {
 		if err == nil {
 			err = noError
 		}
-		return nil, errors.New("canonical invalid bech32 unexpected error: " + err.Error())
+		return nil, errors.New("Unexpected pass with CanonicalAddress(long-string): " + err.Error())
 	}
 
 	// humanization
@@ -134,7 +135,7 @@ func executeUserErrorsInApiCall(deps *std.Deps) (*types.Response, error) {
 		if err == nil {
 			err = noError
 		}
-		return nil, errors.New("humanize empty unexpected error: " + err.Error())
+		return nil, errors.New("Unexpected pass with HumanAddress([]byte{}): " + err.Error())
 	}
 
 	// too short
@@ -143,7 +144,7 @@ func executeUserErrorsInApiCall(deps *std.Deps) (*types.Response, error) {
 		if err == nil {
 			err = noError
 		}
-		return nil, errors.New("humanize too short unexpected error: " + err.Error())
+		return nil, errors.New("Unexpected pass with HumanAddress([]byte{0xAA, 0xBB, 0xCC}): " + err.Error())
 	}
 
 	// wrong length
@@ -152,7 +153,7 @@ func executeUserErrorsInApiCall(deps *std.Deps) (*types.Response, error) {
 		if err == nil {
 			err = noError
 		}
-		return nil, errors.New("humanize wrong length unexpected error " + err.Error())
+		return nil, errors.New("Unexpected pass with HumanAddress([]byte{too, many, bytes}): " + err.Error())
 	}
 
 	return &types.Response{}, nil
