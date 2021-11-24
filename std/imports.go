@@ -4,6 +4,8 @@
 package std
 
 import (
+	"strconv"
+
 	"github.com/cosmwasm/cosmwasm-go/std/types"
 )
 
@@ -174,7 +176,7 @@ func (api ExternalApi) CanonicalAddress(human string) (types.CanonicalAddress, e
 
 	if ret != 0 {
 		// TODO: how to get actual error message?
-		return nil, types.GenericError("addr_canonicalize returned error")
+		return nil, types.GenericError("addr_canonicalize returned error: " + strconv.Itoa(int(ret)))
 	}
 
 	canoAddress := TranslateToSlice(uintptr(regionCanon))
