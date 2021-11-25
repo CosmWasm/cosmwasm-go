@@ -275,6 +275,16 @@ func tinyjsonF5cd6cf9DecodeGithubComCosmwasmCosmwasmGoExampleHackatomSrc3(in *jl
 				}
 				(*out.Recurse).UnmarshalTinyJSON(in)
 			}
+		case "test_range":
+			if in.IsNull() {
+				in.Skip()
+				out.TestRange = nil
+			} else {
+				if out.TestRange == nil {
+					out.TestRange = new(struct{})
+				}
+				tinyjsonF5cd6cf9Decode(in, out.TestRange)
+			}
 		default:
 			in.SkipRecursive()
 		}
@@ -314,6 +324,16 @@ func tinyjsonF5cd6cf9EncodeGithubComCosmwasmCosmwasmGoExampleHackatomSrc3(out *j
 			out.RawString(prefix)
 		}
 		(*in.Recurse).MarshalTinyJSON(out)
+	}
+	if in.TestRange != nil {
+		const prefix string = ",\"test_range\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		tinyjsonF5cd6cf9Encode(out, *in.TestRange)
 	}
 	out.RawByte('}')
 }

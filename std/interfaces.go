@@ -46,7 +46,7 @@ type Storage interface {
 }
 
 // This is a special, placeholder to signal iteration is finished
-var ErrIteratorDone = errors.New("iterator done")
+var ErrIteratorDone = errors.New("iterator is done")
 
 type Iterator interface {
 	Next() (key, value []byte, err error)
