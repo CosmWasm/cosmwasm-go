@@ -4,8 +4,9 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
-	"github.com/cosmwasm/cosmwasm-go/std/math"
 	"testing"
+
+	"github.com/cosmwasm/cosmwasm-go/std/math"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -62,7 +63,6 @@ func TestInitAndQuery(t *testing.T) {
 	data, err := Query(deps, env, qmsg)
 	require.NoError(t, err)
 	var qres VerifierResponse
-	require.NoError(t, err)
 	err = json.Unmarshal(data, &qres)
 	require.NoError(t, err)
 	assert.Equal(t, VERIFIER, qres.Verifier)
@@ -147,4 +147,20 @@ func TestRelease(t *testing.T) {
 func TestUserErrorsInAPICalls(t *testing.T) {
 	_, err := executeUserErrorsInApiCall(mocks.MockDeps(nil))
 	require.NoError(t, err)
+}
+
+func TestRangeQuery(t *testing.T) {
+	deps := defaultInit(t, nil)
+	env := mocks.MockEnv()
+
+	queryMsg := []byte(`{"test_range":{}}`)
+	data, err := Query(deps, env, queryMsg)
+	require.NoError(t, err)
+
+	var state State
+	err = json.Unmarshal(data, &state)
+	require.NoError(t, err)
+	assert.Equal(t, VERIFIER, state.Verifier)
+	assert.Equal(t, FUNDER, state.Funder)
+	assert.Equal(t, BENEFICIARY, state.Beneficiary)
 }

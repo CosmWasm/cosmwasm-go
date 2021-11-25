@@ -59,10 +59,11 @@ func newMockIterator(iter dbm.Iterator) MockIterator {
 	}
 }
 
+//
 func (iter MockIterator) Next() (key, value []byte, err error) {
 	if !iter.Iter.Valid() {
 		iter.Iter.Close()
-		return key, value, types.GenericError("the end of iterator")
+		return key, value, std.ErrIteratorDone
 	}
 	key, value = iter.Iter.Key(), iter.Iter.Value()
 	iter.Iter.Next()

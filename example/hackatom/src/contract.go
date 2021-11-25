@@ -213,6 +213,8 @@ func Query(deps *std.Deps, env types.Env, data []byte) ([]byte, error) {
 		res, err = queryOtherBalance(deps, &env, msg.OtherBalance)
 	case msg.Recurse != nil:
 		return queryRecurse(deps, &env, msg.Recurse)
+	case msg.TestRange != nil:
+		res, err = queryRange(deps, &env)
 	default:
 		err = types.GenericError("Unknown QueryMsg " + string(data))
 	}
@@ -291,4 +293,38 @@ func queryOtherBalance(deps *std.Deps, env *types.Env, msg *OtherBalance) (*type
 	return &types.AllBalancesResponse{
 		Amount: amount,
 	}, nil
+}
+
+// this will use a range query and try to load up the state and ensure only one hit
+func queryRange(deps *std.Deps, env *types.Env) (*State, error) {
+	it := deps.Storage.Range(nil, nil, std.Ascending)
+
+	// get first value - config => State
+	key, value, err := it.Next()
+	if err != nil {
+		return nil, err
+	}
+	if string(key) != "config" {
+		return nil, errors.New("Unexpected key: " + string(key))
+	}
+	var state State
+	err = state.UnmarshalJSON(value)
+	if err != nil {
+		return nil, err
+	}
+
+	// No second value
+	key, _, err = it.Next()
+	if err == nil {
+		return nil, errors.New("unexpected second key: " + string(key))
+	}
+	// this made floating point ops????
+	// if err != std.ErrIteratorDone {
+
+	// this is safe:
+	if err.Error() != std.ErrIteratorDone.Error() {
+		return nil, errors.New("unexpected error: " + err.Error())
+	}
+
+	return &state, nil
 }

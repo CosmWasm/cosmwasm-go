@@ -1,6 +1,8 @@
 package std
 
 import (
+	"errors"
+
 	"github.com/cosmwasm/cosmwasm-go/std/types"
 )
 
@@ -42,6 +44,9 @@ type Storage interface {
 	// Remove removes the value from the db.
 	Remove(key []byte)
 }
+
+// This is a special, placeholder to signal iteration is finished
+var ErrIteratorDone = errors.New("iterator is done")
 
 type Iterator interface {
 	Next() (key, value []byte, err error)

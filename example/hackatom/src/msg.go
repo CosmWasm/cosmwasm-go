@@ -23,6 +23,8 @@ type QueryMsg struct {
 	Verifier     *struct{}     `json:"verifier,omitempty"`
 	OtherBalance *OtherBalance `json:"other_balance,omitempty"`
 	Recurse      *Recurse      `json:"recurse,omitempty"`
+	// TODO: remove this when we have queue... this was for a quick and dirty test
+	TestRange *struct{} `json:"test_range,omitempty"`
 }
 
 type OtherBalance struct {
