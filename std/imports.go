@@ -81,35 +81,23 @@ func (s ExternalStorage) Get(key []byte) (value []byte) {
 
 // Range implements ReadonlyStorage.Range.
 func (s ExternalStorage) Range(start, end []byte, order Order) (iter Iterator) {
-	/*
-			        // There is lots of gotchas on turning options into regions for FFI, thus this design
-		        // See: https://github.com/CosmWasm/cosmwasm/pull/509
-		        let start_region = start.map(build_region);
-		        let end_region = end.map(build_region);
-		        let start_region_addr = get_optional_region_address(&start_region.as_ref());
-		        let end_region_addr = get_optional_region_address(&end_region.as_ref());
-		        let iterator_id = unsafe { db_scan(start_region_addr, end_region_addr, order as i32) };
-		        let iter = ExternalIterator { iterator_id };
-		        Box::new(iter)
-	*/
-
-	var startPtr, endPtr C.int
+	var startPtr, endPtr unsafe.Pointer
 	var regionStart, regionEnd uintptr
 	if len(start) > 0 {
 		startPtr = C.malloc(C.ulong(len(start)))
-		regionStart := TranslateToRegion(start, uintptr(startPtr))
+		regionStart = TranslateToRegion(start, uintptr(startPtr))
 	}
 	if len(end) > 0 {
 		endPtr = C.malloc(C.ulong(len(end)))
-		regionEnd := TranslateToRegion(end, uintptr(endPtr))
+		regionEnd = TranslateToRegion(end, uintptr(endPtr))
 	}
 
 	iteratorID := C.db_scan(unsafe.Pointer(regionStart), unsafe.Pointer(regionEnd), C.int(order))
 	if len(start) > 0 {
-		C.free(unsafe.Pointer(startPtr))
+		C.free(startPtr)
 	}
 	if len(end) > 0 {
-		C.free(unsafe.Pointer(endPtr))
+		C.free(endPtr)
 	}
 
 	iterator := ExternalIterator{
@@ -147,12 +135,18 @@ type ExternalIterator struct {
 	IteratorId uint32
 }
 
-func (iterator ExternalIterator) Next() (key, value []byte) {
-	nextResult := C.db_next(C.unsigned(iterator.uint32))
+func (iterator ExternalIterator) Next() (key, value []byte, err error) {
+	nextResult := C.db_next(C.uint(iterator.IteratorId))
 	kv := TranslateToSlice(uintptr(nextResult))
 	head, value := splitTail(kv)
+	if len(head) == 0 {
+		return nil, nil, ErrIteratorDone
+	}
 	_, key = splitTail(head)
-	return key, value
+	if len(key) == 0 {
+		return nil, nil, ErrIteratorDone
+	}
+	return key, value, nil
 }
 
 // ported from https://github.com/CosmWasm/cosmwasm/blob/main/packages/std/src/sections.rs#L38-L69
@@ -163,7 +157,7 @@ func splitTail(input []byte) (head, tail []byte) {
 		panic("Too short to split")
 	}
 	lenStart := len(input) - 4
-	tailLen := binary.BigEndian.Uint32(input[lenStart:])
+	tailLen := int(binary.BigEndian.Uint32(input[lenStart:]))
 	input = input[:lenStart]
 	cut := len(input) - tailLen
 
