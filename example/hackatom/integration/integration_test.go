@@ -224,3 +224,21 @@ func TestApiErrorInInit(t *testing.T) {
 	require.Error(t, err)
 	assert.Equal(t, "Generic error: addr_canonicalize errored: human encoding too long", err.Error())
 }
+
+func TestRangeQuery(t *testing.T) {
+	deps := defaultInit(t, nil)
+	env := mocks.MockEnv()
+
+	queryMsg := []byte(`{"test_range":{}}`)
+
+	data, gas, err := deps.Query(env, queryMsg)
+	require.NoError(t, err)
+	t.Logf("gas used: %d", gas)
+
+	var state src.State
+	err = json.Unmarshal(data, &state)
+	require.NoError(t, err)
+	assert.Equal(t, VERIFIER, state.Verifier)
+	assert.Equal(t, FUNDER, state.Funder)
+	assert.Equal(t, BENEFICIARY, state.Beneficiary)
+}
