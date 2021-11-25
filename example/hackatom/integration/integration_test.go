@@ -1,6 +1,8 @@
 package systest
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"path/filepath"
@@ -166,4 +168,59 @@ func TestQueryOther(t *testing.T) {
 			require.Equal(t, types.Coins(tc.balance), res.Amount)
 		})
 	}
+}
+
+func TestQueryRecurse(t *testing.T) {
+	contractFunds := []types.Coin{
+		types.NewCoin(1000, "wei"),
+		types.NewCoin(555, "uatom"),
+	}
+	deps := defaultInit(t, contractFunds)
+	env := mocks.MockEnv()
+
+	msg := src.QueryMsg{
+		Recurse: &src.Recurse{
+			Depth: 0,
+			Work:  625,
+		},
+	}
+
+	msgBytes, err := msg.MarshalJSON()
+	require.NoError(t, err)
+
+	res, gas, err := deps.Query(env, msgBytes)
+	require.NoError(t, err)
+	t.Logf("gas used: %d", gas)
+
+	resp := new(src.RecurseResponse)
+	require.NoError(t, resp.UnmarshalJSON(res))
+
+	expectedHash := sha256.Sum256([]byte(env.Contract.Address))
+
+	require.Equal(t, hex.EncodeToString(expectedHash[:]), resp.Hashed)
+}
+
+func TestUserErrorsInAPICalls(t *testing.T) {
+	instance := defaultInit(t, nil)
+	_, gas, err := instance.Execute(mocks.MockEnv(), mocks.MockInfo(FUNDER, nil), mustEncode(t, &src.HandleMsg{
+		UserErrorsInApiCalls: &struct{}{},
+	}))
+
+	t.Logf("consumed gas: %d", gas)
+	require.NoError(t, err)
+}
+
+// Let's test what gets returned when address validation fails
+func TestApiErrorInInit(t *testing.T) {
+	instance := systest.NewInstance(t, CONTRACT, 15_000_000_000_000, nil)
+
+	env := mocks.MockEnv()
+	info := mocks.MockInfo(FUNDER, nil)
+	initMsg := src.InitMsg{
+		Verifier:    "This string is way way way way way too long and must produce an error",
+		Beneficiary: BENEFICIARY,
+	}
+	_, _, err := instance.Instantiate(env, info, mustEncode(t, initMsg))
+	require.Error(t, err)
+	assert.Equal(t, "Generic error: addr_canonicalize errored: human encoding too long", err.Error())
 }

@@ -4,7 +4,9 @@
 package mocks
 
 import (
+	"errors"
 	"fmt"
+
 	"github.com/cosmwasm/cosmwasm-go/std/math"
 
 	dbm "github.com/tendermint/tm-db"
@@ -107,7 +109,7 @@ func (s *MockStorage) Range(start, end []byte, order std.Order) (iter std.Iterat
 		iterator, err = s.storage.ReverseIterator(start, end)
 		iter = newMockIterator(iterator)
 	default:
-		err = types.GenericError("failed. unexpected Order")
+		err = errors.New("unexpected Order")
 	}
 
 	if err != nil {
@@ -140,8 +142,11 @@ var (
 type MockApi struct{}
 
 func (api MockApi) CanonicalAddress(human string) (types.CanonicalAddress, error) {
+	if len(human) == 0 {
+		return nil, errors.New("empty address")
+	}
 	if len(human) > canonicalLength {
-		return nil, types.GenericError("failed. human encoding too long")
+		return nil, errors.New("human encoding too long")
 	}
 
 	return []byte(human), nil
@@ -149,7 +154,7 @@ func (api MockApi) CanonicalAddress(human string) (types.CanonicalAddress, error
 
 func (api MockApi) HumanAddress(canonical types.CanonicalAddress) (string, error) {
 	if len(canonical) != canonicalLength {
-		return "", types.GenericError("failed. wrong canonical address length")
+		return "", errors.New("wrong canonical address length")
 	}
 
 	cutIndex := canonicalLength
@@ -165,7 +170,7 @@ func (api MockApi) HumanAddress(canonical types.CanonicalAddress) (string, error
 
 func (api MockApi) ValidateAddress(human string) error {
 	if len(human) > canonicalLength {
-		return types.GenericError("failed. human encoding too long")
+		return errors.New("human encoding too long")
 	}
 	return nil
 }
@@ -213,13 +218,13 @@ func (q *MockQuerier) HandleQuery(request types.QueryRequest) (std.JSONType, err
 	case request.Bank != nil:
 		return q.HandleBank(request.Bank)
 	case request.Staking != nil:
-		return nil, types.GenericError("Staking queries not implemented")
+		return nil, errors.New("staking queries not implemented")
 	case request.Wasm != nil:
-		return nil, types.GenericError("Wasm queries not implemented")
+		return nil, errors.New("wasm queries not implemented")
 	case request.Custom != nil:
-		return nil, types.GenericError("Custom queries not implemented")
+		return nil, errors.New("custom queries not implemented")
 	default:
-		return nil, types.GenericError("Unknown types.QueryRequest variant")
+		return nil, errors.New("unknown types.QueryRequest variant")
 	}
 }
 
@@ -239,7 +244,7 @@ func (q *MockQuerier) HandleBank(request *types.BankQuery) (std.JSONType, error)
 		balances := q.GetBalance(request.AllBalances.Address)
 		return &types.AllBalancesResponse{Amount: balances}, nil
 	default:
-		return nil, types.GenericError("Unknown types.BankQuery variant")
+		return nil, errors.New("unknown types.BankQuery variant")
 	}
 }
 

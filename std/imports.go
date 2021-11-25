@@ -172,9 +172,9 @@ func (api ExternalApi) CanonicalAddress(human string) (types.CanonicalAddress, e
 	ret := C.addr_canonicalize(unsafe.Pointer(regionHuman), unsafe.Pointer(regionCanon))
 	C.free(humanPtr)
 
-	if ret < 0 {
-		// TODO: how to get actual error message?
-		return nil, types.GenericError("addr_canonicalize returned error")
+	if ret != 0 {
+		msg := TranslateToString(uintptr(ret))
+		return nil, types.GenericError("addr_canonicalize errored: " + msg)
 	}
 
 	canoAddress := TranslateToSlice(uintptr(regionCanon))
@@ -191,14 +191,14 @@ func (api ExternalApi) HumanAddress(canonical types.CanonicalAddress) (string, e
 	ret := C.addr_humanize(unsafe.Pointer(regionCanon), unsafe.Pointer(regionHuman))
 	C.free(canonPtr)
 
-	if ret < 0 {
-		// TODO: how to get actual error message?
-		return "", types.GenericError("addr_humanize returned error")
+	if ret != 0 {
+		msg := TranslateToString(uintptr(ret))
+		return "", types.GenericError("addr_humanize errored: " + msg)
 	}
 
-	humanAddress := TranslateToSlice(uintptr(regionHuman))
+	humanAddress := TranslateToString(uintptr(regionHuman))
 
-	return string(humanAddress), nil
+	return humanAddress, nil
 }
 
 func (api ExternalApi) ValidateAddress(human string) error {
@@ -209,9 +209,9 @@ func (api ExternalApi) ValidateAddress(human string) error {
 	ret := C.addr_validate(unsafe.Pointer(regionHuman))
 	C.free(humanPtr)
 
-	if ret < 0 {
-		// TODO: how to get actual error message?
-		return types.GenericError("addr_validate returned error")
+	if ret != 0 {
+		msg := TranslateToString(uintptr(ret))
+		return types.GenericError("addr_validate errored: " + msg)
 	}
 	return nil
 }
@@ -261,8 +261,7 @@ func (querier ExternalQuerier) RawQuery(request []byte) ([]byte, error) {
 }
 
 // use for ezjson Logging
-// TODO: remove????
-
+// TODO: I think we can remove???
 func Wasmlog(msg []byte) int {
 	msgPtr := C.malloc(C.ulong(len(msg)))
 	regionMsg := TranslateToRegion(msg, uintptr(msgPtr))

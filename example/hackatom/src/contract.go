@@ -1,6 +1,10 @@
 package src
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
+	"errors"
+
 	"github.com/cosmwasm/cosmwasm-go/std"
 	"github.com/cosmwasm/cosmwasm-go/std/types"
 )
@@ -83,10 +87,47 @@ func Execute(deps *std.Deps, env types.Env, info types.MessageInfo, data []byte)
 	case msg.Panic != nil:
 		return executePanic(deps, &env, &info)
 	case msg.UserErrorsInApiCalls != nil:
-		return nil, types.GenericError("Not implemented: UserErrorInApiCalls")
+		return executeUserErrorsInApiCall(deps)
 	default:
 		return nil, types.GenericError("Unknown HandleMsg")
 	}
+}
+
+func executeUserErrorsInApiCall(deps *std.Deps) (*types.Response, error) {
+	// canonicalization
+
+	// case empty
+	_, err := deps.Api.CanonicalAddress("")
+	if err == nil {
+		return nil, errors.New("unexpected pass with CanonicalAddress(\"\")")
+	}
+	// invalid bech32 addr
+	_, err = deps.Api.CanonicalAddress("bn9hhssomeltvhzgvuqkwjkpwxojfuigltwedayzxljucefikuieillowaticksoistqoynmgcnj219a")
+	if err == nil {
+		return nil, errors.New("unexpected pass with CanonicalAddress(long-string): " + err.Error())
+	}
+
+	// humanization
+
+	// empty
+	_, err = deps.Api.HumanAddress([]byte{})
+	if err == nil {
+		return nil, errors.New("unexpected pass with HumanAddress([]byte{})")
+	}
+
+	// too short
+	_, err = deps.Api.HumanAddress([]byte{0xAA, 0xBB, 0xCC})
+	if err == nil {
+		return nil, errors.New("unexpected pass with HumanAddress([]byte{0xAA, 0xBB, 0xCC})")
+	}
+
+	// wrong length
+	_, err = deps.Api.HumanAddress([]byte{0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6})
+	if err == nil {
+		return nil, errors.New("unexpected pass with HumanAddress([]byte{too, many, bytes})")
+	}
+
+	return &types.Response{}, nil
 }
 
 func executeRelease(deps *std.Deps, env *types.Env, info *types.MessageInfo) (*types.Response, error) {
@@ -171,9 +212,9 @@ func Query(deps *std.Deps, env types.Env, data []byte) ([]byte, error) {
 	case msg.OtherBalance != nil:
 		res, err = queryOtherBalance(deps, &env, msg.OtherBalance)
 	case msg.Recurse != nil:
-		err = types.GenericError("Not implemented: Recurse")
+		return queryRecurse(deps, &env, msg.Recurse)
 	default:
-		err = types.GenericError("Unknown QueryMsg")
+		err = types.GenericError("Unknown QueryMsg " + string(data))
 	}
 	if err != nil {
 		return nil, err
@@ -186,6 +227,48 @@ func Query(deps *std.Deps, env types.Env, data []byte) ([]byte, error) {
 	}
 	return bz, nil
 
+}
+
+func queryRecurse(deps *std.Deps, env *types.Env, recurse *Recurse) ([]byte, error) {
+	contractAddrBytes := []byte(env.Contract.Address)
+
+	// perform work
+	var result [32]byte
+	for i := uint32(0); i < recurse.Work; i++ {
+		result = sha256.Sum256(contractAddrBytes)
+	}
+
+	if recurse.Depth == 0 {
+		return (RecurseResponse{
+			Hashed: hex.EncodeToString(result[:]),
+		}).MarshalJSON()
+	}
+
+	recurseRequest := Recurse{
+		Depth: recurse.Depth - 1,
+		Work:  recurse.Work,
+	}
+
+	recurseBytes, err := recurseRequest.MarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+
+	req := types.QueryRequest{
+		Wasm: &types.WasmQuery{
+			Smart: &types.SmartQuery{
+				ContractAddr: env.Contract.Address,
+				Msg:          recurseBytes,
+			},
+		},
+	}
+
+	reqBytes, err := req.MarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+
+	return deps.Querier.RawQuery(reqBytes)
 }
 
 func queryVerifier(deps *std.Deps, env *types.Env) (*VerifierResponse, error) {

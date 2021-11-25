@@ -54,6 +54,20 @@ func Translate_range_custom(ptr uintptr) []byte {
 	return mm
 }
 
+func TranslateToString(ptr uintptr) string {
+	if ptr == 0 {
+		return ""
+	}
+	region := (*MemRegion)(unsafe.Pointer(ptr))
+	header := SliceHeader_tinyGo{
+		Data: ptr + 12,
+		Len:  uintptr(region.Length),
+		Cap:  uintptr(region.Capacity),
+	}
+	b := *(*string)(unsafe.Pointer(&header))
+	return b
+}
+
 func TranslateToSlice(ptr uintptr) []byte {
 	if ptr == 0 {
 		return nil
