@@ -4,8 +4,6 @@
 package std
 
 import (
-	"encoding/binary"
-
 	"github.com/cosmwasm/cosmwasm-go/std/types"
 )
 
@@ -154,10 +152,14 @@ func (iterator ExternalIterator) Next() (key, value []byte, err error) {
 // we read the last 4 bytes and use them to split off head and tail
 func splitTail(input []byte) (head, tail []byte) {
 	if len(input) < 4 {
-		panic("Too short to split")
+		return nil, nil
+		// panic("Too short to split")
 	}
 	lenStart := len(input) - 4
-	tailLen := int(binary.BigEndian.Uint32(input[lenStart:]))
+
+	// manually implement bigendian encoding to avoid float imports
+	tailLen := int(input[lenStart])<<24 + int(input[lenStart+1])<<16 + int(input[lenStart+2])<<8 + int(input[lenStart])
+	// tailLen := int(binary.BigEndian.Uint32(input[lenStart:]))
 	input = input[:lenStart]
 	cut := len(input) - tailLen
 
