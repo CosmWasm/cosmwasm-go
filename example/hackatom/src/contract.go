@@ -93,20 +93,6 @@ func Execute(deps *std.Deps, env types.Env, info types.MessageInfo, data []byte)
 	}
 }
 
-// used to signal an empty error, since we cannot use fmt,
-// nil errors would panic when added to a string as err.Error()
-// would nil dereference panic.
-var noError = errors.New("<nil>")
-
-// isGenericError is the function used to check comparison, we don't
-// use errors.Is because types.GenericError is comparable and hence
-// the package would check for the two errors to be identical.
-// TODO: match MockApi error messages with the VM provided API error messages to use errors.Is
-func isGenericError(err error) bool {
-	_, ok := err.(types.GenericErr)
-	return ok
-}
-
 func executeUserErrorsInApiCall(deps *std.Deps) (*types.Response, error) {
 	// canonicalization
 
