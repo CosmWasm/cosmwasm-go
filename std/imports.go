@@ -4,6 +4,8 @@
 package std
 
 import (
+	"encoding/binary"
+
 	"github.com/cosmwasm/cosmwasm-go/std/types"
 )
 
@@ -13,12 +15,12 @@ extern void* db_read(void* key);
 extern void db_write(void* key, void* value);
 extern void db_remove(void* key);
 
-extern int db_scan(void* start_ptr, void* end_ptr, int order);
+extern unsigned db_scan(void* start_ptr, void* end_ptr, int order);
 extern void* db_next(unsigned iterator_id);
 
-extern int addr_canonicalize(void* human, void* canonical);
-extern int addr_humanize(void* canonical, void* human);
-extern int addr_validate(void* human);
+extern unsigned addr_canonicalize(void* human, void* canonical);
+extern unsigned addr_humanize(void* canonical, void* human);
+extern unsigned addr_validate(void* human);
 
 extern void debug(void* msg);
 
@@ -74,30 +76,46 @@ func (s ExternalStorage) Get(key []byte) (value []byte) {
 	}
 
 	b := TranslateToSlice(uintptr(read))
-	// TODO maybe have memory leak
 	return b
 }
 
 // Range implements ReadonlyStorage.Range.
 func (s ExternalStorage) Range(start, end []byte, order Order) (iter Iterator) {
 	/*
-		ptrStart := C.malloc(C.ulong(len(start)))
-		regionStart := TranslateToRegion(start, uintptr(ptrStart))
-
-		ptrEnd := C.malloc(C.ulong(len(end)))
-		regionEnd := TranslateToRegion(end, uintptr(ptrEnd))
-
-		iterId := C.db_scan(unsafe.Pointer(regionStart), unsafe.Pointer(regionEnd), C.int(order))
-		C.free(ptrStart)
-		C.free(ptrEnd)
-
-		if iterId < 0 {
-			return nil, types.GenericError("error creating iterator (via db_scan): " + string(int(iterId)))
-		}
-
-		return ExternalIterator{uint32(iterId)}, nil
+			        // There is lots of gotchas on turning options into regions for FFI, thus this design
+		        // See: https://github.com/CosmWasm/cosmwasm/pull/509
+		        let start_region = start.map(build_region);
+		        let end_region = end.map(build_region);
+		        let start_region_addr = get_optional_region_address(&start_region.as_ref());
+		        let end_region_addr = get_optional_region_address(&end_region.as_ref());
+		        let iterator_id = unsafe { db_scan(start_region_addr, end_region_addr, order as i32) };
+		        let iter = ExternalIterator { iterator_id };
+		        Box::new(iter)
 	*/
-	return nil
+
+	var startPtr, endPtr C.int
+	var regionStart, regionEnd uintptr
+	if len(start) > 0 {
+		startPtr = C.malloc(C.ulong(len(start)))
+		regionStart := TranslateToRegion(start, uintptr(startPtr))
+	}
+	if len(end) > 0 {
+		endPtr = C.malloc(C.ulong(len(end)))
+		regionEnd := TranslateToRegion(end, uintptr(endPtr))
+	}
+
+	iteratorID := C.db_scan(unsafe.Pointer(regionStart), unsafe.Pointer(regionEnd), C.int(order))
+	if len(start) > 0 {
+		C.free(unsafe.Pointer(startPtr))
+	}
+	if len(end) > 0 {
+		C.free(unsafe.Pointer(endPtr))
+	}
+
+	iterator := ExternalIterator{
+		IteratorId: uint32(iteratorID),
+	}
+	return iterator
 }
 
 // Set implements Storage.Set.
@@ -129,28 +147,27 @@ type ExternalIterator struct {
 	IteratorId uint32
 }
 
-func (iterator ExternalIterator) Next() (key, value []byte, err error) {
-	/*
-		regionKey, _ := Build_region(DB_READ_KEY_BUFFER_LENGTH, 0)
-		regionNextValue, _ := Build_region(DB_READ_VALUE_BUFFER_LENGTH, 0)
+func (iterator ExternalIterator) Next() (key, value []byte) {
+	nextResult := C.db_next(C.unsigned(iterator.uint32))
+	kv := TranslateToSlice(uintptr(nextResult))
+	head, value := splitTail(kv)
+	_, key = splitTail(head)
+	return key, value
+}
 
-		ret := nil //C.db_next(C.uint(iterator.IteratorId))
+// ported from https://github.com/CosmWasm/cosmwasm/blob/main/packages/std/src/sections.rs#L38-L69
+// format is (head, tail, len: 4 bytes)
+// we read the last 4 bytes and use them to split off head and tail
+func splitTail(input []byte) (head, tail []byte) {
+	if len(input) < 4 {
+		panic("Too short to split")
+	}
+	lenStart := len(input) - 4
+	tailLen := binary.BigEndian.Uint32(input[lenStart:])
+	input = input[:lenStart]
+	cut := len(input) - tailLen
 
-		if ret == nil {
-			return nil, nil, types.GenericError("unknown error from db_next ")
-		}
-
-		key = TranslateToSlice(uintptr(regionKey))
-		value = TranslateToSlice(uintptr(regionNextValue))
-
-		if len(key) == 0 {
-			return nil, nil, types.GenericError("empty key get from db_next")
-		}
-
-		return key, value, nil
-
-	*/
-	return nil, nil, types.GenericError("unsupported for now")
+	return input[:cut], input[cut:]
 }
 
 // ====== API ======
