@@ -318,7 +318,11 @@ func queryRange(deps *std.Deps, env *types.Env) (*State, error) {
 	if err == nil {
 		return nil, errors.New("unexpected second key: " + string(key))
 	}
-	if err != std.ErrIteratorDone {
+	// this made floating point ops????
+	// if err != std.ErrIteratorDone {
+
+	// this is safe:
+	if err.Error() != std.ErrIteratorDone.Error() {
 		return nil, errors.New("unexpected error: " + err.Error())
 	}
 
