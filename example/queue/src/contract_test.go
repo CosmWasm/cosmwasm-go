@@ -17,7 +17,7 @@ func encode(t *testing.T, msg json.Marshaler) []byte {
 	return x
 }
 
-func Test_executeEnqueue(t *testing.T) {
+func TestExecute_Enqueue(t *testing.T) {
 	deps := mocks.MockDeps(nil)
 	env := mocks.MockEnv()
 	info := mocks.MockInfo("none", nil)
@@ -54,6 +54,29 @@ func Test_executeEnqueue(t *testing.T) {
 	_, _, err = iter.Next()
 	require.Error(t, err)
 	require.Equal(t, err.Error(), std.ErrIteratorDone.Error())
+}
+
+func TestExecute_Dequeue(t *testing.T) {
+	deps := mocks.MockDeps(nil)
+	env := mocks.MockEnv()
+	info := mocks.MockInfo("none", nil)
+
+	// execute dequeue on empty queue
+	resp, err := Execute(deps, env, info, encode(t, &ExecuteMsg{Dequeue: &Dequeue{}}))
+	require.NoError(t, err)
+	require.Empty(t, resp.Data)
+
+	// execute dequeue on filled queue
+	_, err = Execute(deps, env, info, encode(t, &ExecuteMsg{Enqueue: &Enqueue{Value: 10}}))
+	require.NoError(t, err)
+
+	resp, err = Execute(deps, env, info, encode(t, &ExecuteMsg{Dequeue: &Dequeue{}}))
+	require.NoError(t, err)
+
+	item := new(Item)
+	require.NoError(t, item.UnmarshalJSON(resp.Data))
+
+	require.Equal(t, item.Value, int32(10))
 }
 
 func TestMigrate(t *testing.T) {
