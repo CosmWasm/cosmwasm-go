@@ -120,5 +120,23 @@ func TestQuery_Sum(t *testing.T) {
 }
 
 func TestQuery_List(t *testing.T) {
+	const queueLength = 50
+	deps := mocks.MockDeps(nil)
+	env := mocks.MockEnv()
+	info := mocks.MockInfo("none", nil)
 
+	for i := 0; i < queueLength; i++ {
+		_, err := executeEnqueue(deps, env, info, &Enqueue{Value: int32(i)})
+		require.NoError(t, err)
+	}
+
+	respBytes, err := Query(deps, env, encode(t, &QueryMsg{List: &struct{}{}}))
+	require.NoError(t, err)
+
+	resp := new(ListResponse)
+	require.NoError(t, resp.UnmarshalJSON(respBytes))
+
+	require.Len(t, resp.Empty, 0)
+	require.Len(t, resp.Early, 20)            // [0..19)
+	require.Len(t, resp.Late, queueLength-20) // [19..iter end]
 }
