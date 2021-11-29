@@ -29,6 +29,7 @@ generate-contracts:
 	./bin/tinyjson -all -snake_case \
 		./example/hackatom/src/state.go \
 		./example/hackatom/src/msg.go
+	go generate ./example/...
 
 test: test-std test-contracts
 
