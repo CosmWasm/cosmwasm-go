@@ -163,3 +163,30 @@ func TestQuery_List(t *testing.T) {
 	require.Len(t, resp.Early, 20)            // [0..19)
 	require.Len(t, resp.Late, queueLength-20) // [19..iter end]
 }
+
+// TestQuery_Reducer takes from https://github.com/CosmWasm/cosmwasm/blob/main/contracts/queue/src/contract.rs#L320
+func TestQuery_Reducer(t *testing.T) {
+	deps := mocks.MockDeps(nil)
+	env := mocks.MockEnv()
+	info := mocks.MockInfo("none", nil)
+
+	expected := [][2]int32{
+		{40, 85},
+		{15, 125},
+		{85, 0},
+		{-10, 140},
+	}
+
+	toPush := []int32{40, 15, 85, -10}
+	for _, v := range toPush {
+		_, err := Execute(deps, env, info, encode(t, ExecuteMsg{Enqueue: &Enqueue{Value: v}}))
+		require.NoError(t, err)
+	}
+
+	respBytes, err := Query(deps, env, encode(t, &QueryMsg{Reducer: &struct{}{}}))
+	require.NoError(t, err)
+
+	resp := new(ReducerResponse)
+	require.NoError(t, resp.UnmarshalJSON(respBytes))
+	require.Equal(t, expected, resp.Counters)
+}

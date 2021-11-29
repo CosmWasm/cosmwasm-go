@@ -143,7 +143,7 @@ func Migrate(deps *std.Deps, _ types.Env, _ []byte) (*types.Response, error) {
 }
 
 // Query handles given message bytes what query handler must be executed.
-func Query(deps *std.Deps, env types.Env, msg []byte) ([]byte, error) {
+func Query(deps *std.Deps, _ types.Env, msg []byte) ([]byte, error) {
 	q := new(QueryMsg)
 	err := q.UnmarshalJSON(msg)
 	if err != nil {
@@ -165,7 +165,41 @@ func Query(deps *std.Deps, env types.Env, msg []byte) ([]byte, error) {
 }
 
 func queryReducer(deps *std.Deps) ([]byte, error) {
-	panic("impl")
+	var counters [][2]int32
+	iter := deps.Storage.Range(nil, nil, std.Ascending)
+	for {
+		_, value, err := iter.Next()
+		if err != nil {
+			break
+		}
+		item := new(Item)
+		if err := item.UnmarshalJSON(value); err != nil {
+			return nil, err
+		}
+
+		sum := int32(0)
+		iter2 := deps.Storage.Range(nil, nil, std.Ascending)
+		for {
+			_, value2, err2 := iter2.Next()
+			if err2 != nil {
+				break
+			}
+			item2 := new(Item)
+			if err := item2.UnmarshalJSON(value2); err != nil {
+				return nil, err
+			}
+			// skip second iterator items whose value is lower than the first
+			if item2.Value <= item.Value {
+				continue
+			}
+			sum += item2.Value
+		}
+
+		counters = append(counters, [2]int32{item.Value, sum})
+	}
+
+	resp := &ReducerResponse{Counters: counters}
+	return resp.MarshalJSON()
 }
 
 func queryList(deps *std.Deps) ([]byte, error) {
