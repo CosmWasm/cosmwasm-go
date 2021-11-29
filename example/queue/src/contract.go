@@ -102,3 +102,26 @@ func executeEnqueue(deps *std.Deps, _ types.Env, _ types.MessageInfo, enqueue *E
 	deps.Storage.Set(nextKey, value)
 	return &types.Response{}, nil
 }
+
+// Migrate executes queue contract's migration which consists in clearing
+// the state and writing three new values in the queue
+func Migrate(deps *std.Deps, _ types.Env, _ []byte) (*types.Response, error) {
+	iter := deps.Storage.Range(nil, nil, std.Ascending)
+	// clear
+	for k, _, err := iter.Next(); err != nil; {
+		deps.Storage.Remove(k)
+	}
+	// add three values
+	for i := int32(100); i < 103; i++ {
+		_, err := executeEnqueue(deps, types.Env{}, types.MessageInfo{}, &Enqueue{Value: i})
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &types.Response{}, nil
+}
+
+func Query(deps *std.Deps, env types.Env, msg []byte) ([]byte, error) {
+	panic("impl")
+}
