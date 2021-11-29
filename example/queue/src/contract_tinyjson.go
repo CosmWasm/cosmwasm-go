@@ -15,7 +15,193 @@ var (
 	_ tinyjson.Marshaler
 )
 
-func tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc(in *jlexer.Lexer, out *QueryMsg) {
+func tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc(in *jlexer.Lexer, out *SumResponse) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeFieldName(false)
+		in.WantColon()
+		if in.IsNull() {
+			in.Skip()
+			in.WantComma()
+			continue
+		}
+		switch key {
+		case "sum":
+			out.Sum = int32(in.Int32())
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc(out *jwriter.Writer, in SumResponse) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"sum\":"
+		out.RawString(prefix[1:])
+		out.Int32(int32(in.Sum))
+	}
+	out.RawByte('}')
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v SumResponse) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalTinyJSON supports tinyjson.Marshaler interface
+func (v SumResponse) MarshalTinyJSON(w *jwriter.Writer) {
+	tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *SumResponse) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc(&r, v)
+	return r.Error()
+}
+
+// UnmarshalTinyJSON supports tinyjson.Unmarshaler interface
+func (v *SumResponse) UnmarshalTinyJSON(l *jlexer.Lexer) {
+	tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc(l, v)
+}
+func tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc1(in *jlexer.Lexer, out *ReducerResponse) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeFieldName(false)
+		in.WantColon()
+		if in.IsNull() {
+			in.Skip()
+			in.WantComma()
+			continue
+		}
+		switch key {
+		case "counters":
+			if in.IsNull() {
+				in.Skip()
+				out.Counters = nil
+			} else {
+				in.Delim('[')
+				if out.Counters == nil {
+					if !in.IsDelim(']') {
+						out.Counters = make([][2]int32, 0, 8)
+					} else {
+						out.Counters = [][2]int32{}
+					}
+				} else {
+					out.Counters = (out.Counters)[:0]
+				}
+				for !in.IsDelim(']') {
+					var v1 [2]int32
+					if in.IsNull() {
+						in.Skip()
+					} else {
+						in.Delim('[')
+						v2 := 0
+						for !in.IsDelim(']') {
+							if v2 < 2 {
+								(v1)[v2] = int32(in.Int32())
+								v2++
+							} else {
+								in.SkipRecursive()
+							}
+							in.WantComma()
+						}
+						in.Delim(']')
+					}
+					out.Counters = append(out.Counters, v1)
+					in.WantComma()
+				}
+				in.Delim(']')
+			}
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc1(out *jwriter.Writer, in ReducerResponse) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"counters\":"
+		out.RawString(prefix[1:])
+		if in.Counters == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
+			out.RawString("null")
+		} else {
+			out.RawByte('[')
+			for v3, v4 := range in.Counters {
+				if v3 > 0 {
+					out.RawByte(',')
+				}
+				out.RawByte('[')
+				for v5 := range v4 {
+					if v5 > 0 {
+						out.RawByte(',')
+					}
+					out.Int32(int32((v4)[v5]))
+				}
+				out.RawByte(']')
+			}
+			out.RawByte(']')
+		}
+	}
+	out.RawByte('}')
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v ReducerResponse) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc1(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalTinyJSON supports tinyjson.Marshaler interface
+func (v ReducerResponse) MarshalTinyJSON(w *jwriter.Writer) {
+	tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc1(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *ReducerResponse) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc1(&r, v)
+	return r.Error()
+}
+
+// UnmarshalTinyJSON supports tinyjson.Unmarshaler interface
+func (v *ReducerResponse) UnmarshalTinyJSON(l *jlexer.Lexer) {
+	tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc1(l, v)
+}
+func tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc2(in *jlexer.Lexer, out *QueryMsg) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -84,7 +270,7 @@ func tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc(in *jlexer
 		in.Consumed()
 	}
 }
-func tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc(out *jwriter.Writer, in QueryMsg) {
+func tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc2(out *jwriter.Writer, in QueryMsg) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -130,25 +316,25 @@ func tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc(out *jwrit
 // MarshalJSON supports json.Marshaler interface
 func (v QueryMsg) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc(&w, v)
+	tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc2(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalTinyJSON supports tinyjson.Marshaler interface
 func (v QueryMsg) MarshalTinyJSON(w *jwriter.Writer) {
-	tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc(w, v)
+	tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc2(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *QueryMsg) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc(&r, v)
+	tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc2(&r, v)
 	return r.Error()
 }
 
 // UnmarshalTinyJSON supports tinyjson.Unmarshaler interface
 func (v *QueryMsg) UnmarshalTinyJSON(l *jlexer.Lexer) {
-	tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc(l, v)
+	tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc2(l, v)
 }
 func tinyjson954708aaDecode(in *jlexer.Lexer, out *struct{}) {
 	isTopLevel := in.IsStart()
@@ -185,7 +371,183 @@ func tinyjson954708aaEncode(out *jwriter.Writer, in struct{}) {
 	_ = first
 	out.RawByte('}')
 }
-func tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc1(in *jlexer.Lexer, out *Item) {
+func tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc3(in *jlexer.Lexer, out *ListResponse) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeFieldName(false)
+		in.WantColon()
+		if in.IsNull() {
+			in.Skip()
+			in.WantComma()
+			continue
+		}
+		switch key {
+		case "empty":
+			if in.IsNull() {
+				in.Skip()
+				out.Empty = nil
+			} else {
+				in.Delim('[')
+				if out.Empty == nil {
+					if !in.IsDelim(']') {
+						out.Empty = make([]uint32, 0, 16)
+					} else {
+						out.Empty = []uint32{}
+					}
+				} else {
+					out.Empty = (out.Empty)[:0]
+				}
+				for !in.IsDelim(']') {
+					var v6 uint32
+					v6 = uint32(in.Uint32())
+					out.Empty = append(out.Empty, v6)
+					in.WantComma()
+				}
+				in.Delim(']')
+			}
+		case "early":
+			if in.IsNull() {
+				in.Skip()
+				out.Early = nil
+			} else {
+				in.Delim('[')
+				if out.Early == nil {
+					if !in.IsDelim(']') {
+						out.Early = make([]uint32, 0, 16)
+					} else {
+						out.Early = []uint32{}
+					}
+				} else {
+					out.Early = (out.Early)[:0]
+				}
+				for !in.IsDelim(']') {
+					var v7 uint32
+					v7 = uint32(in.Uint32())
+					out.Early = append(out.Early, v7)
+					in.WantComma()
+				}
+				in.Delim(']')
+			}
+		case "late":
+			if in.IsNull() {
+				in.Skip()
+				out.Late = nil
+			} else {
+				in.Delim('[')
+				if out.Late == nil {
+					if !in.IsDelim(']') {
+						out.Late = make([]uint32, 0, 16)
+					} else {
+						out.Late = []uint32{}
+					}
+				} else {
+					out.Late = (out.Late)[:0]
+				}
+				for !in.IsDelim(']') {
+					var v8 uint32
+					v8 = uint32(in.Uint32())
+					out.Late = append(out.Late, v8)
+					in.WantComma()
+				}
+				in.Delim(']')
+			}
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc3(out *jwriter.Writer, in ListResponse) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"empty\":"
+		out.RawString(prefix[1:])
+		if in.Empty == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
+			out.RawString("null")
+		} else {
+			out.RawByte('[')
+			for v9, v10 := range in.Empty {
+				if v9 > 0 {
+					out.RawByte(',')
+				}
+				out.Uint32(uint32(v10))
+			}
+			out.RawByte(']')
+		}
+	}
+	{
+		const prefix string = ",\"early\":"
+		out.RawString(prefix)
+		if in.Early == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
+			out.RawString("null")
+		} else {
+			out.RawByte('[')
+			for v11, v12 := range in.Early {
+				if v11 > 0 {
+					out.RawByte(',')
+				}
+				out.Uint32(uint32(v12))
+			}
+			out.RawByte(']')
+		}
+	}
+	{
+		const prefix string = ",\"late\":"
+		out.RawString(prefix)
+		if in.Late == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
+			out.RawString("null")
+		} else {
+			out.RawByte('[')
+			for v13, v14 := range in.Late {
+				if v13 > 0 {
+					out.RawByte(',')
+				}
+				out.Uint32(uint32(v14))
+			}
+			out.RawByte(']')
+		}
+	}
+	out.RawByte('}')
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v ListResponse) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc3(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalTinyJSON supports tinyjson.Marshaler interface
+func (v ListResponse) MarshalTinyJSON(w *jwriter.Writer) {
+	tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc3(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *ListResponse) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc3(&r, v)
+	return r.Error()
+}
+
+// UnmarshalTinyJSON supports tinyjson.Unmarshaler interface
+func (v *ListResponse) UnmarshalTinyJSON(l *jlexer.Lexer) {
+	tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc3(l, v)
+}
+func tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc4(in *jlexer.Lexer, out *Item) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -216,7 +578,7 @@ func tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc1(in *jlexe
 		in.Consumed()
 	}
 }
-func tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc1(out *jwriter.Writer, in Item) {
+func tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc4(out *jwriter.Writer, in Item) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -231,27 +593,27 @@ func tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc1(out *jwri
 // MarshalJSON supports json.Marshaler interface
 func (v Item) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc1(&w, v)
+	tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc4(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalTinyJSON supports tinyjson.Marshaler interface
 func (v Item) MarshalTinyJSON(w *jwriter.Writer) {
-	tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc1(w, v)
+	tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc4(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *Item) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc1(&r, v)
+	tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc4(&r, v)
 	return r.Error()
 }
 
 // UnmarshalTinyJSON supports tinyjson.Unmarshaler interface
 func (v *Item) UnmarshalTinyJSON(l *jlexer.Lexer) {
-	tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc1(l, v)
+	tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc4(l, v)
 }
-func tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc2(in *jlexer.Lexer, out *InstantiateMsg) {
+func tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc5(in *jlexer.Lexer, out *InstantiateMsg) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -280,7 +642,7 @@ func tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc2(in *jlexe
 		in.Consumed()
 	}
 }
-func tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc2(out *jwriter.Writer, in InstantiateMsg) {
+func tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc5(out *jwriter.Writer, in InstantiateMsg) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -290,27 +652,27 @@ func tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc2(out *jwri
 // MarshalJSON supports json.Marshaler interface
 func (v InstantiateMsg) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc2(&w, v)
+	tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc5(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalTinyJSON supports tinyjson.Marshaler interface
 func (v InstantiateMsg) MarshalTinyJSON(w *jwriter.Writer) {
-	tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc2(w, v)
+	tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc5(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *InstantiateMsg) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc2(&r, v)
+	tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc5(&r, v)
 	return r.Error()
 }
 
 // UnmarshalTinyJSON supports tinyjson.Unmarshaler interface
 func (v *InstantiateMsg) UnmarshalTinyJSON(l *jlexer.Lexer) {
-	tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc2(l, v)
+	tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc5(l, v)
 }
-func tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc3(in *jlexer.Lexer, out *ExecuteMsg) {
+func tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc6(in *jlexer.Lexer, out *ExecuteMsg) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -359,7 +721,7 @@ func tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc3(in *jlexe
 		in.Consumed()
 	}
 }
-func tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc3(out *jwriter.Writer, in ExecuteMsg) {
+func tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc6(out *jwriter.Writer, in ExecuteMsg) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -387,27 +749,27 @@ func tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc3(out *jwri
 // MarshalJSON supports json.Marshaler interface
 func (v ExecuteMsg) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc3(&w, v)
+	tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc6(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalTinyJSON supports tinyjson.Marshaler interface
 func (v ExecuteMsg) MarshalTinyJSON(w *jwriter.Writer) {
-	tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc3(w, v)
+	tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc6(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *ExecuteMsg) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc3(&r, v)
+	tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc6(&r, v)
 	return r.Error()
 }
 
 // UnmarshalTinyJSON supports tinyjson.Unmarshaler interface
 func (v *ExecuteMsg) UnmarshalTinyJSON(l *jlexer.Lexer) {
-	tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc3(l, v)
+	tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc6(l, v)
 }
-func tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc4(in *jlexer.Lexer, out *Enqueue) {
+func tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc7(in *jlexer.Lexer, out *Enqueue) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -438,7 +800,7 @@ func tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc4(in *jlexe
 		in.Consumed()
 	}
 }
-func tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc4(out *jwriter.Writer, in Enqueue) {
+func tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc7(out *jwriter.Writer, in Enqueue) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -453,27 +815,27 @@ func tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc4(out *jwri
 // MarshalJSON supports json.Marshaler interface
 func (v Enqueue) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc4(&w, v)
+	tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc7(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalTinyJSON supports tinyjson.Marshaler interface
 func (v Enqueue) MarshalTinyJSON(w *jwriter.Writer) {
-	tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc4(w, v)
+	tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc7(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *Enqueue) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc4(&r, v)
+	tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc7(&r, v)
 	return r.Error()
 }
 
 // UnmarshalTinyJSON supports tinyjson.Unmarshaler interface
 func (v *Enqueue) UnmarshalTinyJSON(l *jlexer.Lexer) {
-	tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc4(l, v)
+	tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc7(l, v)
 }
-func tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc5(in *jlexer.Lexer, out *Dequeue) {
+func tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc8(in *jlexer.Lexer, out *Dequeue) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -502,7 +864,7 @@ func tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc5(in *jlexe
 		in.Consumed()
 	}
 }
-func tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc5(out *jwriter.Writer, in Dequeue) {
+func tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc8(out *jwriter.Writer, in Dequeue) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -512,23 +874,89 @@ func tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc5(out *jwri
 // MarshalJSON supports json.Marshaler interface
 func (v Dequeue) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc5(&w, v)
+	tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc8(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalTinyJSON supports tinyjson.Marshaler interface
 func (v Dequeue) MarshalTinyJSON(w *jwriter.Writer) {
-	tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc5(w, v)
+	tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc8(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *Dequeue) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc5(&r, v)
+	tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc8(&r, v)
 	return r.Error()
 }
 
 // UnmarshalTinyJSON supports tinyjson.Unmarshaler interface
 func (v *Dequeue) UnmarshalTinyJSON(l *jlexer.Lexer) {
-	tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc5(l, v)
+	tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc8(l, v)
+}
+func tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc9(in *jlexer.Lexer, out *CountResponse) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeFieldName(false)
+		in.WantColon()
+		if in.IsNull() {
+			in.Skip()
+			in.WantComma()
+			continue
+		}
+		switch key {
+		case "count":
+			out.Count = uint32(in.Uint32())
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc9(out *jwriter.Writer, in CountResponse) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"count\":"
+		out.RawString(prefix[1:])
+		out.Uint32(uint32(in.Count))
+	}
+	out.RawByte('}')
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v CountResponse) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc9(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalTinyJSON supports tinyjson.Marshaler interface
+func (v CountResponse) MarshalTinyJSON(w *jwriter.Writer) {
+	tinyjson954708aaEncodeGithubComCosmwasmCosmwasmGoExampleQueueSrc9(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *CountResponse) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc9(&r, v)
+	return r.Error()
+}
+
+// UnmarshalTinyJSON supports tinyjson.Unmarshaler interface
+func (v *CountResponse) UnmarshalTinyJSON(l *jlexer.Lexer) {
+	tinyjson954708aaDecodeGithubComCosmwasmCosmwasmGoExampleQueueSrc9(l, v)
 }
