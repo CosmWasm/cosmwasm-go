@@ -26,7 +26,7 @@ jobs:
           name: Queue contract integration tests
           command: |
             cd example/queue
-            go test -v count=1 ./integration
+            go test -v -count=1 ./integration
       - run:
           name: Run unit tests
           command: make test
