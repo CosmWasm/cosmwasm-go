@@ -29,6 +29,7 @@ generate-contracts:
 	./bin/tinyjson -all -snake_case \
 		./example/hackatom/src/state.go \
 		./example/hackatom/src/msg.go
+	go generate ./example/...
 
 test: test-std test-contracts
 
@@ -48,3 +49,10 @@ hackatom:
 	./scripts/check.sh hackatom.wasm
 	# ./scripts/strip_floats.sh hackatom.wasm
 	mv hackatom.wasm example/hackatom
+
+queue:
+	@echo "VERSION=latest make queue - will run with different cosmwasm/tinygo image"
+	./scripts/compile.sh queue
+	./scripts/check.sh queue.wasm
+	./scripts/strip_floats.sh queue.wasm
+	mv queue.wasm example/queue
