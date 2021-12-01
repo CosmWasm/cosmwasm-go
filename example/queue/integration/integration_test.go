@@ -59,3 +59,48 @@ func TestExecute(t *testing.T) {
 	require.NoError(t, item.UnmarshalJSON(exResp.Data))
 	require.Equal(t, int32(6), item.Value)
 }
+
+func TestQuery(t *testing.T) {
+	const queueValues = 100
+
+	instance := instance(t)
+	env := mocks.MockEnv()
+	info := mocks.MockInfo("none", nil)
+
+	var expectedSum int32
+
+	for i := 0; i < queueValues; i++ {
+		_, _, err := instance.Execute(env, info, encode(t, &src.ExecuteMsg{Enqueue: &src.Enqueue{Value: int32(i + 100)}}))
+		require.NoError(t, err)
+		expectedSum += 1 + 100
+	}
+
+	countBytes, gas, err := instance.Query(env, encode(t, &src.QueryMsg{Count: &struct{}{}}))
+	require.NoError(t, err)
+	countResp := new(src.CountResponse)
+	require.NoError(t, countResp.UnmarshalJSON(countBytes))
+	require.Equal(t, countResp.Count, uint32(queueValues))
+	t.Logf("count gas: %d", gas)
+
+	sumBytes, gas, err := instance.Query(env, encode(t, &src.QueryMsg{Sum: &struct{}{}}))
+	require.NoError(t, err)
+	sumResp := new(src.SumResponse)
+	require.NoError(t, sumResp.UnmarshalJSON(sumBytes))
+	require.Equal(t, expectedSum, sumResp.Sum)
+	t.Logf("sum gas: %d", gas)
+
+	listBytes, gas, err := instance.Query(env, encode(t, &src.QueryMsg{List: &struct{}{}}))
+	require.NoError(t, err)
+	listResp := new(src.ListResponse)
+	require.NoError(t, listResp.UnmarshalJSON(listBytes))
+	require.Len(t, listResp.Empty, 0)
+	require.Len(t, listResp.Early, 20)
+	require.Len(t, listResp.Late, queueValues-20)
+	t.Logf("list gas: %d", gas)
+
+	reducerBytes, gas, err := instance.Query(env, encode(t, &src.QueryMsg{Reducer: &struct{}{}}))
+	require.NoError(t, err)
+	reducerResp := new(src.ReducerResponse)
+	require.NoError(t, reducerResp.UnmarshalJSON(reducerBytes))
+	t.Logf("reducer gas: %d", gas)
+}
