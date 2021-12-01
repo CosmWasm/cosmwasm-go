@@ -242,3 +242,20 @@ func TestRangeQuery(t *testing.T) {
 	assert.Equal(t, FUNDER, state.Funder)
 	assert.Equal(t, BENEFICIARY, state.Beneficiary)
 }
+
+func TestMigrate(t *testing.T) {
+	const expectedVerifier = "gucci"
+	i := defaultInit(t, nil)
+	res, gas, err := i.Migrate(mocks.MockEnv(), mustEncode(t, &src.MigrateMsg{Verifier: expectedVerifier}))
+	require.NoError(t, err)
+	require.Equal(t, res.Data, []byte("migrated"))
+	t.Logf("migrate gas: %d", gas)
+
+	respBytes, _, err := i.Query(mocks.MockEnv(), mustEncode(t, &src.QueryMsg{Verifier: &struct{}{}}))
+	require.NoError(t, err)
+
+	newVerifier := new(src.VerifierResponse)
+	require.NoError(t, newVerifier.UnmarshalJSON(respBytes))
+
+	require.Equal(t, expectedVerifier, newVerifier.Verifier)
+}

@@ -136,3 +136,17 @@ func (i *Instance) Query(env types.Env, queryMsg []byte) ([]byte, uint64, error)
 		deserCost,
 	)
 }
+
+func (i *Instance) Migrate(env types.Env, migrateMsg []byte) (*types.Response, uint64, error) {
+	return i.Wasmer.Migrate(
+		i.CodeID,
+		env,
+		migrateMsg,
+		i.Store,
+		*i.Api,
+		i.Querier,
+		i.GasMeter,
+		i.GasLimit,
+		deserCost,
+	)
+}
