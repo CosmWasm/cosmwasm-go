@@ -72,7 +72,7 @@ func TestQuery(t *testing.T) {
 	for i := 0; i < queueValues; i++ {
 		_, _, err := instance.Execute(env, info, encode(t, &src.ExecuteMsg{Enqueue: &src.Enqueue{Value: int32(i + 100)}}))
 		require.NoError(t, err)
-		expectedSum += 1 + 100
+		expectedSum += int32(i + 100)
 	}
 
 	countBytes, gas, err := instance.Query(env, encode(t, &src.QueryMsg{Count: &struct{}{}}))
