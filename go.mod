@@ -7,4 +7,5 @@ require (
 	github.com/CosmWasm/wasmvm v1.0.0-beta
 	github.com/stretchr/testify v1.6.1
 	github.com/tendermint/tm-db v0.6.2
+	google.golang.org/protobuf v1.23.0
 )
