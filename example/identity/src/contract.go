@@ -14,7 +14,7 @@ func Instantiate(_ *std.Deps, _ types.Env, _ types.MessageInfo, _ []byte) (*type
 	return &types.Response{}, nil
 }
 
-func Execute(deps *std.Deps, env types.Env, messageInfo types.MessageInfo, messageBytes []byte) (*types.Response, error) {
+func Execute(deps *std.Deps, _ types.Env, messageInfo types.MessageInfo, messageBytes []byte) (*types.Response, error) {
 	msg := new(ExecuteMsg)
 	err := msg.UnmarshalJSON(messageBytes)
 	if err != nil {
