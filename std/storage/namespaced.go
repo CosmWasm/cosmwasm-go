@@ -50,8 +50,8 @@ func (s Namespaced) key(k []byte) []byte {
 	return append(s.prefix, k...)
 }
 
-// rangeEndKey does special handling for a nil ending key
-// because we need to basically add one byte to the prefix.
+// rangeEndKey does special handling for a nil ending key.
+// if the end is nil, then we take the prefix and increase it by one.
 func (s Namespaced) rangeEndKey(end []byte) []byte {
 	if end != nil {
 		return s.key(end)
