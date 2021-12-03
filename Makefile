@@ -5,14 +5,18 @@
 #TEST_FLAG=-v -count=1
 
 tiny-build:
-	rm -rf bin
+	rm -rf ./bin/tinyjson
 	go build -o ./bin/tinyjson github.com/CosmWasm/tinyjson/tinyjson
+
+generator-build:
+	rm -rf ./bin/generator
+	go build -o ./bin/generator ./cmd/generator
 
 clean:
 	rm -f std/types/*_tinyjson.go
 	rm -f example/hackatom/src/*_tinyjson.go
 
-generate: tiny-build generate-std generate-contracts
+generate: tiny-build generator-build generate-std generate-contracts
 
 generate-std:
 	./bin/tinyjson -all -snake_case \
@@ -54,5 +58,4 @@ queue:
 	@echo "VERSION=latest make queue - will run with different cosmwasm/tinygo image"
 	./scripts/compile.sh queue
 	./scripts/check.sh queue.wasm
-	./scripts/strip_floats.sh queue.wasm
 	mv queue.wasm example/queue
