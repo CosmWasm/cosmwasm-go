@@ -61,7 +61,7 @@ func TestExecute(t *testing.T) {
 }
 
 func TestQuery(t *testing.T) {
-	const queueValues = 21
+	const queueValues = 50
 
 	instance := instance(t)
 	env := mocks.MockEnv()
