@@ -35,7 +35,14 @@ WATFILE=$(echo "${FILE}" | sed 's/\.wasm/\.wat/')
 echo "Increasing memory pages of $FILE to $PAGES"
 
 docker run --rm --platform linux/amd64 -v "${ROOT}:/code" ${EMSCRIPTEN} wasm2wat "/code/${FILE}" > "${WATFILE}"
-sed -i "s/(memory (;0;) 2)/(memory (;0;) $PAGES)/" "${WATFILE}"
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  sed -i '' "s/(memory (;0;) 2)/(memory (;0;) $PAGES)/" "${WATFILE}"
+elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+  sed -i "s/(memory (;0;) 2)/(memory (;0;) $PAGES)/" "${WATFILE}"
+else
+  echo "unsupported os type $OSTYPE"
+  exit 1
+fi
 docker run --rm --platform linux/amd64 -v "${ROOT}:/code" ${EMSCRIPTEN} wat2wasm "/code/${WATFILE}" -o "/code/$FILE"
 
 echo ""
