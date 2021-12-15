@@ -25,8 +25,12 @@ func Int16PrimaryKey(i int16) []byte {
 	return Uint16PrimaryKey(uint16(i))
 }
 
+// Int32PrimaryKey returns a byte int32 representation
+// such as -2,147,483,648 <= i <= 2,147,483,647
 func Int32PrimaryKey(i int32) []byte {
-	return Uint32PrimaryKey(uint32(i))
+	bytes := Uint32PrimaryKey(uint32(i))
+	bytes[0] ^= 0x80
+	return bytes
 }
 
 func Int64PrimaryKey(i int64) []byte {
