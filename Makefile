@@ -61,3 +61,10 @@ queue:
 	./scripts/check.sh queue.wasm
 	./scripts/increase_memory.sh queue.wasm
 	mv queue.wasm example/queue
+
+identity:
+	@echo "VERSION=latest make identity - will run with different cosmwasm/tinyho image"
+	./scripts/compile.sh identity
+	./scripts/check.sh identity.wasm
+	./scripts/increase_memory.sh identity.wasm
+	mv identity.wasm example/identity
