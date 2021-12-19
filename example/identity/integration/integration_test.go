@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-var contractPath = filepath.Join("..", "queue.wasm")
+var contractPath = filepath.Join("..", "identity.wasm")
 
 func encode(t *testing.T, o json.Marshaler) []byte {
 	bytes, err := o.MarshalJSON()
