@@ -1,6 +1,3 @@
-//go:build !cosmwasm
-// +build !cosmwasm
-
 package mocks
 
 import (
@@ -15,77 +12,92 @@ import (
 	"github.com/cosmwasm/cosmwasm-go/std/types"
 )
 
-func MockDeps(funds []types.Coin) *std.Deps {
+const (
+	// ContractAddress is the default contract address returned by Env.
+	ContractAddress = "test-contract"
+	// BlockHeight is the default height returned by Env.
+	BlockHeight = 12_345
+	// BlockTime is the default block time returned by Env.
+	BlockTime = 1_571_797_419_404_808_777
+	// ChainID is the default chain ID returned by Env.
+	ChainID = "cosmos-testnet-14002"
+)
+
+const (
+	canonicalAddressLength = 32
+)
+
+var (
+	_ std.Iterator        = (*Iterator)(nil)
+	_ std.ReadonlyStorage = (*Storage)(nil)
+	_ std.Storage         = (*Storage)(nil)
+	_ std.Querier         = (*Querier)(nil)
+	_ std.Api             = (*API)(nil)
+)
+
+// Deps returns mocked dependencies, funds can be provided optionally.
+func Deps(funds []types.Coin) *std.Deps {
 	return &std.Deps{
-		Storage: NewMockStorage(),
-		Api:     MockApi{},
-		Querier: NewMockQuerier(funds),
+		Storage: NewStorage(),
+		Api:     API{},
+		Querier: NewQuerier(funds),
 	}
 }
 
-const MOCK_CONTRACT_ADDR = "test-contract"
-
-func MockEnv() types.Env {
+// Env returns mocked environment.
+func Env() types.Env {
 	return types.Env{
 		Block: types.BlockInfo{
-			Height:  12_345,
-			Time:    1_571_797_419_404_808_777,
-			ChainID: "cosmos-testnet-14002",
+			Height:  BlockHeight,
+			Time:    BlockTime,
+			ChainID: ChainID,
 		},
 		Contract: types.ContractInfo{
-			Address: MOCK_CONTRACT_ADDR,
+			Address: ContractAddress,
 		},
 	}
 }
 
-func MockInfo(sender string, funds []types.Coin) types.MessageInfo {
+// Info returns mocked message info, given a sender and the funds.
+func Info(sender string, funds []types.Coin) types.MessageInfo {
 	return types.MessageInfo{
 		Sender: sender,
 		Funds:  funds,
 	}
 }
 
-var (
-	_ std.Iterator = (*MockIterator)(nil)
-)
-
-type MockIterator struct {
+// Iterator mocks the std.Iterator.
+type Iterator struct {
 	Iter dbm.Iterator
 }
 
-func newMockIterator(iter dbm.Iterator) MockIterator {
-	return MockIterator{
+func newIterator(iter dbm.Iterator) Iterator {
+	return Iterator{
 		Iter: iter,
 	}
 }
 
-//
-func (iter MockIterator) Next() (key, value []byte, err error) {
-	if !iter.Iter.Valid() {
-		iter.Iter.Close()
+func (i Iterator) Next() (key, value []byte, err error) {
+	if !i.Iter.Valid() {
+		i.Iter.Close()
 		return key, value, std.ErrIteratorDone
 	}
-	key, value = iter.Iter.Key(), iter.Iter.Value()
-	iter.Iter.Next()
+	key, value = i.Iter.Key(), i.Iter.Value()
+	i.Iter.Next()
 	return
 }
 
-type MockStorage struct {
+type Storage struct {
 	storage dbm.DB
 }
 
-func NewMockStorage() *MockStorage {
-	return &MockStorage{
+func NewStorage() *Storage {
+	return &Storage{
 		storage: dbm.NewMemDB(),
 	}
 }
 
-var (
-	_ std.ReadonlyStorage = (*MockStorage)(nil)
-	_ std.Storage         = (*MockStorage)(nil)
-)
-
-func (s *MockStorage) Get(key []byte) []byte {
+func (s *Storage) Get(key []byte) []byte {
 	v, err := s.storage.Get(key)
 	if err != nil {
 		// tm-db says that if the key is not found then the
@@ -96,7 +108,7 @@ func (s *MockStorage) Get(key []byte) []byte {
 	return v
 }
 
-func (s *MockStorage) Range(start, end []byte, order std.Order) (iter std.Iterator) {
+func (s *Storage) Range(start, end []byte, order std.Order) (iter std.Iterator) {
 	var (
 		iterator dbm.Iterator
 		err      error
@@ -105,10 +117,10 @@ func (s *MockStorage) Range(start, end []byte, order std.Order) (iter std.Iterat
 	switch order {
 	case std.Ascending:
 		iterator, err = s.storage.Iterator(start, end)
-		iter = newMockIterator(iterator)
+		iter = newIterator(iterator)
 	case std.Descending:
 		iterator, err = s.storage.ReverseIterator(start, end)
-		iter = newMockIterator(iterator)
+		iter = newIterator(iterator)
 	default:
 		err = errors.New("unexpected Order")
 	}
@@ -119,46 +131,39 @@ func (s *MockStorage) Range(start, end []byte, order std.Order) (iter std.Iterat
 	return
 }
 
-func (s *MockStorage) Set(key, value []byte) {
+func (s *Storage) Set(key, value []byte) {
 	err := s.storage.Set(key, value)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func (s *MockStorage) Remove(key []byte) {
+func (s *Storage) Remove(key []byte) {
 	err := s.storage.Delete(key)
 	if err != nil {
 		panic(err)
 	}
 }
 
-const canonicalLength = 32
+type API struct{}
 
-// ensure Api interface compliance at compile time
-var (
-	_ std.Api = (*MockApi)(nil)
-)
-
-type MockApi struct{}
-
-func (api MockApi) CanonicalAddress(human string) (types.CanonicalAddress, error) {
+func (a API) CanonicalAddress(human string) (types.CanonicalAddress, error) {
 	if len(human) == 0 {
 		return nil, errors.New("empty address")
 	}
-	if len(human) > canonicalLength {
+	if len(human) > canonicalAddressLength {
 		return nil, errors.New("human encoding too long")
 	}
 
 	return []byte(human), nil
 }
 
-func (api MockApi) HumanAddress(canonical types.CanonicalAddress) (string, error) {
-	if len(canonical) != canonicalLength {
+func (a API) HumanAddress(canonical types.CanonicalAddress) (string, error) {
+	if len(canonical) != canonicalAddressLength {
 		return "", errors.New("wrong canonical address length")
 	}
 
-	cutIndex := canonicalLength
+	cutIndex := canonicalAddressLength
 	for i, v := range canonical {
 		if v == 0 {
 			cutIndex = i
@@ -169,39 +174,32 @@ func (api MockApi) HumanAddress(canonical types.CanonicalAddress) (string, error
 	return string(canonical[:cutIndex]), nil
 }
 
-func (api MockApi) ValidateAddress(human string) error {
-	if len(human) > canonicalLength {
+func (a API) ValidateAddress(human string) error {
+	if len(human) > canonicalAddressLength {
 		return errors.New("human encoding too long")
 	}
 	return nil
 }
 
-func (api MockApi) Debug(msg string) {
+func (a API) Debug(msg string) {
 	fmt.Println("DEBUG: " + msg)
 }
 
-// ====== Querier ======
-
-// ensure Api interface compliance at compile time
-var (
-	_ std.Querier = (*MockQuerier)(nil)
-)
-
-type MockQuerier struct {
+type Querier struct {
 	Balances map[string][]types.Coin
 }
 
-func NewMockQuerier(funds []types.Coin) *MockQuerier {
-	q := MockQuerier{
+func NewQuerier(funds []types.Coin) *Querier {
+	q := Querier{
 		Balances: make(map[string][]types.Coin),
 	}
 	if len(funds) > 0 {
-		q.SetBalance(MOCK_CONTRACT_ADDR, funds)
+		q.SetBalance(ContractAddress, funds)
 	}
 	return &q
 }
 
-func (q *MockQuerier) RawQuery(raw []byte) ([]byte, error) {
+func (q *Querier) RawQuery(raw []byte) ([]byte, error) {
 	var request types.QueryRequest
 	err := request.UnmarshalJSON(raw)
 	if err != nil {
@@ -214,7 +212,7 @@ func (q *MockQuerier) RawQuery(raw []byte) ([]byte, error) {
 	return res.MarshalJSON()
 }
 
-func (q *MockQuerier) HandleQuery(request types.QueryRequest) (std.JSONType, error) {
+func (q *Querier) HandleQuery(request types.QueryRequest) (std.JSONType, error) {
 	switch {
 	case request.Bank != nil:
 		return q.HandleBank(request.Bank)
@@ -229,7 +227,7 @@ func (q *MockQuerier) HandleQuery(request types.QueryRequest) (std.JSONType, err
 	}
 }
 
-func (q *MockQuerier) HandleBank(request *types.BankQuery) (std.JSONType, error) {
+func (q *Querier) HandleBank(request *types.BankQuery) (std.JSONType, error) {
 	switch {
 	case request.Balance != nil:
 		balances := q.GetBalance(request.Balance.Address)
@@ -249,13 +247,13 @@ func (q *MockQuerier) HandleBank(request *types.BankQuery) (std.JSONType, error)
 	}
 }
 
-func (q *MockQuerier) SetBalance(addr string, balance []types.Coin) {
+func (q *Querier) SetBalance(addr string, balance []types.Coin) {
 	// clone coins so we don't accidentally edit them
 	var empty []types.Coin
 	q.Balances[addr] = append(empty, balance...)
 }
 
-func (q *MockQuerier) GetBalance(addr string) []types.Coin {
+func (q *Querier) GetBalance(addr string) []types.Coin {
 	bal := q.Balances[addr]
 	if len(bal) == 0 {
 		return bal
@@ -263,9 +261,4 @@ func (q *MockQuerier) GetBalance(addr string) []types.Coin {
 	// if not empty, clone data
 	var empty []types.Coin
 	return append(empty, bal...)
-}
-
-func DisplayMessage(msg []byte) int {
-	fmt.Println("Logging" + string(msg))
-	return 0
 }

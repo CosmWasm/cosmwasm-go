@@ -16,9 +16,9 @@ func encode(t *testing.T, o json.Marshaler) []byte {
 
 func TestContract(t *testing.T) {
 	const exists = "existing"
-	deps := mocks.MockDeps(nil)
-	env := mocks.MockEnv()
-	info := mocks.MockInfo(exists, nil)
+	deps := mocks.Deps(nil)
+	env := mocks.Env()
+	info := mocks.Info(exists, nil)
 
 	// create
 	_, err := Execute(deps, env, info, encode(t, ExecuteMsg{CreateIdentity: &MsgCreateIdentity{

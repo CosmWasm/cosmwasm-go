@@ -13,7 +13,7 @@ import (
 )
 
 func TestMockStorage(t *testing.T) {
-	es := NewMockStorage()
+	es := NewStorage()
 	key1, key2, key3, key4, key5 := []byte("aaaaa"), []byte("bbbbb"), []byte("ccccc"), []byte("ddddd"), []byte("eeeee")
 	value1, value2, value3, value4, value5 := []byte("11111"), []byte("22222"), []byte("33333"), []byte("44444"), []byte("55555")
 	inexistentKey := []byte("inexistent")
@@ -64,7 +64,7 @@ func assertKV(t *testing.T, iter std.Iterator, key, value []byte, isEnd bool) {
 }
 
 func TestMockApi_CanonicalAddress(t *testing.T) {
-	ea := MockApi{}
+	ea := API{}
 	humanAddr := "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 	longHumanAddr := humanAddr + "a"
 	expectedCanonAddr := types.CanonicalAddress(humanAddr)
@@ -79,7 +79,7 @@ func TestMockApi_CanonicalAddress(t *testing.T) {
 }
 
 func TestMockApi_HumanAddress(t *testing.T) {
-	ea := MockApi{}
+	ea := API{}
 	expectedHumanAddr := "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 	expectedCanonAddr := types.CanonicalAddress(expectedHumanAddr)
 
@@ -88,14 +88,14 @@ func TestMockApi_HumanAddress(t *testing.T) {
 	require.Equal(t, expectedHumanAddr, humanAddr)
 
 	// error report
-	longCanonAddr := make(types.CanonicalAddress, canonicalLength)
+	longCanonAddr := make(types.CanonicalAddress, canonicalAddressLength)
 	copy(longCanonAddr, expectedCanonAddr)
 	longCanonAddr = append(longCanonAddr, 'a')
 	humanAddr, err = ea.HumanAddress(longCanonAddr)
 	require.Error(t, err)
 	require.Equal(t, "", humanAddr)
 
-	inputCanonAddr := make(types.CanonicalAddress, canonicalLength)
+	inputCanonAddr := make(types.CanonicalAddress, canonicalAddressLength)
 	copy(inputCanonAddr, expectedCanonAddr)
 	inputCanonAddr[9] = 0
 	humanAddr, err = ea.HumanAddress(inputCanonAddr)
