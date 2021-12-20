@@ -48,6 +48,108 @@ func TestInt32PrimaryKey(t *testing.T) {
 	}
 }
 
+func TestInt64PrimaryKey(t *testing.T) {
+	type test struct {
+		v1, v2  int64
+		compare comparison
+	}
+
+	tests := map[string]test{
+		"negative < positive": {
+			v1:      -100,
+			v2:      100,
+			compare: comparisonSmaller,
+		},
+		"positive equality": {
+			v1:      100,
+			v2:      100,
+			compare: comparisonEqual,
+		},
+
+		"negative equality": {
+			v1:      -100,
+			v2:      -100,
+			compare: comparisonEqual,
+		},
+	}
+
+	for name, tc := range tests {
+		tc := tc
+		t.Run(name, func(t *testing.T) {
+
+			compare(t, Int64PrimaryKey, tc.v1, tc.v2, tc.compare)
+		})
+	}
+}
+
+func TestInt16PrimaryKey(t *testing.T) {
+	type test struct {
+		v1, v2  int16
+		compare comparison
+	}
+
+	tests := map[string]test{
+		"negative < positive": {
+			v1:      -100,
+			v2:      100,
+			compare: comparisonSmaller,
+		},
+		"positive equality": {
+			v1:      100,
+			v2:      100,
+			compare: comparisonEqual,
+		},
+
+		"negative equality": {
+			v1:      -100,
+			v2:      -100,
+			compare: comparisonEqual,
+		},
+	}
+
+	for name, tc := range tests {
+		tc := tc
+		t.Run(name, func(t *testing.T) {
+
+			compare(t, Int16PrimaryKey, tc.v1, tc.v2, tc.compare)
+		})
+	}
+}
+
+func TestInt8PrimaryKey(t *testing.T) {
+	type test struct {
+		v1, v2  int8
+		compare comparison
+	}
+
+	tests := map[string]test{
+		"negative < positive": {
+			v1:      -100,
+			v2:      100,
+			compare: comparisonSmaller,
+		},
+		"positive equality": {
+			v1:      100,
+			v2:      100,
+			compare: comparisonEqual,
+		},
+
+		"negative equality": {
+			v1:      -100,
+			v2:      -100,
+			compare: comparisonEqual,
+		},
+	}
+
+	for name, tc := range tests {
+		tc := tc
+		t.Run(name, func(t *testing.T) {
+
+			compare(t, Int8PrimaryKey, tc.v1, tc.v2, tc.compare)
+		})
+	}
+}
+
 // compare takes a byte producer function such as Int32PrimaryKey, StringPrimaryKey
 // two valid values, and compares the values. Fails if comparison does not match expectations.
 func compare(t *testing.T, byteProducer, v1, v2 interface{}, comp comparison) {

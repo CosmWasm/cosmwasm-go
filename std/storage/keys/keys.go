@@ -18,11 +18,15 @@ func BoolPrimaryKey(b bool) []byte {
 }
 
 func Int8PrimaryKey(i int8) []byte {
-	return []byte{uint8(i)}
+	b := uint8(i)
+	b ^= 0x80
+	return []byte{b}
 }
 
 func Int16PrimaryKey(i int16) []byte {
-	return Uint16PrimaryKey(uint16(i))
+	bytes := Uint16PrimaryKey(uint16(i))
+	bytes[0] ^= 0x80
+	return bytes
 }
 
 // Int32PrimaryKey returns a byte int32 representation
@@ -34,7 +38,9 @@ func Int32PrimaryKey(i int32) []byte {
 }
 
 func Int64PrimaryKey(i int64) []byte {
-	return Uint64PrimaryKey(uint64(i))
+	bytes := Uint64PrimaryKey(uint64(i))
+	bytes[0] ^= 0x80
+	return bytes
 }
 
 func Uint8PrimaryKey(i uint8) []byte {
