@@ -2,11 +2,25 @@ package keys
 
 import (
 	"bytes"
+	"fmt"
 	"reflect"
 	"testing"
 )
 
 type comparison int
+
+func (c comparison) String() string {
+	switch c {
+	case comparisonSmaller:
+		return "smaller"
+	case comparisonEqual:
+		return "equal"
+	case comparisonBigger:
+		return "bigger"
+	default:
+		panic(fmt.Errorf("unknown human representation for %d", c))
+	}
+}
 
 const (
 	comparisonSmaller comparison = -1
@@ -153,11 +167,6 @@ func TestInt8PrimaryKey(t *testing.T) {
 // compare takes a byte producer function such as Int32PrimaryKey, StringPrimaryKey
 // two valid values, and compares the values. Fails if comparison does not match expectations.
 func compare(t *testing.T, byteProducer, v1, v2 interface{}, comp comparison) {
-	human := map[int]string{
-		-1: "smaller",
-		0:  "equal",
-		1:  "bigger",
-	}
 
 	f := reflect.ValueOf(byteProducer)
 	v1v := reflect.ValueOf(v1)
@@ -166,13 +175,10 @@ func compare(t *testing.T, byteProducer, v1, v2 interface{}, comp comparison) {
 	v1Bytes := f.Call([]reflect.Value{v1v})[0].Bytes()
 	v2Bytes := f.Call([]reflect.Value{v2v})[0].Bytes()
 
-	got := bytes.Compare(v1Bytes, v2Bytes)
-	if got == int(comp) {
+	got := comparison(bytes.Compare(v1Bytes, v2Bytes))
+	if got == comp {
 		return
 	}
 
-	expectedHuman := human[int(comp)]
-	gotHuman := human[got]
-
-	t.Fatalf("test expected %v to be %s than %v, got: %s", v1, expectedHuman, v2, gotHuman)
+	t.Fatalf("test expected %v to be %s than %v, got: %s", v1, comp, v2, got)
 }
