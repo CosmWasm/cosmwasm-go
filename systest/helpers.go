@@ -1,6 +1,8 @@
 package systest
 
 import (
+	"encoding/json"
+	unitmocks "github.com/cosmwasm/cosmwasm-go/std/mock"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -9,66 +11,27 @@ import (
 	mocks "github.com/CosmWasm/wasmvm/api"
 	types "github.com/CosmWasm/wasmvm/types"
 
-	unitmocks "github.com/cosmwasm/cosmwasm-go/std/mock"
-
 	"github.com/stretchr/testify/require"
 )
 
-const FEATURES = "staking"
+const (
+	FEATURES = "staking"
+)
+
+var (
+	deserCost = types.UFraction{
+		Numerator:   1,
+		Denominator: 10,
+	}
+)
 
 // TODO: move this into wasmvm at some point
 func NewCoins(amount uint64, denom string) []types.Coin {
 	return []types.Coin{types.NewCoin(amount, denom)}
 }
 
-var deserCost = types.UFraction{
-	Numerator:   1,
-	Denominator: 10,
-}
-
-// End transient code
-
-func SetupWasmer(t *testing.T, contractPath string) (*wasmvm.VM, []byte) {
-	// setup wasmer instance
-	tmpdir, err := ioutil.TempDir("", "wasmer")
-	require.NoError(t, err)
-	t.Cleanup(func() { os.RemoveAll(tmpdir) })
-
-	wasmer, err := wasmvm.NewVM(tmpdir, FEATURES, 256, true, 0)
-	require.NoError(t, err)
-	codeID := StoreCode(t, wasmer, contractPath)
-
-	return wasmer, codeID
-}
-
-// Returns code id
-func StoreCode(t *testing.T, wasmer *wasmvm.VM, contractPath string) []byte {
-	// upload code and get some sha256 hash
-	bz, err := ioutil.ReadFile(contractPath)
-	require.NoError(t, err)
-	codeID, err := wasmer.Create(bz)
-	require.NoError(t, err)
-	require.Equal(t, 32, len(codeID))
-	return codeID
-}
-
-type Instance struct {
-	Wasmer   *wasmvm.VM
-	CodeID   []byte
-	GasLimit uint64
-	GasMeter wasmvm.GasMeter
-	Store    *mocks.Lookup
-	Api      *mocks.GoAPI
-	Querier  mocks.Querier
-}
-
-func (i *Instance) SetQuerierBalance(addr string, balance []types.Coin) {
-	mq := i.Querier.(mocks.MockQuerier)
-	mq.Bank.Balances[addr] = balance
-}
-
 func NewInstance(t *testing.T, contractPath string, gasLimit uint64, funds []types.Coin) Instance {
-	wasmer, codeID := SetupWasmer(t, contractPath)
+	wasmer, codeID := setupWasmer(t, contractPath)
 	gasMeter := mocks.NewMockGasMeter(gasLimit)
 
 	// we use callbacks that use the same logic as our unit tests
@@ -93,12 +56,32 @@ func NewInstance(t *testing.T, contractPath string, gasLimit uint64, funds []typ
 	}
 }
 
-func (i *Instance) Instantiate(env types.Env, info types.MessageInfo, initMsg []byte) (*types.Response, uint64, error) {
+type Instance struct {
+	Wasmer   *wasmvm.VM
+	CodeID   []byte
+	GasLimit uint64
+	GasMeter wasmvm.GasMeter
+	Store    *mocks.Lookup
+	Api      *mocks.GoAPI
+	Querier  mocks.Querier
+}
+
+func (i *Instance) SetQuerierBalance(addr string, balance []types.Coin) {
+	mq := i.Querier.(mocks.MockQuerier)
+	mq.Bank.Balances[addr] = balance
+}
+
+func (i *Instance) Instantiate(env types.Env, info types.MessageInfo, initMsg json.Marshaler) (*types.Response, uint64, error) {
+	bytes, err := initMsg.MarshalJSON()
+	if err != nil {
+		return nil, 0, err
+	}
+
 	return i.Wasmer.Instantiate(
 		i.CodeID,
 		env,
 		info,
-		initMsg,
+		bytes,
 		i.Store,
 		*i.Api,
 		i.Querier,
@@ -108,12 +91,17 @@ func (i *Instance) Instantiate(env types.Env, info types.MessageInfo, initMsg []
 	)
 }
 
-func (i *Instance) Execute(env types.Env, info types.MessageInfo, handleMsg []byte) (*types.Response, uint64, error) {
+func (i *Instance) Execute(env types.Env, info types.MessageInfo, handleMsg json.Marshaler) (*types.Response, uint64, error) {
+	bytes, err := handleMsg.MarshalJSON()
+	if err != nil {
+		return nil, 0, err
+	}
+
 	return i.Wasmer.Execute(
 		i.CodeID,
 		env,
 		info,
-		handleMsg,
+		bytes,
 		i.Store,
 		*i.Api,
 		i.Querier,
@@ -123,11 +111,15 @@ func (i *Instance) Execute(env types.Env, info types.MessageInfo, handleMsg []by
 	)
 }
 
-func (i *Instance) Query(env types.Env, queryMsg []byte) ([]byte, uint64, error) {
+func (i *Instance) Query(env types.Env, queryMsg json.Marshaler) ([]byte, uint64, error) {
+	bytes, err := queryMsg.MarshalJSON()
+	if err != nil {
+		return nil, 0, err
+	}
 	return i.Wasmer.Query(
 		i.CodeID,
 		env,
-		queryMsg,
+		bytes,
 		i.Store,
 		*i.Api,
 		i.Querier,
@@ -137,11 +129,15 @@ func (i *Instance) Query(env types.Env, queryMsg []byte) ([]byte, uint64, error)
 	)
 }
 
-func (i *Instance) Migrate(env types.Env, migrateMsg []byte) (*types.Response, uint64, error) {
+func (i *Instance) Migrate(env types.Env, migrateMsg json.Marshaler) (*types.Response, uint64, error) {
+	bytes, err := migrateMsg.MarshalJSON()
+	if err != nil {
+		return nil, 0, err
+	}
 	return i.Wasmer.Migrate(
 		i.CodeID,
 		env,
-		migrateMsg,
+		bytes,
 		i.Store,
 		*i.Api,
 		i.Querier,
@@ -149,4 +145,29 @@ func (i *Instance) Migrate(env types.Env, migrateMsg []byte) (*types.Response, u
 		i.GasLimit,
 		deserCost,
 	)
+}
+
+// setupWasmer instantiates a new wasmvm.VM with a contract given its path.
+func setupWasmer(t *testing.T, contractPath string) (*wasmvm.VM, []byte) {
+	// setup wasmer instance
+	tmpdir, err := ioutil.TempDir("", "wasmer")
+	require.NoError(t, err)
+	t.Cleanup(func() { os.RemoveAll(tmpdir) })
+
+	wasmer, err := wasmvm.NewVM(tmpdir, FEATURES, 256, true, 0)
+	require.NoError(t, err)
+	codeID := storeCode(t, wasmer, contractPath)
+
+	return wasmer, codeID
+}
+
+// storeCode stores the wasm contract given its path and returns the contract code ID.
+func storeCode(t *testing.T, wasmer *wasmvm.VM, contractPath string) []byte {
+	// upload code and get some sha256 hash
+	bz, err := ioutil.ReadFile(contractPath)
+	require.NoError(t, err)
+	codeID, err := wasmer.Create(bz)
+	require.NoError(t, err)
+	require.Equal(t, 32, len(codeID))
+	return codeID
 }
