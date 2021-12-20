@@ -9,7 +9,7 @@ import (
 	mocks "github.com/CosmWasm/wasmvm/api"
 	types "github.com/CosmWasm/wasmvm/types"
 
-	unitmocks "github.com/cosmwasm/cosmwasm-go/std/mocks"
+	unitmocks "github.com/cosmwasm/cosmwasm-go/std/mock"
 
 	"github.com/stretchr/testify/require"
 )

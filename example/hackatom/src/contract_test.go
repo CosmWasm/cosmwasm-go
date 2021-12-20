@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmwasm/cosmwasm-go/std"
-	"github.com/cosmwasm/cosmwasm-go/std/mocks"
+	"github.com/cosmwasm/cosmwasm-go/std/mock"
 	"github.com/cosmwasm/cosmwasm-go/std/types"
 )
 
@@ -28,9 +28,9 @@ const FUNDER = "creator"
 
 // this can be used for a quick setup if you don't have nay other requirements
 func defaultInit(t *testing.T, funds []types.Coin) *std.Deps {
-	deps := mocks.Deps(funds)
-	env := mocks.Env()
-	info := mocks.Info(FUNDER, funds)
+	deps := mock.Deps(funds)
+	env := mock.Env()
+	info := mock.Info(FUNDER, funds)
 	initMsg := InitMsg{
 		Verifier:    VERIFIER,
 		Beneficiary: BENEFICIARY,
@@ -42,9 +42,9 @@ func defaultInit(t *testing.T, funds []types.Coin) *std.Deps {
 }
 
 func TestInitAndQuery(t *testing.T) {
-	deps := mocks.Deps(nil)
-	env := mocks.Env()
-	info := mocks.Info(FUNDER, nil)
+	deps := mock.Deps(nil)
+	env := mock.Env()
+	info := mock.Info(FUNDER, nil)
 	initMsg := InitMsg{
 		Verifier:    VERIFIER,
 		Beneficiary: BENEFICIARY,
@@ -89,8 +89,8 @@ func TestInitAndQuery(t *testing.T) {
 
 func TestPanic(t *testing.T) {
 	deps := defaultInit(t, nil)
-	env := mocks.Env()
-	info := mocks.Info(FUNDER, nil)
+	env := mock.Env()
+	info := mock.Info(FUNDER, nil)
 	handleMsg := []byte(`{"panic":{}}`)
 	require.Panics(t, func() {
 		_, _ = Execute(deps, env, info, handleMsg)
@@ -119,8 +119,8 @@ func TestRelease(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			// TODO: figure out how to set query value and then query from the contract
 			deps := defaultInit(t, tc.funds)
-			env := mocks.Env()
-			info := mocks.Info(tc.signer, nil)
+			env := mock.Env()
+			info := mock.Info(tc.signer, nil)
 			handleMsg := []byte(`{"release":{}}`)
 			res, err := Execute(deps, env, info, handleMsg)
 			if !tc.valid {
@@ -145,13 +145,13 @@ func TestRelease(t *testing.T) {
 }
 
 func TestUserErrorsInAPICalls(t *testing.T) {
-	_, err := executeUserErrorsInApiCall(mocks.Deps(nil))
+	_, err := executeUserErrorsInApiCall(mock.Deps(nil))
 	require.NoError(t, err)
 }
 
 func TestRangeQuery(t *testing.T) {
 	deps := defaultInit(t, nil)
-	env := mocks.Env()
+	env := mock.Env()
 
 	queryMsg := []byte(`{"test_range":{}}`)
 	data, err := Query(deps, env, queryMsg)

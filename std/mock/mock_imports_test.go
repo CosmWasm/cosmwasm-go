@@ -1,7 +1,7 @@
 //go:build !cosmwasm
 // +build !cosmwasm
 
-package mocks
+package mock
 
 import (
 	"testing"

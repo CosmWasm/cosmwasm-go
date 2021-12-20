@@ -3,7 +3,7 @@ package src
 import (
 	"encoding/json"
 	"github.com/cosmwasm/cosmwasm-go/std"
-	"github.com/cosmwasm/cosmwasm-go/std/mocks"
+	"github.com/cosmwasm/cosmwasm-go/std/mock"
 	"github.com/cosmwasm/cosmwasm-go/std/types"
 	"github.com/stretchr/testify/require"
 	"math/rand"
@@ -18,9 +18,9 @@ func encode(t *testing.T, msg json.Marshaler) []byte {
 }
 
 func TestExecute_Enqueue(t *testing.T) {
-	deps := mocks.Deps(nil)
-	env := mocks.Env()
-	info := mocks.Info("none", nil)
+	deps := mock.Deps(nil)
+	env := mock.Env()
+	info := mock.Info("none", nil)
 	// queue empty
 	_, err := Execute(deps, env, info, encode(t, ExecuteMsg{Enqueue: &Enqueue{Value: 5}}))
 	require.NoError(t, err)
@@ -57,9 +57,9 @@ func TestExecute_Enqueue(t *testing.T) {
 }
 
 func TestExecute_Dequeue(t *testing.T) {
-	deps := mocks.Deps(nil)
-	env := mocks.Env()
-	info := mocks.Info("none", nil)
+	deps := mock.Deps(nil)
+	env := mock.Env()
+	info := mock.Info("none", nil)
 
 	// execute dequeue on empty queue
 	resp, err := Execute(deps, env, info, encode(t, &ExecuteMsg{Dequeue: &Dequeue{}}))
@@ -80,7 +80,7 @@ func TestExecute_Dequeue(t *testing.T) {
 }
 
 func TestMigrate(t *testing.T) {
-	deps := mocks.Deps(nil)
+	deps := mock.Deps(nil)
 
 	_, err := executeEnqueue(deps, types.Env{}, types.MessageInfo{}, &Enqueue{Value: 1})
 	require.NoError(t, err)
@@ -101,9 +101,9 @@ func TestMigrate(t *testing.T) {
 }
 
 func TestQuery_Count(t *testing.T) {
-	deps := mocks.Deps(nil)
-	env := mocks.Env()
-	info := mocks.Info("none", nil)
+	deps := mock.Deps(nil)
+	env := mock.Env()
+	info := mock.Info("none", nil)
 
 	for i := int32(0); i < 20; i++ {
 		_, err := executeEnqueue(deps, env, info, &Enqueue{Value: i})
@@ -120,9 +120,9 @@ func TestQuery_Count(t *testing.T) {
 }
 
 func TestQuery_Sum(t *testing.T) {
-	deps := mocks.Deps(nil)
-	env := mocks.Env()
-	info := mocks.Info("none", nil)
+	deps := mock.Deps(nil)
+	env := mock.Env()
+	info := mock.Info("none", nil)
 	rand.Seed(time.Now().UnixNano())
 
 	total := int32(0)
@@ -144,9 +144,9 @@ func TestQuery_Sum(t *testing.T) {
 
 func TestQuery_List(t *testing.T) {
 	const queueLength = 50
-	deps := mocks.Deps(nil)
-	env := mocks.Env()
-	info := mocks.Info("none", nil)
+	deps := mock.Deps(nil)
+	env := mock.Env()
+	info := mock.Info("none", nil)
 
 	for i := 0; i < queueLength; i++ {
 		_, err := executeEnqueue(deps, env, info, &Enqueue{Value: int32(i)})
@@ -166,9 +166,9 @@ func TestQuery_List(t *testing.T) {
 
 // TestQuery_Reducer takes from https://github.com/CosmWasm/cosmwasm/blob/main/contracts/queue/src/contract.rs#L320
 func TestQuery_Reducer(t *testing.T) {
-	deps := mocks.Deps(nil)
-	env := mocks.Env()
-	info := mocks.Info("none", nil)
+	deps := mock.Deps(nil)
+	env := mock.Env()
+	info := mock.Info("none", nil)
 
 	expected := [][2]int32{
 		{40, 85},
