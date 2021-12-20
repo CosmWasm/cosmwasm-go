@@ -3,7 +3,7 @@ package src
 import (
 	"encoding/json"
 	"errors"
-	"github.com/cosmwasm/cosmwasm-go/std/mocks"
+	"github.com/cosmwasm/cosmwasm-go/std/mock"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
@@ -16,9 +16,9 @@ func encode(t *testing.T, o json.Marshaler) []byte {
 
 func TestContract(t *testing.T) {
 	const exists = "existing"
-	deps := mocks.MockDeps(nil)
-	env := mocks.MockEnv()
-	info := mocks.MockInfo(exists, nil)
+	deps := mock.Deps(nil)
+	env := mock.Env()
+	info := mock.Info(exists, nil)
 
 	// create
 	_, err := Execute(deps, env, info, encode(t, ExecuteMsg{CreateIdentity: &MsgCreateIdentity{

@@ -19,12 +19,6 @@ import (
 
 var CONTRACT = filepath.Join("..", "hackatom.wasm")
 
-func mustEncode(t *testing.T, msg interface{}) []byte {
-	bz, err := json.Marshal(msg)
-	require.NoError(t, err)
-	return bz
-}
-
 const VERIFIER = "verifies"
 const BENEFICIARY = "benefits"
 const FUNDER = "creator"
@@ -43,7 +37,7 @@ func defaultInit(t *testing.T, funds []types.Coin) *systest.Instance {
 		Verifier:    VERIFIER,
 		Beneficiary: BENEFICIARY,
 	}
-	res, gas, err := instance.Instantiate(env, info, mustEncode(t, initMsg))
+	res, gas, err := instance.Instantiate(env, info, initMsg)
 	require.NoError(t, err)
 	require.NotNil(t, res)
 	fmt.Printf("Instantiate gas: %d\n", gas)
@@ -59,7 +53,7 @@ func TestInitAndQuery(t *testing.T) {
 		Verifier:    VERIFIER,
 		Beneficiary: BENEFICIARY,
 	}
-	res, _, err := instance.Instantiate(env, info, mustEncode(t, initMsg))
+	res, _, err := instance.Instantiate(env, info, initMsg)
 	require.NoError(t, err)
 	require.NotNil(t, res)
 	assert.Equal(t, 0, len(res.Messages))
@@ -68,8 +62,7 @@ func TestInitAndQuery(t *testing.T) {
 	assert.Equal(t, "Let the", attr.Key)
 	assert.Equal(t, "hacking begin", attr.Value)
 
-	qmsg := []byte(`{"verifier":{}}`)
-	data, gas, err := instance.Query(env, qmsg)
+	data, gas, err := instance.Query(env, &src.QueryMsg{Verifier: &struct{}{}})
 	require.NoError(t, err)
 	fmt.Printf("Query gas: %d\n", gas)
 
@@ -83,8 +76,7 @@ func TestPanic(t *testing.T) {
 	deps := defaultInit(t, nil)
 	env := mocks.MockEnv()
 	info := mocks.MockInfo(FUNDER, nil)
-	handleMsg := []byte(`{"panic":{}}`)
-	_, _, err := deps.Execute(env, info, handleMsg)
+	_, _, err := deps.Execute(env, info, &src.HandleMsg{Panic: &struct{}{}})
 	require.Error(t, err)
 }
 
@@ -103,8 +95,7 @@ func TestRelease(t *testing.T) {
 			deps := defaultInit(t, tc.funds)
 			env := mocks.MockEnv()
 			info := mocks.MockInfo(tc.signer, nil)
-			handleMsg := []byte(`{"release":{}}`)
-			res, gas, err := deps.Execute(env, info, handleMsg)
+			res, gas, err := deps.Execute(env, info, &src.HandleMsg{Release: &struct{}{}})
 			fmt.Printf("Execute gas: %d\n", gas)
 
 			if !tc.valid {
@@ -155,10 +146,8 @@ func TestQueryOther(t *testing.T) {
 
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
-			// json encoding makes invalid QueryMsg... look into this later (only ezjson works?)
-			queryMsg := []byte(`{"other_balance":{"address":"` + tc.account + `"}}`)
 
-			raw, gas, err := deps.Query(env, queryMsg)
+			raw, gas, err := deps.Query(env, &src.QueryMsg{OtherBalance: &src.OtherBalance{Address: tc.account}})
 			fmt.Printf("Query gas: %d\n", gas)
 
 			require.NoError(t, err)
@@ -185,10 +174,7 @@ func TestQueryRecurse(t *testing.T) {
 		},
 	}
 
-	msgBytes, err := msg.MarshalJSON()
-	require.NoError(t, err)
-
-	res, gas, err := deps.Query(env, msgBytes)
+	res, gas, err := deps.Query(env, msg)
 	require.NoError(t, err)
 	t.Logf("gas used: %d", gas)
 
@@ -202,9 +188,9 @@ func TestQueryRecurse(t *testing.T) {
 
 func TestUserErrorsInAPICalls(t *testing.T) {
 	instance := defaultInit(t, nil)
-	_, gas, err := instance.Execute(mocks.MockEnv(), mocks.MockInfo(FUNDER, nil), mustEncode(t, &src.HandleMsg{
+	_, gas, err := instance.Execute(mocks.MockEnv(), mocks.MockInfo(FUNDER, nil), &src.HandleMsg{
 		UserErrorsInApiCalls: &struct{}{},
-	}))
+	})
 
 	t.Logf("consumed gas: %d", gas)
 	require.NoError(t, err)
@@ -220,7 +206,7 @@ func TestApiErrorInInit(t *testing.T) {
 		Verifier:    "This string is way way way way way too long and must produce an error",
 		Beneficiary: BENEFICIARY,
 	}
-	_, _, err := instance.Instantiate(env, info, mustEncode(t, initMsg))
+	_, _, err := instance.Instantiate(env, info, initMsg)
 	require.Error(t, err)
 	assert.Equal(t, "Generic error: addr_canonicalize errored: human encoding too long", err.Error())
 }
@@ -229,9 +215,7 @@ func TestRangeQuery(t *testing.T) {
 	deps := defaultInit(t, nil)
 	env := mocks.MockEnv()
 
-	queryMsg := []byte(`{"test_range":{}}`)
-
-	data, gas, err := deps.Query(env, queryMsg)
+	data, gas, err := deps.Query(env, &src.QueryMsg{TestRange: &struct{}{}})
 	require.NoError(t, err)
 	t.Logf("gas used: %d", gas)
 
@@ -246,12 +230,12 @@ func TestRangeQuery(t *testing.T) {
 func TestMigrate(t *testing.T) {
 	const expectedVerifier = "gucci"
 	i := defaultInit(t, nil)
-	res, gas, err := i.Migrate(mocks.MockEnv(), mustEncode(t, &src.MigrateMsg{Verifier: expectedVerifier}))
+	res, gas, err := i.Migrate(mocks.MockEnv(), &src.MigrateMsg{Verifier: expectedVerifier})
 	require.NoError(t, err)
 	require.Equal(t, res.Data, []byte("migrated"))
 	t.Logf("migrate gas: %d", gas)
 
-	respBytes, _, err := i.Query(mocks.MockEnv(), mustEncode(t, &src.QueryMsg{Verifier: &struct{}{}}))
+	respBytes, _, err := i.Query(mocks.MockEnv(), &src.QueryMsg{Verifier: &struct{}{}})
 	require.NoError(t, err)
 
 	newVerifier := new(src.VerifierResponse)

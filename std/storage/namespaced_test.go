@@ -2,7 +2,7 @@ package storage
 
 import (
 	"github.com/cosmwasm/cosmwasm-go/std"
-	"github.com/cosmwasm/cosmwasm-go/std/mocks"
+	"github.com/cosmwasm/cosmwasm-go/std/mock"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
@@ -10,7 +10,7 @@ import (
 // TODO(fdymylja): test this
 
 func TestNamespaced(t *testing.T) {
-	storage := mocks.NewMockStorage()
+	storage := mock.Storage()
 	ns := NewNamespaced("prefix")
 
 	ns.Set(storage, []byte("1"), []byte("a"))
