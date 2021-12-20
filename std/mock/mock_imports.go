@@ -40,7 +40,7 @@ func Deps(funds []types.Coin) *std.Deps {
 	return &std.Deps{
 		Storage: Storage(),
 		Api:     api{},
-		Querier: NewQuerier(funds),
+		Querier: Querier(funds),
 	}
 }
 
@@ -194,7 +194,7 @@ type querier struct {
 	Balances map[string][]types.Coin
 }
 
-func NewQuerier(funds []types.Coin) *querier {
+func Querier(funds []types.Coin) std.Querier {
 	q := querier{
 		Balances: make(map[string][]types.Coin),
 	}
