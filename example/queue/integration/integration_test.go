@@ -1,7 +1,6 @@
 package integration
 
 import (
-	"encoding/json"
 	mocks "github.com/CosmWasm/wasmvm/api"
 	"github.com/cosmwasm/cosmwasm-go/example/queue/src"
 	"github.com/cosmwasm/cosmwasm-go/systest"
@@ -11,15 +10,6 @@ import (
 )
 
 var contractPath = filepath.Join("..", "queue.wasm")
-
-func encode(t *testing.T, o json.Marshaler) []byte {
-	bytes, err := o.MarshalJSON()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	return bytes
-}
 
 func instance(t *testing.T) *systest.Instance {
 	i := systest.NewInstance(t, contractPath, 15_000_000_000_000, nil)
