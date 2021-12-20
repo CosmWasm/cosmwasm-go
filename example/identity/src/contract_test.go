@@ -16,7 +16,6 @@ func encode(t *testing.T, o json.Marshaler) []byte {
 
 func TestContract(t *testing.T) {
 	const exists = "existing"
-	const notExists = "non-existing"
 	deps := mocks.MockDeps(nil)
 	env := mocks.MockEnv()
 	info := mocks.MockInfo(exists, nil)

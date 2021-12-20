@@ -28,6 +28,11 @@ jobs:
             cd example/queue
             go test -v -count=1 ./integration
       - run:
+          name: Identity contract integration tests
+          command: |
+            cd example/identity
+            go test -v -count=1 ./integration
+      - run:
           name: Run unit tests
           command: make test
       - run:
