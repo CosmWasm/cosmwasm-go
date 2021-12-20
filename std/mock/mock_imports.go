@@ -28,18 +28,18 @@ const (
 )
 
 var (
-	_ std.Iterator        = (*Iterator)(nil)
-	_ std.ReadonlyStorage = (*Storage)(nil)
-	_ std.Storage         = (*Storage)(nil)
-	_ std.Querier         = (*Querier)(nil)
-	_ std.Api             = (*API)(nil)
+	_ std.Iterator        = (*iterator)(nil)
+	_ std.ReadonlyStorage = (*storage)(nil)
+	_ std.Storage         = (*storage)(nil)
+	_ std.Querier         = (*querier)(nil)
+	_ std.Api             = (*api)(nil)
 )
 
 // Deps returns mocked dependencies, funds can be provided optionally.
 func Deps(funds []types.Coin) *std.Deps {
 	return &std.Deps{
-		Storage: NewStorage(),
-		Api:     API{},
+		Storage: Storage(),
+		Api:     api{},
 		Querier: NewQuerier(funds),
 	}
 }
@@ -66,18 +66,18 @@ func Info(sender string, funds []types.Coin) types.MessageInfo {
 	}
 }
 
-// Iterator mocks the std.Iterator.
-type Iterator struct {
+// iterator mocks the std.Iterator.
+type iterator struct {
 	Iter dbm.Iterator
 }
 
-func newIterator(iter dbm.Iterator) Iterator {
-	return Iterator{
+func newIterator(iter dbm.Iterator) iterator {
+	return iterator{
 		Iter: iter,
 	}
 }
 
-func (i Iterator) Next() (key, value []byte, err error) {
+func (i iterator) Next() (key, value []byte, err error) {
 	if !i.Iter.Valid() {
 		i.Iter.Close()
 		return key, value, std.ErrIteratorDone
@@ -87,17 +87,17 @@ func (i Iterator) Next() (key, value []byte, err error) {
 	return
 }
 
-type Storage struct {
+type storage struct {
 	storage dbm.DB
 }
 
-func NewStorage() *Storage {
-	return &Storage{
+func Storage() std.Storage {
+	return &storage{
 		storage: dbm.NewMemDB(),
 	}
 }
 
-func (s *Storage) Get(key []byte) []byte {
+func (s *storage) Get(key []byte) []byte {
 	v, err := s.storage.Get(key)
 	if err != nil {
 		// tm-db says that if the key is not found then the
@@ -108,7 +108,7 @@ func (s *Storage) Get(key []byte) []byte {
 	return v
 }
 
-func (s *Storage) Range(start, end []byte, order std.Order) (iter std.Iterator) {
+func (s *storage) Range(start, end []byte, order std.Order) (iter std.Iterator) {
 	var (
 		iterator dbm.Iterator
 		err      error
@@ -131,23 +131,28 @@ func (s *Storage) Range(start, end []byte, order std.Order) (iter std.Iterator) 
 	return
 }
 
-func (s *Storage) Set(key, value []byte) {
+func (s *storage) Set(key, value []byte) {
 	err := s.storage.Set(key, value)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func (s *Storage) Remove(key []byte) {
+func (s *storage) Remove(key []byte) {
 	err := s.storage.Delete(key)
 	if err != nil {
 		panic(err)
 	}
 }
 
-type API struct{}
+// API returns a mocked std.Api
+func API() std.Api {
+	return api{}
+}
 
-func (a API) CanonicalAddress(human string) (types.CanonicalAddress, error) {
+type api struct{}
+
+func (a api) CanonicalAddress(human string) (types.CanonicalAddress, error) {
 	if len(human) == 0 {
 		return nil, errors.New("empty address")
 	}
@@ -158,7 +163,7 @@ func (a API) CanonicalAddress(human string) (types.CanonicalAddress, error) {
 	return []byte(human), nil
 }
 
-func (a API) HumanAddress(canonical types.CanonicalAddress) (string, error) {
+func (a api) HumanAddress(canonical types.CanonicalAddress) (string, error) {
 	if len(canonical) != canonicalAddressLength {
 		return "", errors.New("wrong canonical address length")
 	}
@@ -174,23 +179,23 @@ func (a API) HumanAddress(canonical types.CanonicalAddress) (string, error) {
 	return string(canonical[:cutIndex]), nil
 }
 
-func (a API) ValidateAddress(human string) error {
+func (a api) ValidateAddress(human string) error {
 	if len(human) > canonicalAddressLength {
 		return errors.New("human encoding too long")
 	}
 	return nil
 }
 
-func (a API) Debug(msg string) {
+func (a api) Debug(msg string) {
 	fmt.Println("DEBUG: " + msg)
 }
 
-type Querier struct {
+type querier struct {
 	Balances map[string][]types.Coin
 }
 
-func NewQuerier(funds []types.Coin) *Querier {
-	q := Querier{
+func NewQuerier(funds []types.Coin) *querier {
+	q := querier{
 		Balances: make(map[string][]types.Coin),
 	}
 	if len(funds) > 0 {
@@ -199,7 +204,7 @@ func NewQuerier(funds []types.Coin) *Querier {
 	return &q
 }
 
-func (q *Querier) RawQuery(raw []byte) ([]byte, error) {
+func (q *querier) RawQuery(raw []byte) ([]byte, error) {
 	var request types.QueryRequest
 	err := request.UnmarshalJSON(raw)
 	if err != nil {
@@ -212,7 +217,7 @@ func (q *Querier) RawQuery(raw []byte) ([]byte, error) {
 	return res.MarshalJSON()
 }
 
-func (q *Querier) HandleQuery(request types.QueryRequest) (std.JSONType, error) {
+func (q *querier) HandleQuery(request types.QueryRequest) (std.JSONType, error) {
 	switch {
 	case request.Bank != nil:
 		return q.HandleBank(request.Bank)
@@ -227,7 +232,7 @@ func (q *Querier) HandleQuery(request types.QueryRequest) (std.JSONType, error) 
 	}
 }
 
-func (q *Querier) HandleBank(request *types.BankQuery) (std.JSONType, error) {
+func (q *querier) HandleBank(request *types.BankQuery) (std.JSONType, error) {
 	switch {
 	case request.Balance != nil:
 		balances := q.GetBalance(request.Balance.Address)
@@ -247,13 +252,13 @@ func (q *Querier) HandleBank(request *types.BankQuery) (std.JSONType, error) {
 	}
 }
 
-func (q *Querier) SetBalance(addr string, balance []types.Coin) {
+func (q *querier) SetBalance(addr string, balance []types.Coin) {
 	// clone coins so we don't accidentally edit them
 	var empty []types.Coin
 	q.Balances[addr] = append(empty, balance...)
 }
 
-func (q *Querier) GetBalance(addr string) []types.Coin {
+func (q *querier) GetBalance(addr string) []types.Coin {
 	bal := q.Balances[addr]
 	if len(bal) == 0 {
 		return bal

@@ -10,7 +10,7 @@ import (
 // TODO(fdymylja): test this
 
 func TestNamespaced(t *testing.T) {
-	storage := mock.NewStorage()
+	storage := mock.Storage()
 	ns := NewNamespaced("prefix")
 
 	ns.Set(storage, []byte("1"), []byte("a"))

@@ -74,11 +74,11 @@ func NewInstance(t *testing.T, contractPath string, gasLimit uint64, funds []typ
 	// we use callbacks that use the same logic as our unit tests
 	mockApi := mocks.NewMockAPI()
 	mockApi.HumanAddress = func(canon []byte) (string, uint64, error) {
-		human, err := unitmocks.API{}.HumanAddress(canon)
+		human, err := unitmocks.API().HumanAddress(canon)
 		return human, 5000, err
 	}
 	mockApi.CanonicalAddress = func(human string) ([]byte, uint64, error) {
-		canon, err := unitmocks.API{}.CanonicalAddress(human)
+		canon, err := unitmocks.API().CanonicalAddress(human)
 		return canon, 4000, err
 	}
 
