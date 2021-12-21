@@ -14,11 +14,15 @@ jobs:
           name: Build Queue contract
           command: make queue
       - run:
+          name: Build Identity contract
+          command: make identity
+      - run:
           name: Collect artifacts
           command: |
             mkdir artifacts
-            cp ./examples/hackatom/hackatom.wasm artifacts
-            cp ./examples/queue/queue.wasm artifacts
+            cp ./example/hackatom/hackatom.wasm artifacts
+            cp ./example/queue/queue.wasm artifacts
+            cp ./example/identity/identity.wasm artifacts
       - run:
           name: Create checksums
           working_directory: artifacts
@@ -52,6 +56,7 @@ jobs:
           command: |
             cp /tmp/builds/hackatom.wasm ./example/hackatom/hackatom.wasm
             cp /tmp/builds/queue.wasm ./example/queue/queue.wasm
+            cp /tmp/builds/identity.wasm ./example/identity/identity.wasm
       - run:
           name: Hackatom integration tests
           command: |
@@ -62,18 +67,18 @@ jobs:
           command: |
             cd example/queue
             go test -v -count=1 ./integration
-      # - run:
-      #     name: Identity contract integration tests
-      #     command: |
-      #       cd example/identity
-      #       go test -v -count=1 ./integration
-      # - run:
-      #     name: Try gotestsum
-      #     command: |
-      #       mkdir -p /tmp/test-reports
-      #       gotestsum --junitfile /tmp/test-reports/unit-tests.xml ./std
-      # - store_test_results:
-      #     path: /tmp/test-reports
+      - run:
+          name: Identity contract integration tests
+          command: |
+            cd example/identity
+            go test -v -count=1 ./integration
+      - run:
+          name: Try gotestsum
+          command: |
+            mkdir -p /tmp/test-reports
+            gotestsum --junitfile /tmp/test-reports/unit-tests.xml ./std
+      - store_test_results:
+          path: /tmp/test-reports
 
 workflows:
   version: 2
