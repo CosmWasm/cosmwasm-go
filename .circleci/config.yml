@@ -81,5 +81,5 @@ workflows:
     jobs:
       - build_contracts
       - test:
-        requires:
-          - build_contracts
+          requires:
+            - build_contracts
