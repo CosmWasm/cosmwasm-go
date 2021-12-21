@@ -27,8 +27,12 @@ jobs:
           name: Create checksums
           working_directory: artifacts
           command: sha256sum * > checksums.txt && cat checksums.txt
-      - store_artifacts:
-          path: artifacts
+      - persist_to_workspace:
+          root: ./artifacts
+          paths:
+            - hackatom.wasm
+            - queue.wasm
+            - identity.wasm
 
   test:
     working_directory: ~/repo
@@ -38,6 +42,9 @@ jobs:
       - checkout
       - attach_workspace:
           at: /tmp/builds
+      - run:
+          name: check
+          command: ls -l /tmp/builds
       - restore_cache:
           keys:
             - go-mod-v5-{{ checksum "go.sum" }}
