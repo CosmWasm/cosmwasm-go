@@ -3,7 +3,8 @@
 set -o errexit -o nounset -o pipefail
 command -v shellcheck > /dev/null && shellcheck "$0"
 
-EMSCRIPTEN="polkasource/webassembly-wabt:v1.0.11"
+# EMSCRIPTEN="polkasource/webassembly-wabt:v1.0.11"
+EMSCRIPTEN="demo/builder:latest"
 
 SCRIPT_DIR="$(realpath "$(dirname "$0")")"
 ROOT="$(dirname "$SCRIPT_DIR")"
@@ -30,7 +31,7 @@ fi
 echo "Stripping out floating point symbols from ${FILE}"
 
 WATFILE=$(echo "${FILE}" | sed 's/\.wasm/\.wat/')
-docker run --rm --platform linux/amd64 -v "${ROOT}:/code" ${EMSCRIPTEN} wasm2wat "/code/${FILE}" > "${WATFILE}"
+docker run --rm -v "${ROOT}:/code" ${EMSCRIPTEN} wasm2wat "/code/${FILE}" > "${WATFILE}"
 
 # this just replaces all the floating point ops with unreachable. It still leaves them in the args and local variables
 sed -E 's/^(\s*)f[[:digit:]]{2}\.[^()]+/\1unreachable/' "${WATFILE}" | \
@@ -38,7 +39,7 @@ sed -E 's/^(\s*)f[[:digit:]]{2}\.[^()]+/\1unreachable/' "${WATFILE}" | \
   sed -E 's/^(\s*)i[[:digit:]]{2}\.reinterpret_[^()]+/\1unreachable/' > "${WATFILE}-rewrite"
 mv "${WATFILE}-rewrite" "${WATFILE}"
 
-docker run --rm --platform linux/amd64 -w /code -v "${ROOT}:/code" ${EMSCRIPTEN} wat2wasm "/code/${WATFILE}"
+docker run --rm -w /code -v "${ROOT}:/code" ${EMSCRIPTEN} wat2wasm "/code/${WATFILE}"
 rm ${WATFILE}
 
 echo ""

@@ -3,7 +3,8 @@
 set -o errexit -o nounset -o pipefail
 command -v shellcheck > /dev/null && shellcheck "$0"
 
-EMSCRIPTEN="polkasource/webassembly-wabt:v1.0.11"
+# EMSCRIPTEN="polkasource/webassembly-wabt:v1.0.11"
+EMSCRIPTEN="demo/builder:latest"
 
 SCRIPT_DIR="$(realpath "$(dirname "$0")")"
 ROOT="$(dirname "$SCRIPT_DIR")"
@@ -34,7 +35,7 @@ WATFILE="${FILE//\.wasm/\.wat}"
 
 echo "Increasing memory pages of $FILE to $PAGES"
 
-docker run --rm --platform linux/amd64 -v "${ROOT}:/code" ${EMSCRIPTEN} wasm2wat "/code/${FILE}" > "${WATFILE}"
+docker run --rm -v "${ROOT}:/code" ${EMSCRIPTEN} wasm2wat "/code/${FILE}" > "${WATFILE}"
 if [[ "$OSTYPE" == "darwin"* ]]; then
   sed -i '' "s/(memory (;0;) 2)/(memory (;0;) $PAGES)/" "${WATFILE}"
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
@@ -43,7 +44,7 @@ else
   echo "unsupported os type $OSTYPE"
   exit 1
 fi
-docker run --rm --platform linux/amd64 -v "${ROOT}:/code" ${EMSCRIPTEN} wat2wasm "/code/${WATFILE}" -o "/code/$FILE"
+docker run --rm -v "${ROOT}:/code" ${EMSCRIPTEN} wat2wasm "/code/${WATFILE}" -o "/code/$FILE"
 
 echo ""
 ls -l "${FILE}"

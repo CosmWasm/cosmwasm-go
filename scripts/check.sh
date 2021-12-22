@@ -3,7 +3,9 @@
 set -o errexit -o nounset -o pipefail
 command -v shellcheck > /dev/null && shellcheck "$0"
 
-EMSCRIPTEN="polkasource/webassembly-wabt:v1.0.11"
+# EMSCRIPTEN="polkasource/webassembly-wabt:v1.0.11"
+EMSCRIPTEN="demo/builder:latest"
+
 
 SCRIPT_DIR="$(realpath "$(dirname "$0")")"
 ROOT="$(dirname "$SCRIPT_DIR")"
@@ -30,7 +32,7 @@ fi
 echo "Checking $FILE"
 WATFILE="${FILE//\.wasm/\.wat}"
 
-docker run --rm --platform linux/amd64 -v "${ROOT}:/code" ${EMSCRIPTEN} wasm2wat "/code/${FILE}" > "${WATFILE}"
+docker run --rm -v "${ROOT}:/code" ${EMSCRIPTEN} wasm2wat "/code/${FILE}" > "${WATFILE}"
 
 echo ""
 echo "** IMPORTS **"

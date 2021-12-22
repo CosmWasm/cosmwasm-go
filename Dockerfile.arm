@@ -3,7 +3,7 @@ FROM cosmwasm/wabt:v1.0.25-arm as wabt
 FROM cosmwasm/tinygo:0.19.2-arm as tinygo
 
 COPY --from=wabt /usr/local/bin/wasm2wat /usr/local/bin/wasm2wat
-COPY --from=wabt /usr/local/bin/wat2wasm /usr/local/bin/wzt2wasm
+COPY --from=wabt /usr/local/bin/wat2wasm /usr/local/bin/wat2wasm
 COPY --from=wabt /usr/local/wabt /usr/local/wabt
 
 # TODO copy more over
