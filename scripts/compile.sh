@@ -3,8 +3,10 @@
 set -o errexit -o nounset -o pipefail
 command -v shellcheck > /dev/null && shellcheck "$0"
 
-VERSION=${VERSION:-"0.19.3-amd64"}
-TINYGO_IMAGE="cosmwasm/tinygo:${VERSION}"
+# VERSION=${VERSION:-0.19.2}
+# TINYGO_IMAGE="cosmwasm/tinygo:${VERSION}"
+
+TINYGO_IMAGE="demo/builder:latest"
 
 SCRIPT_DIR="$(realpath "$(dirname "$0")")"
 ROOT="$(dirname "$SCRIPT_DIR")"
