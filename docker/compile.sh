@@ -45,7 +45,7 @@ ls -l "$WASM_FILE"
 
 wasm2wat "$WASM_FILE" > "$WAT_FILE"
 
-if [ -n "${CHECK+x}" ]; then
+if [ ! -z "${CHECK+x}" ]; then
   echo "Checking ${CONTRACT}..."
   echo ""
   echo "** IMPORTS **"
@@ -56,7 +56,7 @@ if [ -n "${CHECK+x}" ]; then
   grep f64 "${WAT_FILE}" || true
 fi
 
-if [ -n "${STRIP+x}" ]; then
+if [ ! -z "${STRIP+x}" ]; then
   echo "Stripping floats from ${CONTRACT}..."
   echo ""
   sed -E 's/^(\s*)f[[:digit:]]{2}\.[^()]+/\1unreachable/' "${WAT_FILE}" | \

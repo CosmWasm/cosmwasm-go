@@ -4,6 +4,9 @@
 # TEST_FLAG=-v make test
 #TEST_FLAG=-v -count=1
 
+VERSION := "0.3.0-arm64"
+BUILDER := "cosmwasm/go-optimizer:${VERSION}"
+
 tiny-build:
 	rm -rf ./bin/tinyjson
 	go build -o ./bin/tinyjson github.com/CosmWasm/tinyjson/tinyjson
@@ -48,22 +51,10 @@ examples: hackatom
 
 # we need to move this to example/hackatom, so it will be run in the integration tests in CI
 hackatom:
-	@echo "VERSION=latest make hackatom - will run with different cosmwasm/tinygo image" 
-	./scripts/compile.sh hackatom
-	./scripts/check.sh hackatom.wasm
-	./scripts/increase_memory.sh hackatom.wasm
-	mv hackatom.wasm example/hackatom
+	docker run -v "${PWD}:/code" ${BUILDER} ./example/hackatom
 
 queue:
-	@echo "VERSION=latest make queue - will run with different cosmwasm/tinygo image"
-	./scripts/compile.sh queue
-	./scripts/check.sh queue.wasm
-	./scripts/increase_memory.sh queue.wasm
-	mv queue.wasm example/queue
+	docker run -v "${PWD}:/code" ${BUILDER} ./example/queue
 
 identity:
-	@echo "VERSION=latest make identity - will run with different cosmwasm/tinyho image"
-	./scripts/compile.sh identity
-	./scripts/check.sh identity.wasm
-	./scripts/increase_memory.sh identity.wasm
-	mv identity.wasm example/identity
+	docker run -v "${PWD}:/code" ${BUILDER} ./example/identity
