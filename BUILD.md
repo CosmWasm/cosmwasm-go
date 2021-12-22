@@ -3,5 +3,5 @@
 Let's see if this works...
 
 ```
-docker build -t one/demo:latest .
+docker build -t demo/builder:latest -f Dockerfile.arm .
 ```
