@@ -51,10 +51,10 @@ examples: hackatom queue identity
 
 # we need to move this to example/hackatom, so it will be run in the integration tests in CI
 hackatom:
-	docker run --rm -v "${PWD}:/code" ${BUILDER} ./example/hackatom
+	docker run --rm -v "$(CURDIR):/code" ${BUILDER} ./example/hackatom
 
 queue:
-	docker run --rm -v "${PWD}:/code" ${BUILDER} ./example/queue
+	docker run --rm -v "$(CURDIR):/code" ${BUILDER} ./example/queue
 
 identity:
-	docker run --rm -v "${PWD}:/code" ${BUILDER} ./example/identity
+	docker run --rm -v "$(CURDIR):/code" ${BUILDER} ./example/identity
