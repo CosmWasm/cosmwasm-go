@@ -52,13 +52,14 @@ hackatom:
 	./scripts/compile.sh hackatom
 	./scripts/check.sh hackatom.wasm
 	./scripts/increase_memory.sh hackatom.wasm
-	# ./scripts/strip_floats.sh hackatom.wasm
 	mv hackatom.wasm example/hackatom
 
 queue:
 	@echo "VERSION=latest make queue - will run with different cosmwasm/tinygo image"
 	./scripts/compile.sh queue
 	./scripts/check.sh queue.wasm
+	# TODO: remove this with tinygo 0.19.3 and patched stdlib
+	./scripts/strip_floats.sh queue.wasm
 	./scripts/increase_memory.sh queue.wasm
 	mv queue.wasm example/queue
 
@@ -66,5 +67,7 @@ identity:
 	@echo "VERSION=latest make identity - will run with different cosmwasm/tinyho image"
 	./scripts/compile.sh identity
 	./scripts/check.sh identity.wasm
+	# TODO: remove this with tinygo 0.19.3 and patched stdlib
+	./scripts/strip_floats.sh identity.wasm
 	./scripts/increase_memory.sh identity.wasm
 	mv identity.wasm example/identity
