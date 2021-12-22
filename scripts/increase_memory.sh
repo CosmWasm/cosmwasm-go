@@ -37,7 +37,8 @@ echo "Increasing memory pages of $FILE to $PAGES"
 
 docker run --rm -v "${ROOT}:/code" ${EMSCRIPTEN} wasm2wat "/code/${FILE}" > "${WATFILE}"
 if [[ "$OSTYPE" == "darwin"* ]]; then
-  sed -i '' "s/(memory (;0;) 2)/(memory (;0;) $PAGES)/" "${WATFILE}"
+  # OR just install GNU sed locally
+  sed -i "s/(memory (;0;) 2)/(memory (;0;) $PAGES)/" "${WATFILE}"
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
   sed -i "s/(memory (;0;) 2)/(memory (;0;) $PAGES)/" "${WATFILE}"
 else
