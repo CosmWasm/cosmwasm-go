@@ -3,7 +3,7 @@
 set -o errexit -o nounset -o pipefail
 command -v shellcheck > /dev/null && shellcheck "$0"
 
-VERSION=${VERSION:-0.19.2}
+VERSION=${VERSION:-"0.19.3-amd64"}
 TINYGO_IMAGE="cosmwasm/tinygo:${VERSION}"
 
 SCRIPT_DIR="$(realpath "$(dirname "$0")")"
@@ -32,6 +32,6 @@ if [ ! -d "$DIR" ]; then
 fi
 
 echo "Compiling $CONTRACT with tinygo..."
-docker run --rm -w /code -v "${ROOT}:/code" ${TINYGO_IMAGE} tinygo build -tags "cosmwasm tinyjson_nounsafe" -no-debug -target wasi -o "/code/${CONTRACT}.wasm" "/code/example/${CONTRACT}/main.go"
+docker run --rm -w /code -v "${ROOT}:/code" "${TINYGO_IMAGE}" tinygo build -tags "cosmwasm tinyjson_nounsafe" -no-debug -target wasi -o "/code/${CONTRACT}.wasm" "/code/example/${CONTRACT}/main.go"
 echo "${ROOT}/${CONTRACT}.wasm"
 ls -l "${ROOT}/${CONTRACT}.wasm"

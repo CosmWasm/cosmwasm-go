@@ -28,7 +28,7 @@ if [ ! -f "$FILE" ]; then
 fi
 
 echo "Checking $FILE"
-WATFILE=$(echo "${FILE}" | sed 's/\.wasm/\.wat/')
+WATFILE="${FILE//\.wasm/\.wat}"
 
 docker run --rm --platform linux/amd64 -v "${ROOT}:/code" ${EMSCRIPTEN} wasm2wat "/code/${FILE}" > "${WATFILE}"
 
