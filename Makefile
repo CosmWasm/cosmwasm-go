@@ -4,7 +4,7 @@
 # TEST_FLAG=-v make test
 #TEST_FLAG=-v -count=1
 
-VERSION := "0.3.0-arm64"
+VERSION := "0.3.0"
 BUILDER := "cosmwasm/go-optimizer:${VERSION}"
 
 tiny-build:
@@ -47,14 +47,14 @@ test-std:
 test-contracts:
 	cd example/hackatom && $(MAKE) unit-test
 
-examples: hackatom
+examples: hackatom queue identity
 
 # we need to move this to example/hackatom, so it will be run in the integration tests in CI
 hackatom:
-	docker run -v "${PWD}:/code" ${BUILDER} ./example/hackatom
+	docker run --rm -v "${PWD}:/code" ${BUILDER} ./example/hackatom
 
 queue:
-	docker run -v "${PWD}:/code" ${BUILDER} ./example/queue
+	docker run --rm -v "${PWD}:/code" ${BUILDER} ./example/queue
 
 identity:
-	docker run -v "${PWD}:/code" ${BUILDER} ./example/identity
+	docker run --rm -v "${PWD}:/code" ${BUILDER} ./example/identity

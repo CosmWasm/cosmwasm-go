@@ -4,6 +4,7 @@ Let's see if this works...
 
 ```
 VERSION=0.3.0-arm64
+VERSION=0.3.0-amd64
 docker build -t cosmwasm/go-optimizer:${VERSION} -f Dockerfile .
 
 # failure cases
@@ -22,3 +23,21 @@ docker run -e CHECK=1 -e STRIP=1 -v "$(pwd):/code" cosmwasm/go-optimizer:${VERSI
 docker run -it --entrypoint /bin/bash cosmwasm/go-optimizer:${VERSION}
 ```
 
+When we built on both architectures:
+
+```
+VERSION=0.3.0
+ARM=${VERSION}-arm64
+AMD=${VERSION}-amd64
+
+docker push cosmwasm/go-optimizer:${ARM} || docker pull cosmwasm/go-optimizer:${ARM}
+docker push cosmwasm/go-optimizer:${AMD} || docker pull cosmwasm/go-optimizer:${AMD}
+
+docker manifest create cosmwasm/go-optimizer:${VERSION} \
+  --amend cosmwasm/go-optimizer:${ARM} \
+  --amend cosmwasm/go-optimizer:${AMD}
+
+docker manifest inspect cosmwasm/go-optimizer:${VERSION}
+
+docker manifest push cosmwasm/go-optimizer:${VERSION}
+```
