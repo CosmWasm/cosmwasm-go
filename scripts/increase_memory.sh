@@ -30,7 +30,7 @@ fi
 
 PAGES="${2:-20}"
 
-WATFILE=$(echo "${FILE}" | sed 's/\.wasm/\.wat/')
+WATFILE="${FILE//\.wasm/\.wat}"
 
 echo "Increasing memory pages of $FILE to $PAGES"
 
