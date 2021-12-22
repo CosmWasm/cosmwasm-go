@@ -44,7 +44,7 @@ test-std:
 test-contracts:
 	cd example/hackatom && $(MAKE) unit-test
 
-examples: hackatom
+examples: hackatom queue identity
 
 # we need to move this to example/hackatom, so it will be run in the integration tests in CI
 hackatom:
