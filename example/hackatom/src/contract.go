@@ -144,13 +144,9 @@ func executeRelease(deps *std.Deps, env *types.Env, info *types.MessageInfo) (*t
 		return nil, err
 	}
 
-	msg := types.NewSubMsg(types.CosmosMsg{
-		Bank: &types.BankMsg{
-			Send: &types.SendMsg{
-				ToAddress: state.Beneficiary,
-				Amount:    amount,
-			},
-		},
+	msg := types.NewSubMsg(types.SendMsg{
+		ToAddress: state.Beneficiary,
+		Amount:    amount,
 	})
 
 	res := &types.Response{
@@ -256,21 +252,15 @@ func queryRecurse(deps *std.Deps, env *types.Env, recurse *Recurse) ([]byte, err
 		return nil, err
 	}
 
-	req := types.QueryRequest{
-		Wasm: &types.WasmQuery{
-			Smart: &types.SmartQuery{
-				ContractAddr: env.Contract.Address,
-				Msg:          recurseBytes,
-			},
-		},
-	}
-
-	reqBytes, err := req.MarshalJSON()
+	req, err := types.SmartQuery{
+		ContractAddr: env.Contract.Address,
+		Msg:          recurseBytes,
+	}.ToQuery().MarshalJSON()
 	if err != nil {
 		return nil, err
 	}
 
-	return deps.Querier.RawQuery(reqBytes)
+	return deps.Querier.RawQuery(req)
 }
 
 func queryVerifier(deps *std.Deps, env *types.Env) (*VerifierResponse, error) {
