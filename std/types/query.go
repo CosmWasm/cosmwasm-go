@@ -58,6 +58,11 @@ type QueryRequest struct {
 	Wasm     *WasmQuery     `json:"wasm,omitempty"`
 }
 
+// Return self to allow this also to be passed as args that expect a variant
+func (m QueryRequest) ToQuery() QueryRequest {
+	return m
+}
+
 // ToQuery can be implemented by any variant of QueryRequest to easily be wrapped.
 // We can then use this interface in various function arguments
 type ToQuery interface {

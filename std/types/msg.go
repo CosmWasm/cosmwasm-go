@@ -45,6 +45,11 @@ type CosmosMsg struct {
 	Wasm         *WasmMsg         `json:"wasm,omitempty"`
 }
 
+// Return self to allow this also to be passed as args that expect a variant
+func (m CosmosMsg) ToMsg() CosmosMsg {
+	return m
+}
+
 // ToMsg can be implemented by any variant of CosmosMsg to easily be wrapped.
 // We can then use this interface in various function arguments
 type ToMsg interface {

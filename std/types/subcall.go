@@ -42,10 +42,34 @@ type Event struct {
 	Attributes []EventAttribute `json:"attributes,emptyslice"`
 }
 
-func NewSubMsg(msg CosmosMsg) SubMsg {
+func NewSubMsg(msg ToMsg) SubMsg {
 	return SubMsg{
 		ID:      0,
-		Msg:     msg,
+		Msg:     msg.ToMsg(),
 		ReplyOn: ReplyNever,
+	}
+}
+
+func ReplyOnError(msg ToMsg, id uint64) SubMsg {
+	return SubMsg{
+		ID:      id,
+		Msg:     msg.ToMsg(),
+		ReplyOn: ReplyError,
+	}
+}
+
+func ReplyOnSuccess(msg ToMsg, id uint64) SubMsg {
+	return SubMsg{
+		ID:      id,
+		Msg:     msg.ToMsg(),
+		ReplyOn: ReplySuccess,
+	}
+}
+
+func AlwaysReply(msg ToMsg, id uint64) SubMsg {
+	return SubMsg{
+		ID:      id,
+		Msg:     msg.ToMsg(),
+		ReplyOn: ReplyAlways,
 	}
 }
