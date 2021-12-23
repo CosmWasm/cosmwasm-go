@@ -2,10 +2,21 @@ package types
 
 /*** taken from wasmvm:types/msg.go (so this compiles with easyjson) ***/
 
+var (
+	_ ToMsg = IBCMsg{}
+	_ ToMsg = TransferMsg{}
+	_ ToMsg = SendPacketMsg{}
+	_ ToMsg = CloseChannelMsg{}
+)
+
 type IBCMsg struct {
 	Transfer     *TransferMsg     `json:"transfer,omitempty"`
 	SendPacket   *SendPacketMsg   `json:"send_packet,omitempty"`
 	CloseChannel *CloseChannelMsg `json:"close_channel,omitempty"`
+}
+
+func (m IBCMsg) ToMsg() CosmosMsg {
+	return CosmosMsg{IBC: &m}
 }
 
 type TransferMsg struct {
@@ -15,14 +26,26 @@ type TransferMsg struct {
 	Timeout   IBCTimeout `json:"timeout"`
 }
 
+func (m TransferMsg) ToMsg() CosmosMsg {
+	return CosmosMsg{IBC: &IBCMsg{Transfer: &m}}
+}
+
 type SendPacketMsg struct {
 	ChannelID string     `json:"channel_id"`
 	Data      []byte     `json:"data"`
 	Timeout   IBCTimeout `json:"timeout"`
 }
 
+func (m SendPacketMsg) ToMsg() CosmosMsg {
+	return CosmosMsg{IBC: &IBCMsg{SendPacket: &m}}
+}
+
 type CloseChannelMsg struct {
 	ChannelID string `json:"channel_id"`
+}
+
+func (m CloseChannelMsg) ToMsg() CosmosMsg {
+	return CosmosMsg{IBC: &IBCMsg{CloseChannel: &m}}
 }
 
 /*** taken from wasmvm:types/queries.go (so this compiles with easyjson) ***/
