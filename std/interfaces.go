@@ -72,8 +72,8 @@ type JSONType interface {
 	UnmarshalJSON([]byte) error
 }
 
-func (q QuerierWrapper) doQuery(query types.QueryRequest, result JSONType) error {
-	binQuery, err := query.MarshalJSON()
+func (q QuerierWrapper) Query(query types.ToQuery, result JSONType) error {
+	binQuery, err := query.ToQuery().MarshalJSON()
 	if err != nil {
 		return err
 	}
@@ -85,15 +85,11 @@ func (q QuerierWrapper) doQuery(query types.QueryRequest, result JSONType) error
 }
 
 func (q QuerierWrapper) QueryAllBalances(addr string) ([]types.Coin, error) {
-	query := types.QueryRequest{
-		Bank: &types.BankQuery{
-			AllBalances: &types.AllBalancesQuery{
-				Address: addr,
-			},
-		},
+	query := types.AllBalancesQuery{
+		Address: addr,
 	}
 	qres := types.AllBalancesResponse{}
-	err := q.doQuery(query, &qres)
+	err := q.Query(query, &qres)
 	if err != nil {
 		return nil, err
 	}
@@ -101,15 +97,42 @@ func (q QuerierWrapper) QueryAllBalances(addr string) ([]types.Coin, error) {
 }
 
 func (q QuerierWrapper) QueryBalance(addr string, denom string) (types.Coin, error) {
-	query := types.QueryRequest{
-		Bank: &types.BankQuery{
-			Balance: &types.BalanceQuery{
-				Address: addr,
-				Denom:   denom,
-			},
-		},
+	query := types.BalanceQuery{
+		Address: addr,
+		Denom:   denom,
 	}
 	qres := types.BalanceResponse{}
-	err := q.doQuery(query, &qres)
+	err := q.Query(query, &qres)
 	return qres.Amount, err
+}
+
+func (q QuerierWrapper) QuerySmart(addr string, msg JSONType, resp JSONType) error {
+	bin, err := msg.MarshalJSON()
+	if err != nil {
+		return err
+	}
+	query := types.SmartQuery{
+		ContractAddr: addr,
+		Msg:          bin,
+	}
+	err = q.Query(query, resp)
+	return err
+}
+
+func (q QuerierWrapper) QueryRaw(addr string, key []byte, resp JSONType) error {
+	query := types.RawQuery{
+		ContractAddr: addr,
+		Key:          key,
+	}
+	err := q.Query(query, resp)
+	return err
+}
+
+func (q QuerierWrapper) QueryContractInfo(addr string) (*types.ContractInfo, error) {
+	query := types.ContractInfoQuery{
+		ContractAddr: addr,
+	}
+	qres := new(types.ContractInfo)
+	err := q.Query(query, qres)
+	return qres, err
 }
