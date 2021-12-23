@@ -4,6 +4,9 @@
 # TEST_FLAG=-v make test
 #TEST_FLAG=-v -count=1
 
+VERSION := "0.3.0"
+BUILDER := "cosmwasm/go-optimizer:${VERSION}"
+
 tiny-build:
 	rm -rf ./bin/tinyjson
 	go build -o ./bin/tinyjson github.com/CosmWasm/tinyjson/tinyjson
@@ -39,23 +42,19 @@ test: test-std test-contracts
 
 test-std:
 	go test $(TEST_FLAG) ./std
-	go test $(TEST_FLAG) ./std/mocks
+	go test $(TEST_FLAG) ./std/mock
 
 test-contracts:
 	cd example/hackatom && $(MAKE) unit-test
 
-examples: hackatom
+examples: hackatom queue identity
 
 # we need to move this to example/hackatom, so it will be run in the integration tests in CI
 hackatom:
-	@echo "VERSION=latest make hackatom - will run with different cosmwasm/tinygo image" 
-	./scripts/compile.sh hackatom
-	./scripts/check.sh hackatom.wasm
-	# ./scripts/strip_floats.sh hackatom.wasm
-	mv hackatom.wasm example/hackatom
+	docker run --rm -v "$(CURDIR):/code" ${BUILDER} ./example/hackatom
 
 queue:
-	@echo "VERSION=latest make queue - will run with different cosmwasm/tinygo image"
-	./scripts/compile.sh queue
-	./scripts/check.sh queue.wasm
-	mv queue.wasm example/queue
+	docker run --rm -v "$(CURDIR):/code" ${BUILDER} ./example/queue
+
+identity:
+	docker run --rm -v "$(CURDIR):/code" ${BUILDER} ./example/identity

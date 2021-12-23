@@ -1,12 +1,50 @@
 # Use the latest 2.1 version of CircleCI pipeline process engine. See: https://circleci.com/docs/2.0/configuration-reference
 version: 2.1
+
 jobs:
-  build:
+  build_contracts:
+    machine:
+      image: ubuntu-2004:202101-01
+    steps:
+      - checkout
+      - run:
+          name: Build Hackatom contract
+          command: make hackatom
+      - run:
+          name: Build Queue contract
+          command: make queue
+      - run:
+          name: Build Identity contract
+          command: make identity
+      - run:
+          name: Collect artifacts
+          command: |
+            mkdir artifacts
+            cp ./example/hackatom/hackatom.wasm artifacts
+            cp ./example/queue/queue.wasm artifacts
+            cp ./example/identity/identity.wasm artifacts
+      - run:
+          name: Create checksums
+          working_directory: artifacts
+          command: sha256sum * > checksums.txt && cat checksums.txt
+      - persist_to_workspace:
+          root: ./artifacts
+          paths:
+            - hackatom.wasm
+            - queue.wasm
+            - identity.wasm
+
+  test:
     working_directory: ~/repo
     docker:
       - image: cimg/go:1.16
     steps:
       - checkout
+      - attach_workspace:
+          at: /tmp/builds
+      - run:
+          name: check
+          command: ls -l /tmp/builds
       - restore_cache:
           keys:
             - go-mod-v5-{{ checksum "go.sum" }}
@@ -18,6 +56,15 @@ jobs:
           paths:
             - "/go/pkg/mod"
       - run:
+          name: Run unit tests
+          command: make test
+      - run:
+          name: Copy build contracts
+          command: |
+            cp /tmp/builds/hackatom.wasm ./example/hackatom/hackatom.wasm
+            cp /tmp/builds/queue.wasm ./example/queue/queue.wasm
+            cp /tmp/builds/identity.wasm ./example/identity/identity.wasm
+      - run:
           name: Hackatom integration tests
           command: |
             cd example/hackatom
@@ -28,8 +75,10 @@ jobs:
             cd example/queue
             go test -v -count=1 ./integration
       - run:
-          name: Run unit tests
-          command: make test
+          name: Identity contract integration tests
+          command: |
+            cd example/identity
+            go test -v -count=1 ./integration
       - run:
           name: Try gotestsum
           command: |
@@ -37,3 +86,12 @@ jobs:
             gotestsum --junitfile /tmp/test-reports/unit-tests.xml ./std
       - store_test_results:
           path: /tmp/test-reports
+
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - build_contracts
+      - test:
+          requires:
+            - build_contracts
