@@ -50,6 +50,13 @@ func (m CloseChannelMsg) ToMsg() CosmosMsg {
 
 /*** taken from wasmvm:types/queries.go (so this compiles with easyjson) ***/
 
+var (
+	_ ToQuery = IBCQuery{}
+	_ ToQuery = PortIDQuery{}
+	_ ToQuery = ListChannelsQuery{}
+	_ ToQuery = ChannelQuery{}
+)
+
 // IBCQuery defines a query request from the contract into the chain.
 // This is the counterpart of [IbcQuery](https://github.com/CosmWasm/cosmwasm/blob/v0.14.0-beta1/packages/std/src/ibc.rs#L61-L83).
 type IBCQuery struct {
@@ -58,7 +65,15 @@ type IBCQuery struct {
 	Channel      *ChannelQuery      `json:"channel,omitempty"`
 }
 
+func (m IBCQuery) ToQuery() QueryRequest {
+	return QueryRequest{IBC: &m}
+}
+
 type PortIDQuery struct{}
+
+func (m PortIDQuery) ToQuery() QueryRequest {
+	return QueryRequest{IBC: &IBCQuery{PortID: &m}}
+}
 
 type PortIDResponse struct {
 	PortID string `json:"port_id"`
@@ -73,6 +88,10 @@ type ListChannelsQuery struct {
 	PortID string `json:"port_id,omitempty"`
 }
 
+func (m ListChannelsQuery) ToQuery() QueryRequest {
+	return QueryRequest{IBC: &IBCQuery{ListChannels: &m}}
+}
+
 type ListChannelsResponse struct {
 	Channels []IBCChannel `json:"channels,emptyslice"`
 }
@@ -81,6 +100,10 @@ type ChannelQuery struct {
 	// optional argument
 	PortID    string `json:"port_id,omitempty"`
 	ChannelID string `json:"channel_id"`
+}
+
+func (m ChannelQuery) ToQuery() QueryRequest {
+	return QueryRequest{IBC: &IBCQuery{Channel: &m}}
 }
 
 type ChannelResponse struct {
