@@ -63,3 +63,12 @@ func Instantiate(deps *std.Deps, env types.Env, info types.MessageInfo, instanti
 	}
 	return Contract{}.Instantiate(deps, &env, &info, initMsg)
 }
+
+func Migrate(deps *std.Deps, env types.Env, migrateBytes []byte) (*types.Response, error) {
+	msg := new(MsgMigrate)
+	err := msg.UnmarshalJSON(migrateBytes)
+	if err != nil {
+		return nil, err
+	}
+	return Contract{}.Migrate(deps, &env, msg)
+}

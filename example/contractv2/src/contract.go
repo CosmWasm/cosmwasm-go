@@ -31,11 +31,20 @@ func (x QueryKeyResponse) MarshalJSON() ([]byte, error) {
 
 type Contract struct{}
 
-type MsgInit struct {
+type MsgInit struct{}
+
+type MsgMigrate struct{}
+
+func (m *MsgMigrate) UnmarshalJSON(b []byte) error {
+	return nil
 }
 
 func (m *MsgInit) UnmarshalJSON(b []byte) error {
 	return nil
+}
+
+func (c Contract) Migrate(deps *std.Deps, env *types.Env, msg *MsgMigrate) (*types.Response, error) {
+	return &types.Response{}, nil
 }
 
 func (c Contract) Instantiate(deps *std.Deps, env *types.Env, info *types.MessageInfo, msg *MsgInit) (*types.Response, error) {

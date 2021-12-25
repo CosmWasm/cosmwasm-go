@@ -37,6 +37,12 @@ var (
 	errType             = reflect.TypeOf((*error)(nil)).Elem()
 )
 
+type MigrateDescriptor struct {
+	Foreign    bool
+	InputType  protogen.GoIdent
+	MethodName string
+}
+
 type InstantiateDescriptor struct {
 	Foreign    bool
 	InputType  protogen.GoIdent
@@ -84,6 +90,8 @@ type Contract struct {
 	exec        map[string]ExecDescriptor
 	query       map[string]QueryDescriptor
 	instantiate *InstantiateDescriptor
+	migrate     *MigrateDescriptor
+
 	pkg         string
 	tinyjsonGen []string // types that need to have a tinyjson impl
 }
@@ -114,6 +122,10 @@ func (g *Contract) Generate() error {
 		return err
 	}
 
+	err = g.genMigrate()
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -181,8 +193,7 @@ func isReply(name string) bool {
 }
 
 func isMigrate(name string) bool {
-	// todo
-	return false
+	return name == MigrateHandlerName
 }
 
 func isSudo(name string) bool {
@@ -325,7 +336,46 @@ func (g *Contract) addSudo(method reflect.Method) error {
 }
 
 func (g *Contract) addMigrate(method reflect.Method) error {
-	// todo
+	funcType := method.Func.Type()
+	inputs := make([]reflect.Type, funcType.NumIn()-1)
+	outputs := make([]reflect.Type, funcType.NumOut())
+
+	for i := 1; i < funcType.NumIn(); i++ {
+		inputs[i-1] = funcType.In(i)
+	}
+
+	for i := 0; i < funcType.NumOut(); i++ {
+		outputs[i] = funcType.Out(i)
+	}
+
+	if len(inputs) != 3 {
+		return fmt.Errorf("unexpected number of inputs, expected 3: std.Deps, types.Env, message")
+	}
+
+	// assert types
+	if inputs[0] != depsType {
+		return fmt.Errorf("first input must be of type *std.Deps")
+	}
+	if inputs[1] != envType {
+		return fmt.Errorf("second input must be of type *types.Env")
+	}
+
+	if inputs[2].Kind() != reflect.Ptr {
+		return fmt.Errorf("third input must be a pointer")
+	}
+
+	if !implementsUnmarshaler(inputs[2]) {
+		return fmt.Errorf("third input must implement tinyjson.Unmarshaler")
+	}
+
+	inputPkg := protogen.GoImportPath(inputs[2].Elem().PkgPath())
+
+	g.migrate = &MigrateDescriptor{
+		InputType:  inputPkg.Ident(inputs[2].Elem().Name()),
+		Foreign:    inputs[2].Elem().PkgPath() != g.typ.PkgPath(),
+		MethodName: method.Name,
+	}
+
 	return nil
 }
 
@@ -585,7 +635,7 @@ func (g *Contract) addInstantiate(method reflect.Method) error {
 		return fmt.Errorf("fourth input must implement tinyjson.Unmarshaler")
 	}
 
-	inputPkg := protogen.GoImportPath(inputs[3].PkgPath())
+	inputPkg := protogen.GoImportPath(inputs[3].Elem().PkgPath())
 
 	g.instantiate = &InstantiateDescriptor{
 		Foreign:    inputs[3].Elem().PkgPath() != g.typ.PkgPath(),
@@ -593,6 +643,27 @@ func (g *Contract) addInstantiate(method reflect.Method) error {
 		MethodName: method.Name,
 	}
 
+	return nil
+}
+
+func (g *Contract) genMigrate() error {
+	g.P("func Migrate(deps *", stdPkg.Ident("Deps"), ", env ", typesPkg.Ident("Env"), ", migrateBytes []byte) (*", typesPkg.Ident("Response"), ", error) {")
+	if g.migrate == nil {
+		g.P("return &", typesPkg.Ident("Response"), "{}, nil")
+		g.P("}")
+		return nil
+	}
+
+	switch g.migrate.Foreign {
+	case true:
+		g.P("msg := new(", g.migrate.InputType, ")")
+	case false:
+		g.P("msg := new(", g.migrate.InputType.GoName, ")")
+	}
+	g.P("err := msg.UnmarshalJSON(migrateBytes)")
+	g.P("if err != nil { return nil, err }")
+	g.P("return ", g.typ.Name(), "{}.", g.migrate.MethodName, "(deps, &env, msg)")
+	g.P("}")
 	return nil
 }
 

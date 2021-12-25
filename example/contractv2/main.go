@@ -22,3 +22,8 @@ func query(envPtr, msgPtr uint32) unsafe.Pointer {
 func instantiate(envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
 	return std.DoInstantiate(src.Instantiate, envPtr, infoPtr, msgPtr)
 }
+
+// export migrate
+func migrate(envPtr, msgPtr uint32) unsafe.Pointer {
+	return std.DoMigrate(src.Migrate, envPtr, msgPtr)
+}
