@@ -31,6 +31,17 @@ func (x QueryKeyResponse) MarshalJSON() ([]byte, error) {
 
 type Contract struct{}
 
+type MsgInit struct {
+}
+
+func (m *MsgInit) UnmarshalJSON(b []byte) error {
+	return nil
+}
+
+func (c Contract) Instantiate(deps *std.Deps, env *types.Env, info *types.MessageInfo, msg *MsgInit) (*types.Response, error) {
+	return &types.Response{}, nil
+}
+
 func (c Contract) ExecEcho(deps *std.Deps, env *types.Env, info *types.MessageInfo, msg *MsgEcho) (*types.Response, error) {
 	// do stuff
 	return &types.Response{Data: []byte(msg.Msg)}, nil

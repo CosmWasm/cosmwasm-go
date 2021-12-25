@@ -17,3 +17,8 @@ func execute(envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
 func query(envPtr, msgPtr uint32) unsafe.Pointer {
 	return std.DoQuery(src.Query, envPtr, msgPtr)
 }
+
+//export instantiate
+func instantiate(envPtr, infoPtr, msgPtr uint32) unsafe.Pointer {
+	return std.DoInstantiate(src.Instantiate, envPtr, infoPtr, msgPtr)
+}

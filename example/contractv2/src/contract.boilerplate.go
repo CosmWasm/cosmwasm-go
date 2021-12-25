@@ -54,3 +54,12 @@ func Query(deps *std.Deps, env types.Env, queryBytes []byte) ([]byte, error) {
 func (x *QueryKey) AsQueryMsg() *QueryMsg {
 	return &QueryMsg{Key: x}
 }
+
+func Instantiate(deps *std.Deps, env types.Env, info types.MessageInfo, instantiateBytes []byte) (*types.Response, error) {
+	initMsg := new(MsgInit)
+	err := initMsg.UnmarshalJSON(instantiateBytes)
+	if err != nil {
+		return nil, err
+	}
+	return Contract{}.Instantiate(deps, &env, &info, initMsg)
+}

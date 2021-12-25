@@ -15,8 +15,10 @@ import (
 )
 
 const (
-	QueryHandlerPrefix = "Query"
-	ExecHandlerPrefix  = "Exec"
+	QueryHandlerPrefix     = "Query"
+	ExecHandlerPrefix      = "Exec"
+	MigrateHandlerName     = "Migrate"
+	InstantiateHandlerName = "Instantiate"
 )
 
 const (
@@ -34,6 +36,12 @@ var (
 	jsonUnmarshaler     = reflect.TypeOf((*json.Unmarshaler)(nil)).Elem()
 	errType             = reflect.TypeOf((*error)(nil)).Elem()
 )
+
+type InstantiateDescriptor struct {
+	Foreign    bool
+	InputType  protogen.GoIdent
+	MethodName string
+}
 
 type ExecDescriptor struct {
 	JSONName    string
@@ -63,6 +71,7 @@ func NewContract(pkg string, v interface{}) (*Contract, error) {
 		typ:         typ,
 		exec:        map[string]ExecDescriptor{},
 		query:       map[string]QueryDescriptor{},
+		instantiate: nil,
 		pkg:         pkg,
 		tinyjsonGen: nil,
 	}, nil
@@ -74,6 +83,7 @@ type Contract struct {
 	typ         reflect.Type
 	exec        map[string]ExecDescriptor
 	query       map[string]QueryDescriptor
+	instantiate *InstantiateDescriptor
 	pkg         string
 	tinyjsonGen []string // types that need to have a tinyjson impl
 }
@@ -95,6 +105,11 @@ func (g *Contract) Generate() error {
 	}
 
 	err = g.genQuery()
+	if err != nil {
+		return err
+	}
+
+	err = g.genInstantiate()
 	if err != nil {
 		return err
 	}
@@ -354,9 +369,18 @@ func (g *Contract) process() error {
 			if err != nil {
 				return err
 			}
+		case isInstantiate(method.Name):
+			err := g.addInstantiate(method)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil
+}
+
+func isInstantiate(name string) bool {
+	return name == InstantiateHandlerName
 }
 
 func (g *Contract) genQuery() error {
@@ -432,6 +456,7 @@ func (g *Contract) genQueryMsgHelpers() error {
 		g.P("func (x *", desc.InputType.GoName, ") AsQueryMsg() *QueryMsg {")
 		g.P("return &QueryMsg{", desc.InUnionName, ": x}")
 		g.P("}")
+		g.P()
 	}
 
 	return nil
@@ -500,6 +525,74 @@ func (g *Contract) genExecuteHandler() error {
 }
 
 func (g *Contract) genExecuteHelpers() error {
+	return nil
+}
+
+func (g *Contract) genInstantiate() error {
+	g.P("func Instantiate(deps *", stdPkg.Ident("Deps"), ", env ", typesPkg.Ident("Env"), ", info ", typesPkg.Ident("MessageInfo"), ", instantiateBytes []byte)", "(*", typesPkg.Ident("Response"), ",error) {")
+	if g.instantiate == nil {
+		g.P("return &", typesPkg.Ident("Response"), "{}, nil")
+		g.P("}")
+		return nil
+	}
+	switch g.instantiate.Foreign {
+	case true:
+		g.P("initMsg := new(", g.instantiate.InputType, ")")
+	case false:
+		g.P("initMsg := new(", g.instantiate.InputType.GoName, ")")
+	}
+	g.P("err := initMsg.UnmarshalJSON(instantiateBytes)")
+	g.P("if err != nil { return nil, err }")
+	g.P("return ", g.typ.Name(), "{}.", g.instantiate.MethodName, "(deps, &env, &info, initMsg)")
+	g.P("}")
+	g.P()
+	return nil
+}
+
+func (g *Contract) addInstantiate(method reflect.Method) error {
+	funcType := method.Func.Type()
+	inputs := make([]reflect.Type, funcType.NumIn()-1)
+	outputs := make([]reflect.Type, funcType.NumOut())
+
+	for i := 1; i < funcType.NumIn(); i++ {
+		inputs[i-1] = funcType.In(i)
+	}
+
+	for i := 0; i < funcType.NumOut(); i++ {
+		outputs[i] = funcType.Out(i)
+	}
+
+	if len(inputs) != 4 {
+		return fmt.Errorf("unexpected number of inputs, expected 4: std.Deps, types.Env, types.MessageInfo, message")
+	}
+
+	// assert types
+	if inputs[0] != depsType {
+		return fmt.Errorf("first input must be of type *std.Deps")
+	}
+	if inputs[1] != envType {
+		return fmt.Errorf("second input must be of type *types.Env")
+	}
+	if inputs[2] != infoType {
+		return fmt.Errorf("third input must be of type *types.MessageInfo")
+	}
+
+	if inputs[3].Kind() != reflect.Ptr {
+		return fmt.Errorf("fourth input must be a pointer")
+	}
+
+	if !implementsUnmarshaler(inputs[3]) {
+		return fmt.Errorf("fourth input must implement tinyjson.Unmarshaler")
+	}
+
+	inputPkg := protogen.GoImportPath(inputs[3].PkgPath())
+
+	g.instantiate = &InstantiateDescriptor{
+		Foreign:    inputs[3].Elem().PkgPath() != g.typ.PkgPath(),
+		InputType:  inputPkg.Ident(inputs[3].Elem().Name()),
+		MethodName: method.Name,
+	}
+
 	return nil
 }
 
