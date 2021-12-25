@@ -5,6 +5,29 @@ import (
 	types "github.com/cosmwasm/cosmwasm-go/std/types"
 )
 
+// ExecuteMsg is the union type used to process execution messages towards the contract.
+type ExecuteMsg struct {
+	Echo *MsgEcho `json:"echo"`
+}
+
+func Execute(deps *std.Deps, env types.Env, info types.MessageInfo, messageBytes []byte) (*types.Response, error) {
+	msg := new(ExecuteMsg)
+	err := msg.UnmarshalJSON(messageBytes)
+	if err != nil {
+		return nil, err
+	}
+	switch {
+	case msg.Echo != nil:
+		resp, err := Contract{}.ExecEcho(deps, &env, &info, msg.Echo)
+		if err != nil {
+			return nil, err
+		}
+		return resp, nil
+	default:
+		panic(1)
+	}
+}
+
 // QueryMsg is the union type used to process queries towards the contract.
 type QueryMsg struct {
 	Key *QueryKey `json:"key"`

@@ -12,7 +12,11 @@ var (
 	_ tinyjson.Marshaler
 )
 
-func (x *QueryMsg) MarshalJSON() ([]byte, error)      { panic(0) }
-func (x *QueryMsg) MarshalTinyJSON(_ *jwriter.Writer) { panic(0) }
-func (x *QueryMsg) UnmarshalJSON(b []byte) error      { panic(0) }
-func (x *QueryMsg) UnmarshalTinyJSON(_ *jlexer.Lexer) { panic(0) }
+func (x *ExecuteMsg) MarshalJSON() ([]byte, error)      { panic(0) }
+func (x *ExecuteMsg) MarshalTinyJSON(_ *jwriter.Writer) { panic(0) }
+func (x *ExecuteMsg) UnmarshalJSON(b []byte) error      { panic(0) }
+func (x *ExecuteMsg) UnmarshalTinyJSON(_ *jlexer.Lexer) { panic(0) }
+func (x *QueryMsg) MarshalJSON() ([]byte, error)        { panic(0) }
+func (x *QueryMsg) MarshalTinyJSON(_ *jwriter.Writer)   { panic(0) }
+func (x *QueryMsg) UnmarshalJSON(b []byte) error        { panic(0) }
+func (x *QueryMsg) UnmarshalTinyJSON(_ *jlexer.Lexer)   { panic(0) }

@@ -36,6 +36,11 @@ var (
 )
 
 type ExecDescriptor struct {
+	JSONName    string
+	InUnionName string
+	InputType   protogen.GoIdent
+	Foreign     bool
+	MethodName  string
 }
 
 type QueryDescriptor struct {
@@ -80,6 +85,11 @@ func (g *Contract) Generate() error {
 	}
 
 	err = g.genPkg()
+	if err != nil {
+		return err
+	}
+
+	err = g.genExecute()
 	if err != nil {
 		return err
 	}
@@ -244,6 +254,53 @@ func (g *Contract) addQuery(method reflect.Method) error {
 }
 
 func (g *Contract) addExec(method reflect.Method) error {
+	funcType := method.Func.Type()
+	inputs := make([]reflect.Type, funcType.NumIn()-1)
+	outputs := make([]reflect.Type, funcType.NumOut())
+
+	for i := 1; i < funcType.NumIn(); i++ {
+		inputs[i-1] = funcType.In(i)
+	}
+
+	for i := 0; i < funcType.NumOut(); i++ {
+		outputs[i] = funcType.Out(i)
+	}
+
+	if len(inputs) != 4 {
+		return fmt.Errorf("unexpected number of inputs, expected 4: std.Deps, types.Env, types.MessageInfo, message")
+	}
+
+	// assert types
+	if inputs[0] != depsType {
+		return fmt.Errorf("first input must be of type *std.Deps")
+	}
+	if inputs[1] != envType {
+		return fmt.Errorf("second input must be of type *types.Env")
+	}
+	if inputs[2] != infoType {
+		return fmt.Errorf("third input must be of type *types.MessageInfo")
+	}
+
+	if inputs[3].Kind() != reflect.Ptr {
+		return fmt.Errorf("fourth input must be a pointer")
+	}
+
+	if !implementsUnmarshaler(inputs[3]) {
+		return fmt.Errorf("fourth input must implement tinyjson.Unmarshaler")
+	}
+
+	inputPkg := protogen.GoImportPath(inputs[3].PkgPath())
+
+	inUnionName := strings.TrimPrefix(method.Name, ExecHandlerPrefix)
+	jsonName := strcase.ToSnake(inUnionName)
+	g.exec[jsonName] = ExecDescriptor{
+		JSONName:    jsonName,
+		InUnionName: inUnionName,
+		InputType:   inputPkg.Ident(inputs[3].Elem().Name()),
+		Foreign:     inputs[3].Elem().PkgPath() != g.typ.PkgPath(),
+		MethodName:  method.Name,
+	}
+
 	return nil
 }
 
@@ -308,7 +365,7 @@ func (g *Contract) genQuery() error {
 		return err
 	}
 
-	err = g.genQueryExec()
+	err = g.genQueryHandler()
 	if err != nil {
 		return err
 	}
@@ -332,13 +389,14 @@ func (g *Contract) genQueryUnion() error {
 		}
 	}
 	g.P("}")
+	g.P()
 
 	g.addTinyJSONImpl("QueryMsg")
-	g.P()
+
 	return nil
 }
 
-func (g *Contract) genQueryExec() error {
+func (g *Contract) genQueryHandler() error {
 	g.P("func Query(deps *", stdPkg.Ident("Deps"), ", env ", typesPkg.Ident("Env"), ", queryBytes []byte) ([]byte, error) {")
 	g.P("query := new(QueryMsg)")
 	g.P("err := query.UnmarshalJSON(queryBytes)")
@@ -383,6 +441,68 @@ func (g *Contract) addTinyJSONImpl(s string) {
 	g.tinyjsonGen = append(g.tinyjsonGen, s)
 }
 
+func (g *Contract) genExecute() error {
+	err := g.genExecuteUnion()
+	if err != nil {
+		return err
+	}
+
+	err = g.genExecuteHandler()
+	if err != nil {
+		return err
+	}
+
+	err = g.genExecuteHelpers()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (g *Contract) genExecuteUnion() error {
+	g.P("// ExecuteMsg is the union type used to process execution messages towards the contract.")
+	g.P("type ExecuteMsg struct {")
+	for jsonName, desc := range g.exec {
+		switch desc.Foreign {
+		case true:
+			g.P(desc.InUnionName, " ", "*", desc.InputType, " `json:\"", jsonName, "\"`")
+		case false:
+			g.P(desc.InUnionName, " ", "*", desc.InputType.GoName, " `json:\"", jsonName, "\"`")
+		}
+	}
+	g.P("}")
+	g.P()
+
+	g.addTinyJSONImpl("ExecuteMsg")
+
+	return nil
+}
+
+func (g *Contract) genExecuteHandler() error {
+	g.P("func Execute(deps *", stdPkg.Ident("Deps"), ", env ", typesPkg.Ident("Env"), ", info ", typesPkg.Ident("MessageInfo"), ", messageBytes []byte) (*", typesPkg.Ident("Response"), ", error) {")
+	g.P("msg := new(ExecuteMsg)")
+	g.P("err := msg.UnmarshalJSON(messageBytes)")
+	g.P("if err != nil { return nil, err }")
+	g.P("switch {")
+	for _, desc := range g.exec {
+		g.P("case msg.", desc.InUnionName, " != nil:")
+		g.P("resp, err := ", g.typ.Name(), "{}.", desc.MethodName, "(deps, &env, &info, msg.", desc.InUnionName, ")")
+		g.P("if err != nil { return nil, err }")
+		g.P("return resp, nil")
+	}
+	g.P("default:")
+	g.P("panic(1)") // TODO we need an error pkg for common errors...
+	g.P("}")
+	g.P("}")
+	g.P()
+	return nil
+}
+
+func (g *Contract) genExecuteHelpers() error {
+	return nil
+}
+
 func isQuery(name string) bool {
 	return strings.HasPrefix(name, QueryHandlerPrefix)
 }
@@ -401,7 +521,7 @@ func implementsMarshaler(t reflect.Type) bool {
 
 // isStateless checks if the provided type is stateless
 // which means all the fields (if any) must be zero sized struct, or contain only
-// zero sized structs.
+// zero sized structs fields.
 func isStateless(t reflect.Type) bool {
 	if t.ConvertibleTo(zstStruct) {
 		return true
