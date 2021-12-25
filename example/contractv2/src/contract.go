@@ -33,7 +33,7 @@ type Contract struct{}
 
 func (c Contract) ExecEcho(deps *std.Deps, env *types.Env, info *types.MessageInfo, msg *MsgEcho) (*types.Response, error) {
 	// do stuff
-	return &types.Response{}, nil
+	return &types.Response{Data: []byte(msg.Msg)}, nil
 }
 
 func (c Contract) QueryKey(deps *std.Deps, env *types.Env, query *QueryKey) (*QueryKeyResponse, error) {

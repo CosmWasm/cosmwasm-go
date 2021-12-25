@@ -3,7 +3,6 @@ package src
 import (
 	"github.com/cosmwasm/cosmwasm-go/pkg/generator"
 	"github.com/stretchr/testify/require"
-	"os"
 	"testing"
 )
 
@@ -14,10 +13,5 @@ func TestGenerateContract(t *testing.T) {
 	err = gen.Generate()
 	require.NoError(t, err)
 
-	f, err := os.OpenFile("contract.boilerplate.go", os.O_CREATE|os.O_WRONLY, os.ModePerm)
-	require.NoError(t, err)
-
-	defer f.Close()
-
-	require.NoError(t, gen.Write(f))
+	require.NoError(t, gen.WriteTo("contract.boilerplate.go"))
 }

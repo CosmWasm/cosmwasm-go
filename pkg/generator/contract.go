@@ -3,11 +3,13 @@ package generator
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/CosmWasm/tinyjson"
 	"github.com/cosmwasm/cosmwasm-go/std"
 	"github.com/cosmwasm/cosmwasm-go/std/types"
 	"github.com/iancoleman/strcase"
 	"google.golang.org/protobuf/compiler/protogen"
-	"io"
+	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 )
@@ -22,13 +24,15 @@ const (
 )
 
 var (
-	zstStruct          = reflect.TypeOf(struct{}{})
-	depsType           = reflect.TypeOf((*std.Deps)(nil))
-	envType            = reflect.TypeOf((*types.Env)(nil))
-	infoType           = reflect.TypeOf((*types.MessageInfo)(nil))
-	marshalInterface   = reflect.TypeOf((*json.Marshaler)(nil)).Elem()
-	unmarshalInterface = reflect.TypeOf((*json.Unmarshaler)(nil)).Elem()
-	errType            = reflect.TypeOf((*error)(nil)).Elem()
+	zstStruct           = reflect.TypeOf(struct{}{})
+	depsType            = reflect.TypeOf((*std.Deps)(nil))
+	envType             = reflect.TypeOf((*types.Env)(nil))
+	infoType            = reflect.TypeOf((*types.MessageInfo)(nil))
+	tinyjsonMarshaler   = reflect.TypeOf((*tinyjson.Marshaler)(nil)).Elem()
+	tinyjsonUnmarshaler = reflect.TypeOf((*tinyjson.Unmarshaler)(nil)).Elem()
+	jsonMarshaler       = reflect.TypeOf((*json.Marshaler)(nil)).Elem()
+	jsonUnmarshaler     = reflect.TypeOf((*json.Unmarshaler)(nil)).Elem()
+	errType             = reflect.TypeOf((*error)(nil)).Elem()
 )
 
 type ExecDescriptor struct {
@@ -45,30 +49,31 @@ type QueryDescriptor struct {
 
 func NewContract(pkg string, v interface{}) (*Contract, error) {
 	typ := reflect.TypeOf(v)
-	if !typ.ConvertibleTo(zstStruct) {
-		return nil, fmt.Errorf("%s is not convertible to struct{}, contracts must be stateless", typ.Name())
+	if !isStateless(typ) {
+		return nil, fmt.Errorf("contract must be a stateless structure which means it can only be struct{} or have fields or embed with struct{}")
 	}
 
 	return &Contract{
-		Generator: NewGenerator(),
-		typ:       typ,
-		exec:      map[string]ExecDescriptor{},
-		query:     map[string]QueryDescriptor{},
-		pkg:       pkg,
+		Generator:   NewGenerator(),
+		typ:         typ,
+		exec:        map[string]ExecDescriptor{},
+		query:       map[string]QueryDescriptor{},
+		pkg:         pkg,
+		tinyjsonGen: nil,
 	}, nil
 }
 
 // Contract takes care of generating the contract boilerplate code.
 type Contract struct {
 	*Generator
-	typ   reflect.Type
-	exec  map[string]ExecDescriptor
-	query map[string]QueryDescriptor
-	pkg   string
+	typ         reflect.Type
+	exec        map[string]ExecDescriptor
+	query       map[string]QueryDescriptor
+	pkg         string
+	tinyjsonGen []string // types that need to have a tinyjson impl
 }
 
 func (g *Contract) Generate() error {
-
 	err := g.process()
 	if err != nil {
 		return err
@@ -87,13 +92,62 @@ func (g *Contract) Generate() error {
 	return nil
 }
 
-func (g *Contract) Write(f io.Writer) error {
-	content, err := g.Content()
+func (g *Contract) WriteTo(path string) (err error) {
+	// write contract boilerplate
+	err = g.Generator.WriteTo(path)
 	if err != nil {
 		return err
 	}
+	// in case following steps fail, then we remove the generated file
+	defer func() {
+		if err != nil {
+			_ = os.Remove(path)
+		}
+	}()
+
+	// write tinyjson placeholders
+	tinyjsonFilePath := filepath.Join(
+		filepath.Dir(path),
+		strings.TrimSuffix(filepath.Base(path), ".go")+"_tinyjson.go",
+	)
+	f, err := os.OpenFile(tinyjsonFilePath, os.O_CREATE|os.O_WRONLY, os.ModePerm)
+	if err != nil {
+		return err
+	}
+
+	defer f.Close()
+
+	tinyjsonGen := NewGenerator()
+	tinyjsonGen.P("package ", g.pkg)
+	const (
+		tinyjsonPkg = protogen.GoImportPath("github.com/CosmWasm/tinyjson")
+		jlexerPkg   = protogen.GoImportPath("github.com/CosmWasm/tinyjson/jlexer")
+		jwriterPkg  = protogen.GoImportPath("github.com/CosmWasm/tinyjson/jwriter")
+	)
+
+	tinyjsonGen.P("var (")
+	tinyjsonGen.P("_ *", jlexerPkg.Ident("Lexer"))
+	tinyjsonGen.P("_ *", jwriterPkg.Ident("Writer"))
+	tinyjsonGen.P("_ ", tinyjsonPkg.Ident("Marshaler"))
+	tinyjsonGen.P(")")
+	for _, typeName := range g.tinyjsonGen {
+		tinyjsonGen.P("func (x *", typeName, ") MarshalJSON() ([]byte,error) { panic(0) }")
+		tinyjsonGen.P("func (x *", typeName, ") MarshalTinyJSON(_ *", jwriterPkg.Ident("Writer"), ") { panic(0) }")
+		tinyjsonGen.P("func (x *", typeName, ") UnmarshalJSON(b []byte) error { panic(0) }")
+		tinyjsonGen.P("func (x *", typeName, ") UnmarshalTinyJSON(_ *", jlexerPkg.Ident("Lexer"), ") { panic(0) }")
+	}
+
+	content, err := tinyjsonGen.Content()
+	if err != nil {
+		return err
+	}
+
 	_, err = f.Write(content)
-	return err
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func isReply(name string) bool {
@@ -146,8 +200,8 @@ func (g *Contract) addQuery(method reflect.Method) error {
 	}
 
 	// we need to make sure it implements json unmarshaler
-	if !inputs[2].Implements(unmarshalInterface) {
-		return fmt.Errorf("third input must implement json.Unmarshaler")
+	if !implementsUnmarshaler(inputs[2]) {
+		return fmt.Errorf("third input must implement tinyjson.Unmarshaler or json.Unmarshaler")
 	}
 
 	inputPkg := protogen.GoImportPath(inputs[2].Elem().PkgPath())
@@ -164,7 +218,7 @@ func (g *Contract) addQuery(method reflect.Method) error {
 		return fmt.Errorf("first output must be a struct pointer: %s", outputs[0].Elem().Kind())
 	}
 
-	if !outputs[0].Implements(marshalInterface) {
+	if !implementsMarshaler(outputs[0]) {
 		return fmt.Errorf("first output must implement json marshaler")
 	}
 
@@ -279,16 +333,7 @@ func (g *Contract) genQueryUnion() error {
 	}
 	g.P("}")
 
-	// TODO implement json unmarshal
-	g.P("func (x *QueryMsg) UnmarshalJSON(b []byte) error {")
-	g.P("panic(0)")
-	g.P("}")
-
-	// TODO implement json marshal
-	g.P("func (x *QueryMsg) MarshalJSON() ([]byte, error) {")
-	g.P("panic(0)")
-	g.P("}")
-
+	g.addTinyJSONImpl("QueryMsg")
 	g.P()
 	return nil
 }
@@ -334,10 +379,44 @@ func (g *Contract) genQueryMsgHelpers() error {
 	return nil
 }
 
+func (g *Contract) addTinyJSONImpl(s string) {
+	g.tinyjsonGen = append(g.tinyjsonGen, s)
+}
+
 func isQuery(name string) bool {
 	return strings.HasPrefix(name, QueryHandlerPrefix)
 }
 
 func isExec(name string) bool {
 	return strings.HasPrefix(name, ExecHandlerPrefix)
+}
+
+func implementsUnmarshaler(t reflect.Type) bool {
+	return t.Implements(jsonUnmarshaler) || t.Implements(tinyjsonUnmarshaler)
+}
+
+func implementsMarshaler(t reflect.Type) bool {
+	return t.Implements(jsonMarshaler) || t.Implements(tinyjsonMarshaler)
+}
+
+// isStateless checks if the provided type is stateless
+// which means all the fields (if any) must be zero sized struct, or contain only
+// zero sized structs.
+func isStateless(t reflect.Type) bool {
+	if t.ConvertibleTo(zstStruct) {
+		return true
+	}
+
+	if t.Kind() != reflect.Struct {
+		return false
+	}
+
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+		if !isStateless(field.Type) {
+			return false
+		}
+	}
+
+	return true
 }

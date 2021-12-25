@@ -10,13 +10,6 @@ type QueryMsg struct {
 	Key *QueryKey `json:"key"`
 }
 
-func (x *QueryMsg) UnmarshalJSON(b []byte) error {
-	panic(0)
-}
-func (x *QueryMsg) MarshalJSON() ([]byte, error) {
-	panic(0)
-}
-
 func Query(deps *std.Deps, env types.Env, queryBytes []byte) ([]byte, error) {
 	query := new(QueryMsg)
 	err := query.UnmarshalJSON(queryBytes)
