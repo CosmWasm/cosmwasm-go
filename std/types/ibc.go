@@ -2,10 +2,21 @@ package types
 
 /*** taken from wasmvm:types/msg.go (so this compiles with easyjson) ***/
 
+var (
+	_ ToMsg = IBCMsg{}
+	_ ToMsg = TransferMsg{}
+	_ ToMsg = SendPacketMsg{}
+	_ ToMsg = CloseChannelMsg{}
+)
+
 type IBCMsg struct {
 	Transfer     *TransferMsg     `json:"transfer,omitempty"`
 	SendPacket   *SendPacketMsg   `json:"send_packet,omitempty"`
 	CloseChannel *CloseChannelMsg `json:"close_channel,omitempty"`
+}
+
+func (m IBCMsg) ToMsg() CosmosMsg {
+	return CosmosMsg{IBC: &m}
 }
 
 type TransferMsg struct {
@@ -15,17 +26,36 @@ type TransferMsg struct {
 	Timeout   IBCTimeout `json:"timeout"`
 }
 
+func (m TransferMsg) ToMsg() CosmosMsg {
+	return CosmosMsg{IBC: &IBCMsg{Transfer: &m}}
+}
+
 type SendPacketMsg struct {
 	ChannelID string     `json:"channel_id"`
 	Data      []byte     `json:"data"`
 	Timeout   IBCTimeout `json:"timeout"`
 }
 
+func (m SendPacketMsg) ToMsg() CosmosMsg {
+	return CosmosMsg{IBC: &IBCMsg{SendPacket: &m}}
+}
+
 type CloseChannelMsg struct {
 	ChannelID string `json:"channel_id"`
 }
 
+func (m CloseChannelMsg) ToMsg() CosmosMsg {
+	return CosmosMsg{IBC: &IBCMsg{CloseChannel: &m}}
+}
+
 /*** taken from wasmvm:types/queries.go (so this compiles with easyjson) ***/
+
+var (
+	_ ToQuery = IBCQuery{}
+	_ ToQuery = PortIDQuery{}
+	_ ToQuery = ListChannelsQuery{}
+	_ ToQuery = ChannelQuery{}
+)
 
 // IBCQuery defines a query request from the contract into the chain.
 // This is the counterpart of [IbcQuery](https://github.com/CosmWasm/cosmwasm/blob/v0.14.0-beta1/packages/std/src/ibc.rs#L61-L83).
@@ -35,7 +65,15 @@ type IBCQuery struct {
 	Channel      *ChannelQuery      `json:"channel,omitempty"`
 }
 
+func (m IBCQuery) ToQuery() QueryRequest {
+	return QueryRequest{IBC: &m}
+}
+
 type PortIDQuery struct{}
+
+func (m PortIDQuery) ToQuery() QueryRequest {
+	return QueryRequest{IBC: &IBCQuery{PortID: &m}}
+}
 
 type PortIDResponse struct {
 	PortID string `json:"port_id"`
@@ -50,6 +88,10 @@ type ListChannelsQuery struct {
 	PortID string `json:"port_id,omitempty"`
 }
 
+func (m ListChannelsQuery) ToQuery() QueryRequest {
+	return QueryRequest{IBC: &IBCQuery{ListChannels: &m}}
+}
+
 type ListChannelsResponse struct {
 	Channels []IBCChannel `json:"channels,emptyslice"`
 }
@@ -58,6 +100,10 @@ type ChannelQuery struct {
 	// optional argument
 	PortID    string `json:"port_id,omitempty"`
 	ChannelID string `json:"channel_id"`
+}
+
+func (m ChannelQuery) ToQuery() QueryRequest {
+	return QueryRequest{IBC: &IBCQuery{Channel: &m}}
 }
 
 type ChannelResponse struct {

@@ -58,14 +58,39 @@ type QueryRequest struct {
 	Wasm     *WasmQuery     `json:"wasm,omitempty"`
 }
 
+// Return self to allow this also to be passed as args that expect a variant
+func (m QueryRequest) ToQuery() QueryRequest {
+	return m
+}
+
+// ToQuery can be implemented by any variant of QueryRequest to easily be wrapped.
+// We can then use this interface in various function arguments
+type ToQuery interface {
+	ToQuery() QueryRequest
+}
+
+var (
+	_ ToQuery = BankQuery{}
+	_ ToQuery = BalanceQuery{}
+	_ ToQuery = AllBalancesQuery{}
+)
+
 type BankQuery struct {
 	Balance     *BalanceQuery     `json:"balance,omitempty"`
 	AllBalances *AllBalancesQuery `json:"all_balances,omitempty"`
 }
 
+func (m BankQuery) ToQuery() QueryRequest {
+	return QueryRequest{Bank: &m}
+}
+
 type BalanceQuery struct {
 	Address string `json:"address"`
 	Denom   string `json:"denom"`
+}
+
+func (m BalanceQuery) ToQuery() QueryRequest {
+	return QueryRequest{Bank: &BankQuery{Balance: &m}}
 }
 
 // BalanceResponse is the expected response to BalanceQuery
@@ -75,6 +100,10 @@ type BalanceResponse struct {
 
 type AllBalancesQuery struct {
 	Address string `json:"address"`
+}
+
+func (m AllBalancesQuery) ToQuery() QueryRequest {
+	return QueryRequest{Bank: &BankQuery{AllBalances: &m}}
 }
 
 // AllBalancesResponse is the expected response to AllBalancesQuery
@@ -87,10 +116,27 @@ type StakingQuery struct {
 	Validator      *ValidatorQuery      `json:"validator,omitempty"`
 	AllDelegations *AllDelegationsQuery `json:"all_delegations,omitempty"`
 	Delegation     *DelegationQuery     `json:"delegation,omitempty"`
-	BondedDenom    *struct{}            `json:"bonded_denom,omitempty"`
+	BondedDenom    *BondedDenomQuery    `json:"bonded_denom,omitempty"`
+}
+
+var (
+	_ ToQuery = StakingQuery{}
+	_ ToQuery = AllValidatorsQuery{}
+	_ ToQuery = ValidatorQuery{}
+	_ ToQuery = AllDelegationsQuery{}
+	_ ToQuery = DelegationQuery{}
+	_ ToQuery = BondedDenomQuery{}
+)
+
+func (m StakingQuery) ToQuery() QueryRequest {
+	return QueryRequest{Staking: &m}
 }
 
 type AllValidatorsQuery struct{}
+
+func (m AllValidatorsQuery) ToQuery() QueryRequest {
+	return QueryRequest{Staking: &StakingQuery{AllValidators: &m}}
+}
 
 // AllValidatorsResponse is the expected response to AllValidatorsQuery
 type AllValidatorsResponse struct {
@@ -99,6 +145,10 @@ type AllValidatorsResponse struct {
 type ValidatorQuery struct {
 	/// Address is the validator's address (e.g. cosmosvaloper1...)
 	Address string `json:"address"`
+}
+
+func (m ValidatorQuery) ToQuery() QueryRequest {
+	return QueryRequest{Staking: &StakingQuery{Validator: &m}}
 }
 
 // ValidatorResponse is the expected response to ValidatorQuery
@@ -120,9 +170,17 @@ type AllDelegationsQuery struct {
 	Delegator string `json:"delegator"`
 }
 
+func (m AllDelegationsQuery) ToQuery() QueryRequest {
+	return QueryRequest{Staking: &StakingQuery{AllDelegations: &m}}
+}
+
 type DelegationQuery struct {
 	Delegator string `json:"delegator"`
 	Validator string `json:"validator"`
+}
+
+func (m DelegationQuery) ToQuery() QueryRequest {
+	return QueryRequest{Staking: &StakingQuery{Delegation: &m}}
 }
 
 // AllDelegationsResponse is the expected response to AllDelegationsQuery
@@ -148,6 +206,12 @@ type FullDelegation struct {
 	CanRedelegate      Coin   `json:"can_redelegate"`
 }
 
+type BondedDenomQuery struct{}
+
+func (m BondedDenomQuery) ToQuery() QueryRequest {
+	return QueryRequest{Staking: &StakingQuery{BondedDenom: &m}}
+}
+
 type BondedDenomResponse struct {
 	Denom string `json:"denom"`
 }
@@ -163,16 +227,32 @@ type StargateQuery struct {
 	Data []byte `json:"data"`
 }
 
+func (m StargateQuery) ToQuery() QueryRequest {
+	return QueryRequest{Stargate: &m}
+}
+
 // This is the protobuf response, binary encoded.
 // The caller is responsible for knowing how to parse.
 type StargateResponse struct {
 	Response []byte `json:"response"`
 }
 
+var (
+	_ ToQuery = StargateQuery{}
+	_ ToQuery = WasmQuery{}
+	_ ToQuery = SmartQuery{}
+	_ ToQuery = RawQuery{}
+	_ ToQuery = ContractInfoQuery{}
+)
+
 type WasmQuery struct {
 	Smart        *SmartQuery        `json:"smart,omitempty"`
 	Raw          *RawQuery          `json:"raw,omitempty"`
 	ContractInfo *ContractInfoQuery `json:"contract_info,omitempty"`
+}
+
+func (m WasmQuery) ToQuery() QueryRequest {
+	return QueryRequest{Wasm: &m}
 }
 
 // SmartQuery respone is raw bytes ([]byte)
@@ -181,15 +261,27 @@ type SmartQuery struct {
 	Msg          []byte `json:"msg"`
 }
 
+func (m SmartQuery) ToQuery() QueryRequest {
+	return QueryRequest{Wasm: &WasmQuery{Smart: &m}}
+}
+
 // RawQuery response is raw bytes ([]byte)
 type RawQuery struct {
 	ContractAddr string `json:"contract_addr"`
 	Key          []byte `json:"key"`
 }
 
+func (m RawQuery) ToQuery() QueryRequest {
+	return QueryRequest{Wasm: &WasmQuery{Raw: &m}}
+}
+
 type ContractInfoQuery struct {
 	// Bech32 encoded sdk.AccAddress of the contract
 	ContractAddr string `json:"contract_addr"`
+}
+
+func (m ContractInfoQuery) ToQuery() QueryRequest {
+	return QueryRequest{Wasm: &WasmQuery{ContractInfo: &m}}
 }
 
 type ContractInfoResponse struct {
