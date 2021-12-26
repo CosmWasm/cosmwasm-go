@@ -503,8 +503,8 @@ func (g *Contract) genQueryMsgHelpers() error {
 			continue
 		}
 
-		g.P("func (x *", desc.InputType.GoName, ") AsQueryMsg() *QueryMsg {")
-		g.P("return &QueryMsg{", desc.InUnionName, ": x}")
+		g.P("func (x *", desc.InputType.GoName, ") AsQueryMsg() QueryMsg {")
+		g.P("return QueryMsg{", desc.InUnionName, ": x}")
 		g.P("}")
 		g.P()
 	}
@@ -575,6 +575,16 @@ func (g *Contract) genExecuteHandler() error {
 }
 
 func (g *Contract) genExecuteHelpers() error {
+	for _, desc := range g.exec {
+		if desc.Foreign {
+			continue
+		}
+
+		g.P("func (x *", desc.InputType.GoName, ") AsExecuteMsg() ExecuteMsg {")
+		g.P("return ExecuteMsg{", desc.InUnionName, ": x}")
+		g.P("}")
+		g.P()
+	}
 	return nil
 }
 

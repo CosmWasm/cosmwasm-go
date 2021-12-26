@@ -42,6 +42,18 @@ func Execute(deps *std.Deps, env types.Env, info types.MessageInfo, messageBytes
 	}
 }
 
+func (x *MsgCreateIdentity) AsExecuteMsg() ExecuteMsg {
+	return ExecuteMsg{CreateIdentity: x}
+}
+
+func (x *MsgDelete) AsExecuteMsg() ExecuteMsg {
+	return ExecuteMsg{DeleteIdentity: x}
+}
+
+func (x *MsgUpdateCity) AsExecuteMsg() ExecuteMsg {
+	return ExecuteMsg{UpdateCity: x}
+}
+
 // QueryMsg is the union type used to process queries towards the contract.
 type QueryMsg struct {
 	Identity *QueryIdentity `json:"identity"`
@@ -65,8 +77,8 @@ func Query(deps *std.Deps, env types.Env, queryBytes []byte) ([]byte, error) {
 	}
 }
 
-func (x *QueryIdentity) AsQueryMsg() *QueryMsg {
-	return &QueryMsg{Identity: x}
+func (x *QueryIdentity) AsQueryMsg() QueryMsg {
+	return QueryMsg{Identity: x}
 }
 
 func Instantiate(deps *std.Deps, env types.Env, info types.MessageInfo, instantiateBytes []byte) (*types.Response, error) {
