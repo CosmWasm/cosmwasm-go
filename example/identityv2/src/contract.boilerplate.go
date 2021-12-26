@@ -7,7 +7,9 @@ import (
 
 // ExecuteMsg is the union type used to process execution messages towards the contract.
 type ExecuteMsg struct {
-	Echo *MsgEcho `json:"echo"`
+	CreateIdentity *MsgCreateIdentity `json:"create_identity"`
+	DeleteIdentity *MsgDelete         `json:"delete_identity"`
+	UpdateCity     *MsgUpdateCity     `json:"update_city"`
 }
 
 func Execute(deps *std.Deps, env types.Env, info types.MessageInfo, messageBytes []byte) (*types.Response, error) {
@@ -17,8 +19,20 @@ func Execute(deps *std.Deps, env types.Env, info types.MessageInfo, messageBytes
 		return nil, err
 	}
 	switch {
-	case msg.Echo != nil:
-		resp, err := Contract{}.ExecEcho(deps, &env, &info, msg.Echo)
+	case msg.UpdateCity != nil:
+		resp, err := Contract{}.ExecUpdateCity(deps, &env, &info, msg.UpdateCity)
+		if err != nil {
+			return nil, err
+		}
+		return resp, nil
+	case msg.CreateIdentity != nil:
+		resp, err := Contract{}.ExecCreateIdentity(deps, &env, &info, msg.CreateIdentity)
+		if err != nil {
+			return nil, err
+		}
+		return resp, nil
+	case msg.DeleteIdentity != nil:
+		resp, err := Contract{}.ExecDeleteIdentity(deps, &env, &info, msg.DeleteIdentity)
 		if err != nil {
 			return nil, err
 		}
@@ -30,7 +44,7 @@ func Execute(deps *std.Deps, env types.Env, info types.MessageInfo, messageBytes
 
 // QueryMsg is the union type used to process queries towards the contract.
 type QueryMsg struct {
-	Key *QueryKey `json:"key"`
+	Identity *QueryIdentity `json:"identity"`
 }
 
 func Query(deps *std.Deps, env types.Env, queryBytes []byte) ([]byte, error) {
@@ -40,8 +54,8 @@ func Query(deps *std.Deps, env types.Env, queryBytes []byte) ([]byte, error) {
 		return nil, err
 	}
 	switch {
-	case query.Key != nil:
-		resp, err := Contract{}.QueryKey(deps, &env, query.Key)
+	case query.Identity != nil:
+		resp, err := Contract{}.QueryIdentity(deps, &env, query.Identity)
 		if err != nil {
 			return nil, err
 		}
@@ -51,24 +65,13 @@ func Query(deps *std.Deps, env types.Env, queryBytes []byte) ([]byte, error) {
 	}
 }
 
-func (x *QueryKey) AsQueryMsg() *QueryMsg {
-	return &QueryMsg{Key: x}
+func (x *QueryIdentity) AsQueryMsg() *QueryMsg {
+	return &QueryMsg{Identity: x}
 }
 
 func Instantiate(deps *std.Deps, env types.Env, info types.MessageInfo, instantiateBytes []byte) (*types.Response, error) {
-	initMsg := new(MsgInit)
-	err := initMsg.UnmarshalJSON(instantiateBytes)
-	if err != nil {
-		return nil, err
-	}
-	return Contract{}.Instantiate(deps, &env, &info, initMsg)
+	return &types.Response{}, nil
 }
-
 func Migrate(deps *std.Deps, env types.Env, migrateBytes []byte) (*types.Response, error) {
-	msg := new(MsgMigrate)
-	err := msg.UnmarshalJSON(migrateBytes)
-	if err != nil {
-		return nil, err
-	}
-	return Contract{}.Migrate(deps, &env, msg)
+	return &types.Response{}, nil
 }
