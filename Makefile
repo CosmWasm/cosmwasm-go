@@ -47,7 +47,7 @@ test-std:
 test-contracts:
 	cd example/hackatom && $(MAKE) unit-test
 
-examples: hackatom queue identity
+examples: hackatom queue identity identityv2
 
 # we need to move this to example/hackatom, so it will be run in the integration tests in CI
 hackatom:
@@ -58,3 +58,6 @@ queue:
 
 identity:
 	docker run --rm -v "$(CURDIR):/code" ${BUILDER} ./example/identity
+
+identityv2:
+	docker run --rm -v "$(CURDIR):/code" ${BUILDER} ./example/identityv2

@@ -17,12 +17,16 @@ jobs:
           name: Build Identity contract
           command: make identity
       - run:
+          name: Build Identityv2 contract
+          command: make identityv2
+      - run:
           name: Collect artifacts
           command: |
             mkdir artifacts
             cp ./example/hackatom/hackatom.wasm artifacts
             cp ./example/queue/queue.wasm artifacts
             cp ./example/identity/identity.wasm artifacts
+            cp ./example/identityv2/identityv2.wasm
       - run:
           name: Create checksums
           working_directory: artifacts
@@ -33,6 +37,7 @@ jobs:
             - hackatom.wasm
             - queue.wasm
             - identity.wasm
+            - identityv2.wasm
 
   test:
     working_directory: ~/repo
@@ -64,6 +69,7 @@ jobs:
             cp /tmp/builds/hackatom.wasm ./example/hackatom/hackatom.wasm
             cp /tmp/builds/queue.wasm ./example/queue/queue.wasm
             cp /tmp/builds/identity.wasm ./example/identity/identity.wasm
+            cp /tmp/builds/identityv2.wasm ./example/identityv2/identityv2.wasm
       - run:
           name: Hackatom integration tests
           command: |
@@ -78,6 +84,11 @@ jobs:
           name: Identity contract integration tests
           command: |
             cd example/identity
+            go test -v -count=1 ./integration
+      - run:
+          name: Identityv2 contract integration tests
+          command: |
+            cd example/identityv2
             go test -v -count=1 ./integration
       - run:
           name: Try gotestsum
