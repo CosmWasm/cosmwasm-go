@@ -721,11 +721,11 @@ func isExec(name string) bool {
 }
 
 func implementsUnmarshaler(t reflect.Type) bool {
-	return t.Implements(jsonUnmarshaler) || t.Implements(tinyjsonUnmarshaler)
+	return t.Implements(jsonUnmarshaler) && t.Implements(tinyjsonUnmarshaler)
 }
 
 func implementsMarshaler(t reflect.Type) bool {
-	return t.Implements(jsonMarshaler) || t.Implements(tinyjsonMarshaler)
+	return t.Implements(jsonMarshaler) && t.Implements(tinyjsonMarshaler)
 }
 
 // isStateless checks if the provided type is stateless

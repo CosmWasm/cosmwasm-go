@@ -113,16 +113,6 @@ func tinyjsonDd15385dDecodeGithubComCosmwasmCosmwasmGoExampleIdentityv2Src1(in *
 			continue
 		}
 		switch key {
-		case "create_identity":
-			if in.IsNull() {
-				in.Skip()
-				out.CreateIdentity = nil
-			} else {
-				if out.CreateIdentity == nil {
-					out.CreateIdentity = new(MsgCreateIdentity)
-				}
-				(*out.CreateIdentity).UnmarshalTinyJSON(in)
-			}
 		case "delete_identity":
 			if in.IsNull() {
 				in.Skip()
@@ -143,6 +133,16 @@ func tinyjsonDd15385dDecodeGithubComCosmwasmCosmwasmGoExampleIdentityv2Src1(in *
 				}
 				(*out.UpdateCity).UnmarshalTinyJSON(in)
 			}
+		case "create_identity":
+			if in.IsNull() {
+				in.Skip()
+				out.CreateIdentity = nil
+			} else {
+				if out.CreateIdentity == nil {
+					out.CreateIdentity = new(MsgCreateIdentity)
+				}
+				(*out.CreateIdentity).UnmarshalTinyJSON(in)
+			}
 		default:
 			in.AddError(&jlexer.LexerError{
 				Offset: in.GetPos(),
@@ -161,20 +161,10 @@ func tinyjsonDd15385dEncodeGithubComCosmwasmCosmwasmGoExampleIdentityv2Src1(out 
 	out.RawByte('{')
 	first := true
 	_ = first
-	if in.CreateIdentity != nil {
-		const prefix string = ",\"create_identity\":"
-		first = false
-		out.RawString(prefix[1:])
-		(*in.CreateIdentity).MarshalTinyJSON(out)
-	}
 	if in.DeleteIdentity != nil {
 		const prefix string = ",\"delete_identity\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		first = false
+		out.RawString(prefix[1:])
 		(*in.DeleteIdentity).MarshalTinyJSON(out)
 	}
 	if in.UpdateCity != nil {
@@ -186,6 +176,16 @@ func tinyjsonDd15385dEncodeGithubComCosmwasmCosmwasmGoExampleIdentityv2Src1(out 
 			out.RawString(prefix)
 		}
 		(*in.UpdateCity).MarshalTinyJSON(out)
+	}
+	if in.CreateIdentity != nil {
+		const prefix string = ",\"create_identity\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		(*in.CreateIdentity).MarshalTinyJSON(out)
 	}
 	out.RawByte('}')
 }
