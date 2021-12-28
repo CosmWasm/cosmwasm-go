@@ -26,7 +26,7 @@ jobs:
             cp ./example/hackatom/hackatom.wasm artifacts
             cp ./example/queue/queue.wasm artifacts
             cp ./example/identity/identity.wasm artifacts
-            cp ./example/identityv2/identityv2.wasm
+            cp ./example/identityv2/identityv2.wasm artifacts
       - run:
           name: Create checksums
           working_directory: artifacts
