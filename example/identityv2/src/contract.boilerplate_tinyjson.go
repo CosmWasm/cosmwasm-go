@@ -26,7 +26,7 @@ func tinyjsonDd15385dDecodeGithubComCosmwasmCosmwasmGoExampleIdentityv2Src(in *j
 	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
-		key := in.UnsafeFieldName(false)
+		key := in.UnsafeFieldName(true)
 		in.WantColon()
 		if in.IsNull() {
 			in.Skip()
@@ -45,7 +45,11 @@ func tinyjsonDd15385dDecodeGithubComCosmwasmCosmwasmGoExampleIdentityv2Src(in *j
 				(*out.Identity).UnmarshalTinyJSON(in)
 			}
 		default:
-			in.SkipRecursive()
+			in.AddError(&jlexer.LexerError{
+				Offset: in.GetPos(),
+				Reason: "unknown field",
+				Data:   key,
+			})
 		}
 		in.WantComma()
 	}
@@ -58,14 +62,11 @@ func tinyjsonDd15385dEncodeGithubComCosmwasmCosmwasmGoExampleIdentityv2Src(out *
 	out.RawByte('{')
 	first := true
 	_ = first
-	{
+	if in.Identity != nil {
 		const prefix string = ",\"identity\":"
+		first = false
 		out.RawString(prefix[1:])
-		if in.Identity == nil {
-			out.RawString("null")
-		} else {
-			(*in.Identity).MarshalTinyJSON(out)
-		}
+		(*in.Identity).MarshalTinyJSON(out)
 	}
 	out.RawByte('}')
 }
@@ -104,7 +105,7 @@ func tinyjsonDd15385dDecodeGithubComCosmwasmCosmwasmGoExampleIdentityv2Src1(in *
 	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
-		key := in.UnsafeFieldName(false)
+		key := in.UnsafeFieldName(true)
 		in.WantColon()
 		if in.IsNull() {
 			in.Skip()
@@ -143,7 +144,11 @@ func tinyjsonDd15385dDecodeGithubComCosmwasmCosmwasmGoExampleIdentityv2Src1(in *
 				(*out.UpdateCity).UnmarshalTinyJSON(in)
 			}
 		default:
-			in.SkipRecursive()
+			in.AddError(&jlexer.LexerError{
+				Offset: in.GetPos(),
+				Reason: "unknown field",
+				Data:   key,
+			})
 		}
 		in.WantComma()
 	}
@@ -156,32 +161,31 @@ func tinyjsonDd15385dEncodeGithubComCosmwasmCosmwasmGoExampleIdentityv2Src1(out 
 	out.RawByte('{')
 	first := true
 	_ = first
-	{
+	if in.CreateIdentity != nil {
 		const prefix string = ",\"create_identity\":"
+		first = false
 		out.RawString(prefix[1:])
-		if in.CreateIdentity == nil {
-			out.RawString("null")
-		} else {
-			(*in.CreateIdentity).MarshalTinyJSON(out)
-		}
+		(*in.CreateIdentity).MarshalTinyJSON(out)
 	}
-	{
+	if in.DeleteIdentity != nil {
 		const prefix string = ",\"delete_identity\":"
-		out.RawString(prefix)
-		if in.DeleteIdentity == nil {
-			out.RawString("null")
+		if first {
+			first = false
+			out.RawString(prefix[1:])
 		} else {
-			(*in.DeleteIdentity).MarshalTinyJSON(out)
+			out.RawString(prefix)
 		}
+		(*in.DeleteIdentity).MarshalTinyJSON(out)
 	}
-	{
+	if in.UpdateCity != nil {
 		const prefix string = ",\"update_city\":"
-		out.RawString(prefix)
-		if in.UpdateCity == nil {
-			out.RawString("null")
+		if first {
+			first = false
+			out.RawString(prefix[1:])
 		} else {
-			(*in.UpdateCity).MarshalTinyJSON(out)
+			out.RawString(prefix)
 		}
+		(*in.UpdateCity).MarshalTinyJSON(out)
 	}
 	out.RawByte('}')
 }

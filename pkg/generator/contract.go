@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/CosmWasm/tinyjson"
+	"github.com/CosmWasm/tinyjson/bootstrap"
+	"github.com/CosmWasm/tinyjson/parser"
 	"github.com/cosmwasm/cosmwasm-go/std"
 	"github.com/cosmwasm/cosmwasm-go/std/types"
 	"github.com/iancoleman/strcase"
@@ -147,13 +149,14 @@ func (g *Contract) WriteTo(path string) (err error) {
 		filepath.Dir(path),
 		strings.TrimSuffix(filepath.Base(path), ".go")+"_tinyjson.go",
 	)
-	f, err := os.OpenFile(tinyjsonFilePath, os.O_CREATE|os.O_WRONLY, os.ModePerm)
+	f, err := os.OpenFile(tinyjsonFilePath, os.O_WRONLY|os.O_CREATE, os.ModePerm)
 	if err != nil {
 		return err
 	}
 
 	defer f.Close()
 
+	// create temp marshallers/unmarshallers
 	tinyjsonGen := NewGenerator()
 	tinyjsonGen.P("package ", g.pkg)
 	const (
@@ -169,9 +172,9 @@ func (g *Contract) WriteTo(path string) (err error) {
 	tinyjsonGen.P(")")
 	for _, typeName := range g.tinyjsonGen {
 		tinyjsonGen.P("func (x *", typeName, ") MarshalJSON() ([]byte,error) { panic(0) }")
-		tinyjsonGen.P("func (x *", typeName, ") MarshalTinyJSON(_ *", jwriterPkg.Ident("Writer"), ") { panic(0) }")
+		tinyjsonGen.P("func (x *", typeName, ") MarshalTinyJSON(_ *", jwriterPkg.Ident("Writer"), ") { panic(\"must run tinyjson codegen on this type\") }")
 		tinyjsonGen.P("func (x *", typeName, ") UnmarshalJSON(b []byte) error { panic(0) }")
-		tinyjsonGen.P("func (x *", typeName, ") UnmarshalTinyJSON(_ *", jlexerPkg.Ident("Lexer"), ") { panic(0) }")
+		tinyjsonGen.P("func (x *", typeName, ") UnmarshalTinyJSON(_ *", jlexerPkg.Ident("Lexer"), ") { panic(\"must run tinyjson codegen on this type\") }")
 	}
 
 	content, err := tinyjsonGen.Content()
@@ -184,7 +187,39 @@ func (g *Contract) WriteTo(path string) (err error) {
 		return err
 	}
 
-	return nil
+	// run tinyjson codegen
+	tinyjsonParser := parser.Parser{
+		PkgPath:     "",
+		PkgName:     "",
+		StructNames: nil,
+		AllStructs:  true,
+	}
+
+	err = tinyjsonParser.Parse(path, false)
+	if err != nil {
+		return err
+	}
+
+	tinyjson := bootstrap.Generator{
+		PkgPath:                  tinyjsonParser.PkgPath,
+		PkgName:                  g.pkg,
+		Types:                    []string{"QueryMsg", "ExecuteMsg"},
+		NoStdMarshalers:          false,
+		SnakeCase:                false,
+		LowerCamelCase:           false,
+		OmitEmpty:                true,
+		DisallowUnknownFields:    true,
+		SkipMemberNameUnescaping: true,
+		OutName:                  tinyjsonFilePath,
+		BuildTags:                "",
+		GenBuildFlags:            "",
+		StubsOnly:                false,
+		LeaveTemps:               false,
+		NoFormat:                 false,
+		SimpleBytes:              false,
+	}
+
+	return tinyjson.Run()
 }
 
 func isReply(name string) bool {

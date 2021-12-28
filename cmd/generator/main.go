@@ -11,6 +11,7 @@ func rootCmd() *cobra.Command {
 		Use: "generator is used to generate boilerplate code for cosmwasm-go contracts.",
 	}
 	root.AddCommand(stateCmd())
+	root.AddCommand(contractCmd())
 	return root
 }
 

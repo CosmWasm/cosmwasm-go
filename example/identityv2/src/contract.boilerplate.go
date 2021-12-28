@@ -19,12 +19,6 @@ func Execute(deps *std.Deps, env types.Env, info types.MessageInfo, messageBytes
 		return nil, err
 	}
 	switch {
-	case msg.CreateIdentity != nil:
-		resp, err := Contract{}.ExecCreateIdentity(deps, &env, &info, msg.CreateIdentity)
-		if err != nil {
-			return nil, err
-		}
-		return resp, nil
 	case msg.DeleteIdentity != nil:
 		resp, err := Contract{}.ExecDeleteIdentity(deps, &env, &info, msg.DeleteIdentity)
 		if err != nil {
@@ -33,6 +27,12 @@ func Execute(deps *std.Deps, env types.Env, info types.MessageInfo, messageBytes
 		return resp, nil
 	case msg.UpdateCity != nil:
 		resp, err := Contract{}.ExecUpdateCity(deps, &env, &info, msg.UpdateCity)
+		if err != nil {
+			return nil, err
+		}
+		return resp, nil
+	case msg.CreateIdentity != nil:
+		resp, err := Contract{}.ExecCreateIdentity(deps, &env, &info, msg.CreateIdentity)
 		if err != nil {
 			return nil, err
 		}

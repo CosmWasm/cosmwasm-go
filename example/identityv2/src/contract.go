@@ -5,6 +5,7 @@ import (
 	"github.com/cosmwasm/cosmwasm-go/std/types"
 )
 
+//go:generate ../../../bin/generator contract contract.go Contract
 type Contract struct{}
 
 func (c Contract) ExecCreateIdentity(deps *std.Deps, _ *types.Env, info *types.MessageInfo, msg *MsgCreateIdentity) (*types.Response, error) {

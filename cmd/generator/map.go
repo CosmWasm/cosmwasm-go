@@ -27,7 +27,7 @@ func mapCmd() *cobra.Command {
 			genCodePath := fmt.Sprintf("%s.%s.go", filename, strcase.ToSnake(args[1]))
 			builderPath := fmt.Sprintf("%s.%s.%s_test.go", filename, strcase.ToSnake(args[1]), "builder")
 			testName := fmt.Sprintf("Test_Gen%s", args[1])
-			err := generateBuilder(args[0], args[1], builderPath, genCodePath, testName)
+			err := generateBuilder(mapState, args[0], args[1], builderPath, genCodePath, testName)
 			if err != nil {
 				return err
 			}
@@ -50,7 +50,12 @@ func mapCmd() *cobra.Command {
 	return cmd
 }
 
-func generateBuilder(file, typeName, builderPath, genCodePath, testName string) error {
+var (
+	mapState = generatorPkg.Ident("MapState")
+	contract = generatorPkg.Ident("NewContract")
+)
+
+func generateBuilder(ident protogen.GoIdent, file, typeName, builderPath, genCodePath, testName string) error {
 	// we create a test file which creates the type.
 	pkgName, err := getPkgName(file)
 	if err != nil {
@@ -63,7 +68,7 @@ func generateBuilder(file, typeName, builderPath, genCodePath, testName string) 
 	g.P("package ", pkgName)
 
 	g.P("func ", testName, "(t *", testingPkg.Ident("T"), ") {")
-	g.P("gen, err :=", generatorPkg.Ident("MapState"), "(\"", pkgName, "\", ", typeName, "{})")
+	g.P("gen, err :=", ident, "(\"", pkgName, "\", ", typeName, "{})")
 	g.P("if err != nil { t.Fatal(err) }")
 	g.P("if err := gen.Generate(); err != nil { t.Fatal(err) }")
 	g.P("if err := gen.WriteTo(\"", genCodePath, "\"); err != nil { t.Fatal(err) }")
