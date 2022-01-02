@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-var contractPath = filepath.Join("..", "identity2.wasm")
+var contractPath = filepath.Join("..", "identityv2.wasm")
 
 func instance(t *testing.T) *systest.Instance {
 	i := systest.NewInstance(t, contractPath, 15_000_000_000_000, nil)
