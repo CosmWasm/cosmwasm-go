@@ -11,15 +11,15 @@ tiny-build:
 	rm -rf ./bin/tinyjson
 	go build -o ./bin/tinyjson github.com/CosmWasm/tinyjson/tinyjson
 
-generator-build:
-	rm -rf ./bin/generator
-	go build -o ./bin/generator ./cmd/generator
+cwgo-build:
+	rm -rf ./bin/cwgo
+	go build -o ./bin/cwgo ./cmd/cwgo
 
 clean:
 	rm -f std/types/*_tinyjson.go
 	rm -f example/hackatom/src/*_tinyjson.go
 
-generate: tiny-build generator-build generate-std generate-contracts
+generate: tiny-build cwgo-build generate-std generate-contracts
 
 generate-std:
 	./bin/tinyjson -all -snake_case \
@@ -58,3 +58,6 @@ queue:
 
 identity:
 	docker run --rm -v "$(CURDIR):/code" ${BUILDER} ./example/identity
+
+identityv2: cwgo-build
+	./bin/cwgo ./example/identityv2/src

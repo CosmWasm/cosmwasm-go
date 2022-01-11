@@ -62,18 +62,13 @@ func (g *generator) Generate() error {
 		return fmt.Errorf("unable to generate json: %w", err)
 	}
 
-	/*
-		// then after json implementation we generate state objects
-		gen, err = newStateObjectGen(g.dir, g.pkg, g.p.StateObjects)
+	for _, o := range g.p.StateObjects {
+		gen := newStateMapGen(g.dir, g.pkg, o)
+		err := gen.generate()
 		if err != nil {
-			return fmt.Errorf("unable to generate state objects: %w", err)
+			return fmt.Errorf("unable to generate state object %s: %w", o.Name, err)
 		}
-
-		// after that we generate contract code
-		for name, contract := range g.p.Contracts {
-
-		}
-	*/
+	}
 
 	return nil
 }
@@ -84,4 +79,8 @@ func contractFileName(pkg string, name string) string {
 
 func jsonFileName(pkg string) string {
 	return fmt.Sprintf("zzz_%s_json.go", strcase.ToSnake(pkg))
+}
+
+func stateObjectFileName(pkg string, typeName string) string {
+	return fmt.Sprintf("zzz_%s_state_%s.go", strcase.ToSnake(pkg), strcase.ToSnake(typeName))
 }
