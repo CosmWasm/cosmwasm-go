@@ -23,6 +23,7 @@ type QueryIdentity struct {
 	ID string `json:"id"`
 }
 
+// +cw:json
 type QueryIdentityResponse struct {
 	Person *Person `json:"person"`
 }

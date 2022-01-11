@@ -60,4 +60,5 @@ identity:
 	docker run --rm -v "$(CURDIR):/code" ${BUILDER} ./example/identity
 
 identityv2: cwgo-build
+	./bin/cwgo ./example/identityv2/src/imp
 	./bin/cwgo ./example/identityv2/src

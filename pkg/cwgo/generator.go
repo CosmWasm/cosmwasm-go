@@ -70,6 +70,14 @@ func (g *generator) Generate() error {
 		}
 	}
 
+	for _, contract := range g.p.Contracts {
+		gen := newContractGen(g.dir, g.pkg, contract)
+		err := gen.generate()
+		if err != nil {
+			return fmt.Errorf("unable to generate contract code %s: %w", contract.Name, err)
+		}
+	}
+
 	return nil
 }
 
