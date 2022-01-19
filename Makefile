@@ -61,5 +61,5 @@ queue:
 identity:
 	docker run --rm -v "$(CURDIR):/code" ${BUILDER} ./example/identity
 
-identityv2: cwgo-build
+identityv2:
 	docker run --rm -v "$(CURDIR):/code" ${BUILDER} ./example/identityv2
