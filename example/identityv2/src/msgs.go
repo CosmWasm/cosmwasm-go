@@ -1,5 +1,6 @@
 package src
 
+// MsgCreateIdentity creates a new Person
 // +cw:json
 type MsgCreateIdentity struct {
 	Name       string `json:"name"`
@@ -8,12 +9,14 @@ type MsgCreateIdentity struct {
 	PostalCode int32  `json:"postal_code"`
 }
 
+// MsgUpdateCity updates a Person city and postal code information
 // +cw:json
 type MsgUpdateCity struct {
 	City       string `json:"city"`
 	PostalCode int32  `json:"postal_code"`
 }
 
+// MsgDelete deletes the Person identity associated with the sender.
 // +cw:json
 type MsgDelete struct {
 }

@@ -13,8 +13,10 @@ type QueryMsg struct {
 }
 
 type ExecuteMsg struct {
-	CreateIdentity  *MsgCreateIdentity   `json:"create_identity"`
+	DeleteIdentity  *MsgDelete           `json:"delete_identity"`
 	ImportedMessage *imp.ImportedMessage `json:"imported_message"`
+	UpdateCity      *MsgUpdateCity       `json:"update_city"`
+	CreateIdentity  *MsgCreateIdentity   `json:"create_identity"`
 }
 
 func (x *QueryIdentity) AsQueryMsg() QueryMsg {
@@ -23,6 +25,14 @@ func (x *QueryIdentity) AsQueryMsg() QueryMsg {
 
 func (x *MsgCreateIdentity) AsExecuteMsg() ExecuteMsg {
 	return ExecuteMsg{CreateIdentity: x}
+}
+
+func (x *MsgDelete) AsExecuteMsg() ExecuteMsg {
+	return ExecuteMsg{DeleteIdentity: x}
+}
+
+func (x *MsgUpdateCity) AsExecuteMsg() ExecuteMsg {
+	return ExecuteMsg{UpdateCity: x}
 }
 
 func Execute(deps *std.Deps, env types.Env, info types.MessageInfo, messageBytes []byte) (*types.Response, error) {
@@ -34,8 +44,12 @@ func Execute(deps *std.Deps, env types.Env, info types.MessageInfo, messageBytes
 	switch {
 	case msg.CreateIdentity != nil:
 		return Contract{}.CreateIdentity(deps, &env, &info, msg.CreateIdentity)
+	case msg.DeleteIdentity != nil:
+		return Contract{}.DeleteIdentity(deps, &env, &info, msg.DeleteIdentity)
 	case msg.ImportedMessage != nil:
 		return Contract{}.ImportedMessage(deps, &env, &info, msg.ImportedMessage)
+	case msg.UpdateCity != nil:
+		return Contract{}.UpdateCity(deps, &env, &info, msg.UpdateCity)
 	default:
 		return nil, errors.New("unknown request")
 	}
@@ -48,14 +62,14 @@ func Query(deps *std.Deps, env types.Env, queryBytes []byte) ([]byte, error) {
 		return nil, err
 	}
 	switch {
-	case query.QueryIdentity != nil:
-		resp, err := Contract{}.QueryIdentity(deps, &env, query.QueryIdentity)
+	case query.QueryImported != nil:
+		resp, err := Contract{}.QueryImported(deps, &env, query.QueryImported)
 		if err != nil {
 			return nil, err
 		}
 		return resp.MarshalJSON()
-	case query.QueryImported != nil:
-		resp, err := Contract{}.QueryImported(deps, &env, query.QueryImported)
+	case query.QueryIdentity != nil:
+		resp, err := Contract{}.QueryIdentity(deps, &env, query.QueryIdentity)
 		if err != nil {
 			return nil, err
 		}

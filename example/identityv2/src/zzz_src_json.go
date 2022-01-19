@@ -782,15 +782,15 @@ func tinyjson97bc4d59DecodeGithubComCosmwasmCosmwasmGoExampleIdentityv2Src9(in *
 			continue
 		}
 		switch key {
-		case "imported_message":
+		case "update_city":
 			if in.IsNull() {
 				in.Skip()
-				out.ImportedMessage = nil
+				out.UpdateCity = nil
 			} else {
-				if out.ImportedMessage == nil {
-					out.ImportedMessage = new(imp.ImportedMessage)
+				if out.UpdateCity == nil {
+					out.UpdateCity = new(MsgUpdateCity)
 				}
-				(*out.ImportedMessage).UnmarshalTinyJSON(in)
+				(*out.UpdateCity).UnmarshalTinyJSON(in)
 			}
 		case "create_identity":
 			if in.IsNull() {
@@ -801,6 +801,26 @@ func tinyjson97bc4d59DecodeGithubComCosmwasmCosmwasmGoExampleIdentityv2Src9(in *
 					out.CreateIdentity = new(MsgCreateIdentity)
 				}
 				(*out.CreateIdentity).UnmarshalTinyJSON(in)
+			}
+		case "delete_identity":
+			if in.IsNull() {
+				in.Skip()
+				out.DeleteIdentity = nil
+			} else {
+				if out.DeleteIdentity == nil {
+					out.DeleteIdentity = new(MsgDelete)
+				}
+				(*out.DeleteIdentity).UnmarshalTinyJSON(in)
+			}
+		case "imported_message":
+			if in.IsNull() {
+				in.Skip()
+				out.ImportedMessage = nil
+			} else {
+				if out.ImportedMessage == nil {
+					out.ImportedMessage = new(imp.ImportedMessage)
+				}
+				(*out.ImportedMessage).UnmarshalTinyJSON(in)
 			}
 		default:
 			in.AddError(&jlexer.LexerError{
@@ -820,11 +840,11 @@ func tinyjson97bc4d59EncodeGithubComCosmwasmCosmwasmGoExampleIdentityv2Src9(out 
 	out.RawByte('{')
 	first := true
 	_ = first
-	if in.ImportedMessage != nil {
-		const prefix string = ",\"imported_message\":"
+	if in.UpdateCity != nil {
+		const prefix string = ",\"update_city\":"
 		first = false
 		out.RawString(prefix[1:])
-		(*in.ImportedMessage).MarshalTinyJSON(out)
+		(*in.UpdateCity).MarshalTinyJSON(out)
 	}
 	if in.CreateIdentity != nil {
 		const prefix string = ",\"create_identity\":"
@@ -835,6 +855,26 @@ func tinyjson97bc4d59EncodeGithubComCosmwasmCosmwasmGoExampleIdentityv2Src9(out 
 			out.RawString(prefix)
 		}
 		(*in.CreateIdentity).MarshalTinyJSON(out)
+	}
+	if in.DeleteIdentity != nil {
+		const prefix string = ",\"delete_identity\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		(*in.DeleteIdentity).MarshalTinyJSON(out)
+	}
+	if in.ImportedMessage != nil {
+		const prefix string = ",\"imported_message\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		(*in.ImportedMessage).MarshalTinyJSON(out)
 	}
 	out.RawByte('}')
 }
