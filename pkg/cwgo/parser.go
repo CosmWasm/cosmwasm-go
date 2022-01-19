@@ -6,7 +6,6 @@ import (
 	"go/doc"
 	"go/parser"
 	"go/token"
-	"log"
 	"strings"
 
 	"google.golang.org/protobuf/compiler/protogen"
@@ -222,7 +221,6 @@ func (p *Parsed) addStateObject(typ *doc.Type) error {
 		if len(field.Names) > 1 {
 			return fmt.Errorf("unable to parse ast")
 		}
-		log.Printf("%#v", fieldType.Name)
 
 		primaryKey = &PrimaryKey{
 			FieldName: field.Names[0].Name,
@@ -250,9 +248,6 @@ func Parse(dir string) (map[string]*Parsed, error) {
 		parsed := newParsed(pkg)
 		parsed.Pkg = pkg.Name
 
-		for _, imp := range pkg.Imports {
-			log.Printf("imports %#v", imp)
-		}
 		comments := doc.New(pkg, "", doc.AllDecls)
 
 		err = parsed.parse(pkg.Name, comments)
@@ -346,7 +341,6 @@ func (p *Parsed) addQuery(typ *doc.Type, method *doc.Func) error {
 	if err != nil {
 		return fmt.Errorf("unable to identify query output type in contract %s method %s: %w", typ.Name, method.Name, err)
 	}
-	log.Printf("hiiii")
 	c.Queries[method.Name] = &Query{
 		MethodName: method.Name,
 		Input:      inputType,
@@ -439,7 +433,6 @@ func (p *Parsed) importPathForMethodParam(typename string, method string, pkg st
 					v := strings.ReplaceAll(imp.Path.Value, "\"", "")
 					p := strings.Split(v, "/")
 					last := p[len(p)-1]
-					log.Printf("last: %s", last)
 					if last == pkg {
 						return imp.Path.Value, nil
 					}
@@ -524,6 +517,5 @@ func commentHasPrefix(doc string, prefix string) bool {
 }
 
 func isPrimaryKey(value string) bool {
-	log.Printf("%s", value)
 	return strings.Contains(value, OrmPrimaryKeyTag)
 }
