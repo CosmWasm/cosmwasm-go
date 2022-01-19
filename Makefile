@@ -37,6 +37,8 @@ generate-contracts:
 		./example/hackatom/src/state.go \
 		./example/hackatom/src/msg.go
 	go generate ./example/...
+	./bin/cwgo ./example/identityv2/src/imp
+	./bin/cwgo ./example/identityv2/src
 
 test: test-std test-contracts
 
@@ -60,5 +62,4 @@ identity:
 	docker run --rm -v "$(CURDIR):/code" ${BUILDER} ./example/identity
 
 identityv2: cwgo-build
-	./bin/cwgo ./example/identityv2/src/imp
-	./bin/cwgo ./example/identityv2/src
+	docker run --rm -v "$(CURDIR):/code" ${BUILDER} ./example/identityv2
