@@ -42,8 +42,8 @@ func (x PersonStateHandler) Create(storage std.Storage, o Person) error {
 
 // Read returns Person given its Address.
 // Returns ErrPersonNotFound in case nothing is found.
-func (x PersonStateHandler) Read(storage std.Storage, string string) (Person, error) {
-	_k := keys.StringPrimaryKey(string)
+func (x PersonStateHandler) Read(storage std.Storage, address string) (Person, error) {
+	_k := keys.StringPrimaryKey(address)
 	_v := x.ns.Get(storage, _k)
 	if _v == nil {
 		return Person{}, ErrPersonNotFound
@@ -59,8 +59,8 @@ func (x PersonStateHandler) Read(storage std.Storage, string string) (Person, er
 // Update updates an instance of Person, given its Address by running the provided function f.
 // If f passes a nil Person it means the object was not found.
 // Returning a nil Person from f will cause no updates in the object.
-func (x PersonStateHandler) Update(storage std.Storage, string string, f func(old *Person) (*Person, error)) (err error) {
-	_k := keys.StringPrimaryKey(string)
+func (x PersonStateHandler) Update(storage std.Storage, address string, f func(old *Person) (*Person, error)) (err error) {
+	_k := keys.StringPrimaryKey(address)
 	_v := x.ns.Get(storage, _k)
 
 	var _old *Person

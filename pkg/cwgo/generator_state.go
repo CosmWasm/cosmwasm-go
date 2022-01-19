@@ -122,7 +122,7 @@ func (g *stateMapGen) genCreate() {
 }
 
 func (g *stateMapGen) genRead() {
-	primaryKeyField := lowerCamelCase(g.primaryKey.Type.Name)
+	primaryKeyField := lowerCamelCase(g.primaryKey.FieldName)
 	primaryKeyGoType := g.primaryKey.Type.Name
 	g.P("// Read returns ", g.typeName, " given its ", g.primaryKey.FieldName, ".")
 	g.P("// Returns Err", g.typeName, "NotFound in case nothing is found.")
@@ -142,7 +142,7 @@ func (g *stateMapGen) genRead() {
 }
 
 func (g *stateMapGen) genUpdate() {
-	primaryKeyField := lowerCamelCase(g.primaryKey.Type.Name)
+	primaryKeyField := lowerCamelCase(g.primaryKey.FieldName)
 	primaryKeyGoType := g.primaryKey.Type.Name
 	g.P("// Update updates an instance of ", g.typeName, ", given its ", g.primaryKey.FieldName, " by running the provided function f.")
 	g.P("// If f passes a nil ", g.typeName, " it means the object was not found.")

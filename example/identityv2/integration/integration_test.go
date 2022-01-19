@@ -36,16 +36,16 @@ func TestExecute(t *testing.T) {
 	resp, gas, err := i.Query(env, (&src.QueryIdentity{ID: info.Sender}).AsQueryMsg())
 	require.NoError(t, err)
 
-	identityResp := new(src.Person)
+	identityResp := new(src.QueryIdentityResponse)
 	require.NoError(t, identityResp.UnmarshalJSON(resp))
 
-	require.Equal(t, src.Person{
+	require.Equal(t, &src.Person{
 		Address:    info.Sender,
 		Name:       "Eren",
 		Surname:    "Yeager",
 		City:       "Shiganshina District",
 		PostalCode: 100,
-	}, *identityResp)
+	}, identityResp.Person)
 
 	// test update
 	_, gas, err = i.Execute(env, info, (&src.MsgUpdateCity{
@@ -59,16 +59,16 @@ func TestExecute(t *testing.T) {
 	resp, gas, err = i.Query(env, (&src.QueryIdentity{ID: info.Sender}).AsQueryMsg())
 	require.NoError(t, err)
 
-	identityResp = new(src.Person)
+	identityResp = new(src.QueryIdentityResponse)
 	require.NoError(t, identityResp.UnmarshalJSON(resp))
 
-	require.Equal(t, src.Person{
+	require.Equal(t, &src.Person{
 		Address:    info.Sender,
 		Name:       "Eren",
 		Surname:    "Yeager",
 		City:       "Liberio",
 		PostalCode: 200,
-	}, *identityResp)
+	}, identityResp.Person)
 
 	// delete
 	_, gas, err = i.Execute(env, info, (&src.MsgDelete{}).AsExecuteMsg())

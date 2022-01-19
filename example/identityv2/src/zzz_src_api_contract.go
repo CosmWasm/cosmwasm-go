@@ -8,8 +8,8 @@ import (
 )
 
 type QueryMsg struct {
-	QueryIdentity *QueryIdentity     `json:"query_identity"`
 	QueryImported *imp.ImportedQuery `json:"query_imported"`
+	QueryIdentity *QueryIdentity     `json:"query_identity"`
 }
 
 type ExecuteMsg struct {
@@ -62,14 +62,14 @@ func Query(deps *std.Deps, env types.Env, queryBytes []byte) ([]byte, error) {
 		return nil, err
 	}
 	switch {
-	case query.QueryImported != nil:
-		resp, err := Contract{}.QueryImported(deps, &env, query.QueryImported)
+	case query.QueryIdentity != nil:
+		resp, err := Contract{}.QueryIdentity(deps, &env, query.QueryIdentity)
 		if err != nil {
 			return nil, err
 		}
 		return resp.MarshalJSON()
-	case query.QueryIdentity != nil:
-		resp, err := Contract{}.QueryIdentity(deps, &env, query.QueryIdentity)
+	case query.QueryImported != nil:
+		resp, err := Contract{}.QueryImported(deps, &env, query.QueryImported)
 		if err != nil {
 			return nil, err
 		}
