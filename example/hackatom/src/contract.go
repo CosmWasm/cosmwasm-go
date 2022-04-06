@@ -95,7 +95,7 @@ func Execute(deps *std.Deps, env types.Env, info types.MessageInfo, data []byte)
 
 func executeUserErrorsInApiCall(deps *std.Deps) (*types.Response, error) {
 	// canonicalization
-	_ = ""
+
 	// case empty
 	_, err := deps.Api.CanonicalAddress("")
 	if err == nil {
