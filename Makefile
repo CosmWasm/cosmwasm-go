@@ -4,7 +4,7 @@
 # TEST_FLAG=-v make test
 #TEST_FLAG=-v -count=1
 
-VERSION := "0.4.0"
+VERSION := "0.4.1"
 BUILDER := "cosmwasm/go-optimizer:${VERSION}"
 
 tiny-build:
