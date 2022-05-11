@@ -1,11 +1,14 @@
 ## Overview
 
-This is a demo for cosmwasm-go build, it is in alpha state, but it is compatible
-with CosmWasm 0.16.
+This is a demo for cosmwasm-go build, it is in beta state, and compatible with CosmWasm 1.0.
 
-This is currently in a **private pre-release**. This repo should only be shared
-with select developers who will work on improving it. When we are happy with
-the stability, we will publish this.
+This is currently in a **developer pre-release**. It runs properly, but is not meant for general
+consumption (eg. writing contracts), but rather used by developers who want to work on the
+build system itself.
+
+This is a relatively low-level API, exposing raw byte queries to storage and other items.
+While usable as is, Archway is working on a higher level framework to make writing go contracts simpler
+and significantly less boilerplate.
 
 ## Features
 
@@ -16,28 +19,30 @@ tests using `go-cosmwasm` to ensure compatibility. Please look at the
 * Export `instantiate`, `execute`, `query`, `migrate` and return success response or errors
 * Get and Set from persistent storage
 * Canonicalize and Humanize addresses with the Api
-* Query into the bank module (use querier)
+* Query into the bank module and other contracts (using querier)
 * Efficiently parse json structs
 * Simple API so you can focus on the business logic
 * Easy setup and similar format for unit test and integration tests, to allow
   easy porting them.
-  
-The following areas have some code but have not been tested and *likely buggy*:
-
 * Remove from storage
 * Storage iterators
-* Querying staking/wasm modules
+* Support for Uint128 (parsing strings, dealing with large integers)
+  
+The following areas have some code but have not been tested and *possibly buggy*:
 
-These can be called, but will likely not function 100% and will require
-some debugging to get them working.
+* Querying staking modules
+
+This can be called, but will likely not function 100% and will require some debugging to get them working.
 
 ## Caveats
 
-Beyond the "likely buggy" Apis above, the following "features" are 
+Beyond the "likely buggy" Apis above, the following features are 
 definitely not implemented:
 
-* Support for Uint128 (parsing strings, dealing with large integers)
-* Helper functions for creating messages or queries
+* Exporting IBC entry points
+* Calling into the crypto precompiles exposed by CosmWasm VM
+* Sudo entry point
+* Reply entry point (and thus submessages)
 
 ## JSON
 
