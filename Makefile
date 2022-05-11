@@ -1,10 +1,10 @@
-.PHONY: view imports exports erc20 tester examples test test-contracts test-std
+.PHONY: examples test test-contracts test-std
 
 # Set on the command line for verbose output, eg.
 # TEST_FLAG=-v make test
 #TEST_FLAG=-v -count=1
 
-VERSION := "0.3.0"
+VERSION := "0.4.1"
 BUILDER := "cosmwasm/go-optimizer:${VERSION}"
 
 tiny-build:
@@ -33,8 +33,6 @@ generate-contracts:
 		./example/hackatom/src/state.go \
 		./example/hackatom/src/msg.go
 	go generate ./example/...
-	./bin/cwgo ./example/identityv2/src/imp
-	./bin/cwgo ./example/identityv2/src
 
 test: test-std test-contracts
 
@@ -45,12 +43,14 @@ test-std:
 test-contracts:
 	cd example/hackatom && $(MAKE) unit-test
 
-examples: hackatom queue identity
+examples: hackatom queue
 
-# we need to move this to example/hackatom, so it will be run in the integration tests in CI
+# you can set a few flags via environmental variables, which are passed to docker/compile.sh eg.
+#   CHECK=1 make hackatom
+# CHECK=1 : show all imports and check for floating point ops
+# PAGES=30: assign the contract more memory pages than the default 20
 hackatom:
-	docker run --rm -v "$(CURDIR):/code" ${BUILDER} ./example/hackatom
+	docker run --rm -e CHECK -e PAGES -v "$(CURDIR):/code" ${BUILDER} ./example/hackatom
 
 queue:
-	docker run --rm -v "$(CURDIR):/code" ${BUILDER} ./example/queue
-
+	docker run --rm -e CHECK -e PAGES -v "$(CURDIR):/code" ${BUILDER} ./example/queue
