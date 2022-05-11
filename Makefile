@@ -1,4 +1,4 @@
-.PHONY: view imports exports erc20 tester examples test test-contracts test-std
+.PHONY: examples test test-contracts test-std
 
 # Set on the command line for verbose output, eg.
 # TEST_FLAG=-v make test
@@ -33,8 +33,6 @@ generate-contracts:
 		./example/hackatom/src/state.go \
 		./example/hackatom/src/msg.go
 	go generate ./example/...
-	./bin/cwgo ./example/identityv2/src/imp
-	./bin/cwgo ./example/identityv2/src
 
 test: test-std test-contracts
 
@@ -45,7 +43,7 @@ test-std:
 test-contracts:
 	cd example/hackatom && $(MAKE) unit-test
 
-examples: hackatom queue identity
+examples: hackatom queue
 
 # we need to move this to example/hackatom, so it will be run in the integration tests in CI
 hackatom:
@@ -53,4 +51,3 @@ hackatom:
 
 queue:
 	docker run --rm -v "$(CURDIR):/code" ${BUILDER} ./example/queue
-
