@@ -4,7 +4,7 @@
 # TEST_FLAG=-v make test
 #TEST_FLAG=-v -count=1
 
-VERSION := "0.3.0"
+VERSION := "0.4.0"
 BUILDER := "cosmwasm/go-optimizer:${VERSION}"
 
 tiny-build:
@@ -45,9 +45,18 @@ test-contracts:
 
 examples: hackatom queue
 
-# we need to move this to example/hackatom, so it will be run in the integration tests in CI
+# you can set a few flags via environmental variables, which are passed to docker/compile.sh eg.
+#   CHECK=1 make hackatom
+# CHECK=1 : show all imports and check for floating point ops
+# PAGES=30: assign the contract more memory pages than the default 20
 hackatom:
-	docker run --rm -v "$(CURDIR):/code" ${BUILDER} ./example/hackatom
+	docker run --rm -e CHECK -e PAGES -v "$(CURDIR):/code" ${BUILDER} ./example/hackatom
 
 queue:
-	docker run --rm -v "$(CURDIR):/code" ${BUILDER} ./example/queue
+	docker run --rm -e CHECK -e PAGES -v "$(CURDIR):/code" ${BUILDER} ./example/queue
+
+builder:
+	docker build . -t ${BUILDER}
+
+publish-builder: builder
+	docker push ${BUILDER}
