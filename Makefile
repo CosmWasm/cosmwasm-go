@@ -54,9 +54,3 @@ hackatom:
 
 queue:
 	docker run --rm -e CHECK -e PAGES -v "$(CURDIR):/code" ${BUILDER} ./example/queue
-
-builder:
-	docker build . -t ${BUILDER}
-
-publish-builder: builder
-	docker push ${BUILDER}

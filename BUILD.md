@@ -3,8 +3,8 @@
 Let's see if this works...
 
 ```
-VERSION=0.3.0-arm64
-VERSION=0.3.0-amd64
+VERSION=0.4.0-arm64
+VERSION=0.4.0-amd64
 docker build -t cosmwasm/go-optimizer:${VERSION} -f Dockerfile .
 
 # failure cases
@@ -26,7 +26,7 @@ docker run -it --entrypoint /bin/bash cosmwasm/go-optimizer:${VERSION}
 When we built on both architectures:
 
 ```
-VERSION=0.3.0
+VERSION=0.4.0
 ARM=${VERSION}-arm64
 AMD=${VERSION}-amd64
 
