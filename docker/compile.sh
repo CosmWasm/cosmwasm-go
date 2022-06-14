@@ -53,7 +53,10 @@ if [ ! -z "${CHECK+x}" ]; then
 
   echo ""
   echo "** Floating point ops **"
-  grep f64 "${WAT_FILE}" || true
+  if grep f64 "${WAT_FILE}"; then
+    echo "Float ops found"
+    exit 4
+  fi
 fi
 
 if [ ! -z "${STRIP+x}" ]; then
