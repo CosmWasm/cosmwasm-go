@@ -2,10 +2,11 @@ package systest
 
 import (
 	"encoding/json"
-	unitmocks "github.com/cosmwasm/cosmwasm-go/std/mock"
 	"io/ioutil"
 	"os"
 	"testing"
+
+	unitmocks "github.com/CosmWasm/cosmwasm-go/std/mock"
 
 	wasmvm "github.com/CosmWasm/wasmvm"
 	mocks "github.com/CosmWasm/wasmvm/api"
@@ -116,6 +117,7 @@ func (i *Instance) Query(env types.Env, queryMsg json.Marshaler) ([]byte, uint64
 	if err != nil {
 		return nil, 0, err
 	}
+
 	return i.Wasmer.Query(
 		i.CodeID,
 		env,
@@ -134,7 +136,27 @@ func (i *Instance) Migrate(env types.Env, migrateMsg json.Marshaler) (*types.Res
 	if err != nil {
 		return nil, 0, err
 	}
+
 	return i.Wasmer.Migrate(
+		i.CodeID,
+		env,
+		bytes,
+		i.Store,
+		*i.Api,
+		i.Querier,
+		i.GasMeter,
+		i.GasLimit,
+		deserCost,
+	)
+}
+
+func (i *Instance) Sudo(env types.Env, sudoMsg json.Marshaler) (*types.Response, uint64, error) {
+	bytes, err := sudoMsg.MarshalJSON()
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return i.Wasmer.Sudo(
 		i.CodeID,
 		env,
 		bytes,

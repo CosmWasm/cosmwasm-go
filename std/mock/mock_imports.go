@@ -4,12 +4,12 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/cosmwasm/cosmwasm-go/std/math"
+	"github.com/CosmWasm/cosmwasm-go/std/math"
 
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/cosmwasm/cosmwasm-go/std"
-	"github.com/cosmwasm/cosmwasm-go/std/types"
+	"github.com/CosmWasm/cosmwasm-go/std"
+	"github.com/CosmWasm/cosmwasm-go/std/types"
 )
 
 const (

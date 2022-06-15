@@ -6,7 +6,7 @@ package std
 import (
 	"unsafe"
 
-	"github.com/cosmwasm/cosmwasm-go/std/types"
+	"github.com/CosmWasm/cosmwasm-go/std/types"
 )
 
 type (
@@ -16,6 +16,8 @@ type (
 	ExecuteFunc func(deps *Deps, env types.Env, messageInfo types.MessageInfo, messageBytes []byte) (*types.Response, error)
 	// MigrateFunc defines the function ran by contracts in migration.
 	MigrateFunc func(deps *Deps, env types.Env, messageBytes []byte) (*types.Response, error)
+	// SudoFunc defines the function ran by contracts in sudo message execution.
+	SudoFunc func(deps *Deps, env types.Env, messageBytes []byte) (*types.Response, error)
 	// QueryFunc defines the function ran by the contracts in query execution.
 	QueryFunc func(deps *Deps, env types.Env, messageBytes []byte) ([]byte, error)
 )
@@ -104,7 +106,7 @@ func DoExecute(executeFunc ExecuteFunc, envPtr, infoPtr, msgPtr uint32) unsafe.P
 	return Package_message(data)
 }
 
-// DoMigrate converts the environment, info and message pointers to concrete golang objects
+// DoMigrate converts the environment and message pointers to concrete golang objects
 // and execute the contract migration logic.
 func DoMigrate(migrateFunc MigrateFunc, envPtr, msgPtr uint32) unsafe.Pointer {
 	env := types.Env{}
@@ -117,6 +119,34 @@ func DoMigrate(migrateFunc MigrateFunc, envPtr, msgPtr uint32) unsafe.Pointer {
 	deps := make_dependencies()
 	msgData := Translate_range_custom(uintptr(msgPtr))
 	resp, err := migrateFunc(&deps, env, msgData)
+	if resp == nil {
+		return StdErrResult(err)
+	}
+
+	result := &types.ContractResult{
+		Ok: resp,
+	}
+	data, err := result.MarshalJSON()
+	if err != nil {
+		return StdErrResult(err)
+	}
+
+	return Package_message(data)
+}
+
+// DoSudo converts the environment and message pointers to concrete golang objects
+// and executes the contract's sudo message execution logic.
+func DoSudo(sudoFunc SudoFunc, envPtr, msgPtr uint32) unsafe.Pointer {
+	env := types.Env{}
+	envData := TranslateToSlice(uintptr(envPtr))
+	err := env.UnmarshalJSON(envData)
+	if err != nil {
+		return StdErrResult(err)
+	}
+
+	deps := make_dependencies()
+	msgData := Translate_range_custom(uintptr(msgPtr))
+	resp, err := sudoFunc(&deps, env, msgData)
 	if resp == nil {
 		return StdErrResult(err)
 	}

@@ -2,13 +2,14 @@ package src
 
 import (
 	"encoding/json"
-	"github.com/cosmwasm/cosmwasm-go/std"
-	"github.com/cosmwasm/cosmwasm-go/std/mock"
-	"github.com/cosmwasm/cosmwasm-go/std/types"
-	"github.com/stretchr/testify/require"
 	"math/rand"
 	"testing"
 	"time"
+
+	"github.com/CosmWasm/cosmwasm-go/std"
+	"github.com/CosmWasm/cosmwasm-go/std/mock"
+	"github.com/CosmWasm/cosmwasm-go/std/types"
+	"github.com/stretchr/testify/require"
 )
 
 func encode(t *testing.T, msg json.Marshaler) []byte {

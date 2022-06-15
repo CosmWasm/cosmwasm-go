@@ -5,8 +5,9 @@ package std
 
 import (
 	"encoding/binary"
+	"unsafe"
 
-	"github.com/cosmwasm/cosmwasm-go/std/types"
+	"github.com/CosmWasm/cosmwasm-go/std/types"
 )
 
 /*
@@ -27,10 +28,6 @@ extern void debug(void* msg);
 extern void* query_chain(void* request);
 */
 import "C"
-
-import (
-	"unsafe"
-)
 
 const (
 	// A kibi (kilo binary)

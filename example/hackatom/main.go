@@ -3,8 +3,8 @@ package main
 import (
 	"unsafe"
 
-	"github.com/cosmwasm/cosmwasm-go/example/hackatom/src"
-	"github.com/cosmwasm/cosmwasm-go/std"
+	"github.com/CosmWasm/cosmwasm-go/example/hackatom/src"
+	"github.com/CosmWasm/cosmwasm-go/std"
 )
 
 func main() {}

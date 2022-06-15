@@ -1,7 +1,8 @@
 package types
 
 import (
-	"github.com/cosmwasm/cosmwasm-go/std/math"
+	"github.com/CosmWasm/cosmwasm-go/std/math"
+	wasmVmTypes "github.com/CosmWasm/wasmvm/types"
 )
 
 // HumanAddress is a printable (typically bech32 encoded) address string. Just use it as a label for developers.
@@ -29,6 +30,19 @@ func NewCoin(amount math.Uint128, denom string) Coin {
 // NewCoinFromUint64 creates a new coin given an uint64 amount and denom.
 func NewCoinFromUint64(amount uint64, denom string) Coin {
 	return NewCoin(math.NewUint128FromUint64(amount), denom)
+}
+
+// ToWasmVMCoin convert Coin to WasmVM type.
+func (c Coin) ToWasmVMCoin() wasmVmTypes.Coin {
+	return wasmVmTypes.Coin{
+		Denom:  c.Denom,
+		Amount: c.Amount.String(),
+	}
+}
+
+// String implements the fmt.Stringer interface.
+func (c Coin) String() string {
+	return c.Amount.String() + c.Denom
 }
 
 // RawMessage is a raw encoded JSON value.

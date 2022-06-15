@@ -105,6 +105,26 @@ func (u Uint128) Cmp64(v uint64) int {
 	}
 }
 
+// LT checks if u is less than v.
+func (u Uint128) LT(v Uint128) bool {
+	return u.Cmp(v) == -1
+}
+
+// LTE checks if u is less than or equals to v.
+func (u Uint128) LTE(v Uint128) bool {
+	return u.Cmp(v) <= 0
+}
+
+// GT checks if u is greater than v.
+func (u Uint128) GT(v Uint128) bool {
+	return u.Cmp(v) == 1
+}
+
+// GTE checks if u is greater than or equals to v.
+func (u Uint128) GTE(v Uint128) bool {
+	return u.Cmp(v) >= 0
+}
+
 // And returns u&v.
 func (u Uint128) And(v Uint128) Uint128 {
 	return Uint128{u.Lo & v.Lo, u.Hi & v.Hi}

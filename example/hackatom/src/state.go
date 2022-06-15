@@ -2,7 +2,8 @@ package src
 
 import (
 	"errors"
-	"github.com/cosmwasm/cosmwasm-go/std"
+
+	"github.com/CosmWasm/cosmwasm-go/std"
 )
 
 // this is what we store
