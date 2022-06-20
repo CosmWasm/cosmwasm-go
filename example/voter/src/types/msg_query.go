@@ -12,6 +12,8 @@ type MsgQuery struct {
 	Tally *QueryTallyRequest `json:",omitempty"`
 	// Open returns all open voting IDs.
 	Open *struct{} `json:",omitempty"`
+	// ReleaseStats returns the current Release operations stats.
+	ReleaseStats *struct{} `json:",omitempty"`
 }
 
 // QueryParamsResponse defines MsgQuery.Params response.
@@ -50,9 +52,12 @@ type (
 	}
 )
 
-type (
-	// QueryOpenResponse defines MsgQuery.Open response.
-	QueryOpenResponse struct {
-		Ids []uint64
-	}
-)
+// QueryOpenResponse defines MsgQuery.Open response.
+type QueryOpenResponse struct {
+	Ids []uint64
+}
+
+// QueryReleaseStatsResponse defines MsgQuery.ReleaseStats response.
+type QueryReleaseStatsResponse struct {
+	state.ReleaseStats
+}

@@ -23,6 +23,7 @@ tinyjson-gen:
 	tinyjson -all -snake_case $(CONTRACT_DIR)/src/types/msg_query.go
 	tinyjson -all -snake_case $(CONTRACT_DIR)/src/state/params.go
 	tinyjson -all -snake_case $(CONTRACT_DIR)/src/state/voting.go
+	tinyjson -all -snake_case $(CONTRACT_DIR)/src/state/release_stats.go
 
 test: test-unit test-integ
 

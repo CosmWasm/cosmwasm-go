@@ -83,3 +83,15 @@ func queryOpen(deps *std.Deps, env stdTypes.Env) (*types.QueryOpenResponse, erro
 		Ids: ids,
 	}, nil
 }
+
+// queryReleaseStats handles MsgQuery.ReleaseStats query.
+func queryReleaseStats(deps *std.Deps) (*types.QueryReleaseStatsResponse, error) {
+	stats, err := state.GetReleaseStats(deps.Storage)
+	if err != nil {
+		return nil, types.NewErrInternal(err.Error())
+	}
+
+	return &types.QueryReleaseStatsResponse{
+		ReleaseStats: stats,
+	}, nil
+}

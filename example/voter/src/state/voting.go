@@ -8,8 +8,8 @@ import (
 )
 
 var (
-	// LastVotingID is the storage key for storing last unique Voting ID.
-	LastVotingID = []byte("LastVotingID")
+	// LastVotingIDKey is the storage key for storing last unique Voting ID.
+	LastVotingIDKey = []byte("LastVotingID")
 
 	// VotingKey is the storage prefix for storing Voting objects.
 	VotingKey = []byte("Voting")
@@ -113,7 +113,7 @@ func (v *Voting) AddNoVote(option, addr string) error {
 
 // NextVotingID returns a next unique Voting ID.
 func NextVotingID(storage std.Storage) (uint64, error) {
-	data := storage.Get(LastVotingID)
+	data := storage.Get(LastVotingIDKey)
 	if data == nil {
 		return 0, nil
 	}
@@ -126,12 +126,12 @@ func NextVotingID(storage std.Storage) (uint64, error) {
 	return lastID + 1, nil
 }
 
-// SetLastVotingID sets LastVotingID.
+// SetLastVotingID sets LastVotingIDKey.
 func SetLastVotingID(storage std.Storage, id uint64) {
 	data := make([]byte, 8)
 	binary.LittleEndian.PutUint64(data, id)
 
-	storage.Set(LastVotingID, data)
+	storage.Set(LastVotingIDKey, data)
 }
 
 // GetVoting returns Voting state if exists.

@@ -18,6 +18,8 @@ type (
 	MigrateFunc func(deps *Deps, env types.Env, messageBytes []byte) (*types.Response, error)
 	// SudoFunc defines the function ran by contracts in sudo message execution.
 	SudoFunc func(deps *Deps, env types.Env, messageBytes []byte) (*types.Response, error)
+	// ReplyFunc defines the function ran by contracts in reply message execution.
+	ReplyFunc func(deps *Deps, env types.Env, replyMsg types.Reply) (*types.Response, error)
 	// QueryFunc defines the function ran by the contracts in query execution.
 	QueryFunc func(deps *Deps, env types.Env, messageBytes []byte) ([]byte, error)
 )
@@ -25,6 +27,7 @@ type (
 func StdErrResult(err error) unsafe.Pointer {
 	wrapped := types.ContractResult{Err: err.Error()}
 	bz, _ := wrapped.MarshalJSON()
+
 	return Package_message(bz)
 }
 
@@ -40,7 +43,16 @@ func parseInfo(infoPtr uint32) (types.MessageInfo, error) {
 	infoData := TranslateToSlice(uintptr(infoPtr))
 	var info types.MessageInfo
 	err := info.UnmarshalJSON(infoData)
+
 	return info, err
+}
+
+func parseReply(replyPtr uint32) (types.Reply, error) {
+	replyData := TranslateToSlice(uintptr(replyPtr))
+	var reply types.Reply
+	err := reply.UnmarshalJSON(replyData)
+
+	return reply, err
 }
 
 // DoInstantiate converts the environment, info and message pointers to concrete golang objects
@@ -64,6 +76,7 @@ func DoInstantiate(instantiateFunc InstantiateFunc, envPtr, infoPtr, msgPtr uint
 	if err != nil {
 		return StdErrResult(err)
 	}
+	// TODO: should we raise an error on (resp == nil)? result.MarshalJSON() will not panic, but that behaviour seems invalid
 
 	result := &types.ContractResult{
 		Ok: resp,
@@ -72,6 +85,7 @@ func DoInstantiate(instantiateFunc InstantiateFunc, envPtr, infoPtr, msgPtr uint
 	if err != nil {
 		return StdErrResult(err)
 	}
+
 	return Package_message(data)
 }
 
@@ -103,6 +117,7 @@ func DoExecute(executeFunc ExecuteFunc, envPtr, infoPtr, msgPtr uint32) unsafe.P
 	if err != nil {
 		return StdErrResult(err)
 	}
+
 	return Package_message(data)
 }
 
@@ -119,7 +134,7 @@ func DoMigrate(migrateFunc MigrateFunc, envPtr, msgPtr uint32) unsafe.Pointer {
 	deps := make_dependencies()
 	msgData := Translate_range_custom(uintptr(msgPtr))
 	resp, err := migrateFunc(&deps, env, msgData)
-	if resp == nil {
+	if err != nil {
 		return StdErrResult(err)
 	}
 
@@ -147,7 +162,39 @@ func DoSudo(sudoFunc SudoFunc, envPtr, msgPtr uint32) unsafe.Pointer {
 	deps := make_dependencies()
 	msgData := Translate_range_custom(uintptr(msgPtr))
 	resp, err := sudoFunc(&deps, env, msgData)
-	if resp == nil {
+	if err != nil {
+		return StdErrResult(err)
+	}
+
+	result := &types.ContractResult{
+		Ok: resp,
+	}
+	data, err := result.MarshalJSON()
+	if err != nil {
+		return StdErrResult(err)
+	}
+
+	return Package_message(data)
+}
+
+// DoReply converts the environment and reply message pointers to concrete golang objects
+// and executes the contract's reply message execution logic.
+func DoReply(replyFunc ReplyFunc, envPtr, replyPtr uint32) unsafe.Pointer {
+	env := types.Env{}
+	envData := TranslateToSlice(uintptr(envPtr))
+	err := env.UnmarshalJSON(envData)
+	if err != nil {
+		return StdErrResult(err)
+	}
+
+	reply, err := parseReply(replyPtr)
+	if err != nil {
+		return StdErrResult(err)
+	}
+
+	deps := make_dependencies()
+	resp, err := replyFunc(&deps, env, reply)
+	if err != nil {
 		return StdErrResult(err)
 	}
 
@@ -186,6 +233,7 @@ func DoQuery(queryFunc QueryFunc, envPtr, msgPtr uint32) unsafe.Pointer {
 	if err != nil {
 		return StdErrResult(err)
 	}
+
 	return Package_message(data)
 }
 

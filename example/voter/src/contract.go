@@ -1,6 +1,9 @@
 package src
 
 import (
+	"strconv"
+
+	"github.com/CosmWasm/cosmwasm-go/example/voter/src/state"
 	"github.com/CosmWasm/cosmwasm-go/example/voter/src/types"
 	"github.com/CosmWasm/cosmwasm-go/std"
 	stdTypes "github.com/CosmWasm/cosmwasm-go/std/types"
@@ -64,6 +67,29 @@ func Sudo(deps *std.Deps, env stdTypes.Env, msgBz []byte) (*stdTypes.Response, e
 	return nil, types.NewErrInvalidRequest("unknown sudo request")
 }
 
+// Reply performs an optional contract state change.
+// Endpoint is called when stdTypes.SubMsg was sent with (always/success/error) ReplyOn policy
+// on other endpoint invocation (instantiate/execute/migrate/sudo/reply).
+// SubMsg identification is done via stdTypes.SubMsg.ID field.
+func Reply(deps *std.Deps, env stdTypes.Env, reply stdTypes.Reply) (*stdTypes.Response, error) {
+	deps.Api.Debug("Reply called")
+
+	replyType, found, err := state.GetReplyMsgType(deps.Storage, reply.ID)
+	if err != nil {
+		return nil, types.NewErrInternal(err.Error())
+	}
+	if !found {
+		return nil, types.NewErrInternal("replyID (" + strconv.FormatUint(reply.ID, 10) + "): not found")
+	}
+
+	switch replyType {
+	case state.ReplyMsgTypeBank:
+		return handleReplyBankMsg(deps, reply.Result)
+	}
+
+	return nil, types.NewErrInternal("unknown replyMsgType: " + strconv.Itoa(int(replyType)))
+}
+
 // Query performs the contract state read.
 func Query(deps *std.Deps, env stdTypes.Env, msgBz []byte) ([]byte, error) {
 	deps.Api.Debug("Query called")
@@ -84,6 +110,8 @@ func Query(deps *std.Deps, env stdTypes.Env, msgBz []byte) ([]byte, error) {
 		handlerRes, handlerErr = queryTally(deps, env, *msg.Tally)
 	case msg.Open != nil:
 		handlerRes, handlerErr = queryOpen(deps, env)
+	case msg.ReleaseStats != nil:
+		handlerRes, handlerErr = queryReleaseStats(deps)
 	default:
 		handlerErr = types.NewErrInvalidRequest("unknown query")
 	}

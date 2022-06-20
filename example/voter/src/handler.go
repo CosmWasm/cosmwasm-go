@@ -42,10 +42,15 @@ func handleMsgRelease(deps *std.Deps, env stdTypes.Env, info stdTypes.MessageInf
 		return nil, types.NewErrInternal("bank balance query: " + err.Error())
 	}
 
-	bankMsg := stdTypes.NewSubMsg(stdTypes.SendMsg{
+	bankMsg := stdTypes.SendMsg{
 		ToAddress: info.Sender,
 		Amount:    contractFunds,
-	})
+	}
+
+	replyID, err := state.SetReplyMsgType(deps.Storage, state.ReplyMsgTypeBank)
+	if err != nil {
+		return nil, types.NewErrInternal(err.Error())
+	}
 
 	// Result
 	res := types.ReleaseResponse{
@@ -60,7 +65,7 @@ func handleMsgRelease(deps *std.Deps, env stdTypes.Env, info stdTypes.MessageInf
 	return &stdTypes.Response{
 		Data: resBz,
 		Messages: []stdTypes.SubMsg{
-			bankMsg,
+			stdTypes.ReplyOnSuccess(bankMsg, replyID),
 		},
 		Events: []stdTypes.Event{
 			types.NewEventRelease(info.Sender),
@@ -220,4 +225,53 @@ func handleSudoChangeVoteCost(deps *std.Deps, req types.ChangeCostRequest) (*std
 			types.NewEventVoteCostChanged(oldCost, req.NewCost),
 		},
 	}, nil
+}
+
+// handleReplyBankMsg handles a Reply from the x/bank Send sub call.
+// Handler adjusts the contract release stats.
+func handleReplyBankMsg(deps *std.Deps, reply stdTypes.SubcallResult) (*stdTypes.Response, error) {
+	// Input check
+	if reply.Err != "" {
+		return nil, types.NewErrInvalidRequest("x/bank reply: error received")
+	}
+	if reply.Ok == nil {
+		return nil, types.NewErrInvalidRequest("x/bank reply: Ok is nil")
+	}
+
+	var releasedAmt []stdTypes.Coin
+out:
+	for _, event := range reply.Ok.Events {
+		if event.Type != "transfer" {
+			continue
+		}
+
+		for _, attr := range event.Attributes {
+			if attr.Key != "amount" {
+				continue
+			}
+
+			coins, err := pkg.ParseCoinsFromString(attr.Value)
+			if err != nil {
+				return nil, types.NewErrInvalidRequest("x/bank reply: parsing transfer.amount value attribute: " + err.Error())
+			}
+			releasedAmt = coins
+			break out
+		}
+	}
+	if len(releasedAmt) == 0 {
+		return nil, types.NewErrInvalidRequest("x/bank reply: transfer.amount attribute: not found")
+	}
+
+	// Update release stats
+	stats, err := state.GetReleaseStats(deps.Storage)
+	if err != nil {
+		return nil, types.NewErrInternal(err.Error())
+	}
+
+	stats.AddRelease(releasedAmt)
+	if err := state.SetReleaseStats(deps.Storage, stats); err != nil {
+		return nil, types.NewErrInternal(err.Error())
+	}
+
+	return &stdTypes.Response{}, nil
 }

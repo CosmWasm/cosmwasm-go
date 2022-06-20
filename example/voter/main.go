@@ -34,6 +34,12 @@ func sudo(envPtr, msgPtr uint32) unsafe.Pointer {
 	return std.DoSudo(src.Sudo, envPtr, msgPtr)
 }
 
+// reply is a WASM contract entrypoint.
+//export reply
+func reply(envPtr, replyPtr uint32) unsafe.Pointer {
+	return std.DoReply(src.Reply, envPtr, replyPtr)
+}
+
 // query is a WASM contract entrypoint.
 //export query
 func query(envPtr, msgPtr uint32) unsafe.Pointer {

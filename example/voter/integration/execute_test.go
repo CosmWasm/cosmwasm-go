@@ -152,7 +152,7 @@ func (s *ContractTestSuite) TestExecuteRelease() {
 
 	voter1Addr, voter2Addr := "Voter1Addr", "Voter2Addr"
 
-	// Add voting and votes (1000 + 2 * 100)
+	// Add voting and votes (1000 + 2 * 100 of raised funds)
 	votingID := s.AddVoting(env, voter1Addr, "Test", 100, "a")
 	s.Vote(env, voter1Addr, votingID, "a", "yes")
 	s.Vote(env, voter2Addr, votingID, "a", "no")

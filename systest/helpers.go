@@ -169,6 +169,20 @@ func (i *Instance) Sudo(env types.Env, sudoMsg json.Marshaler) (*types.Response,
 	)
 }
 
+func (i *Instance) Reply(env types.Env, replyMsg types.Reply) (*types.Response, uint64, error) {
+	return i.Wasmer.Reply(
+		i.CodeID,
+		env,
+		replyMsg,
+		i.Store,
+		*i.Api,
+		i.Querier,
+		i.GasMeter,
+		i.GasLimit,
+		deserCost,
+	)
+}
+
 // setupWasmer instantiates a new wasmvm.VM with a contract given its path.
 func setupWasmer(t *testing.T, contractPath string) (*wasmvm.VM, []byte) {
 	// setup wasmer instance

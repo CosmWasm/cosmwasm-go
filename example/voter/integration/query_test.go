@@ -5,7 +5,9 @@ import (
 
 	"github.com/CosmWasm/cosmwasm-go/example/voter/src/state"
 	"github.com/CosmWasm/cosmwasm-go/example/voter/src/types"
+	stdTypes "github.com/CosmWasm/cosmwasm-go/std/types"
 	mocks "github.com/CosmWasm/wasmvm/api"
+	wasmVmTypes "github.com/CosmWasm/wasmvm/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -170,5 +172,67 @@ func (s *ContractTestSuite) TestQueryOpen() {
 
 		idsReceived := runQuery(t)
 		assert.Empty(t, idsReceived)
+	})
+}
+
+func (s *ContractTestSuite) TestQueryReleaseStats() {
+	env := mocks.MockEnv()
+	env.Block.Time = 1
+
+	runQuery := func(t *testing.T) state.ReleaseStats {
+		query := types.MsgQuery{
+			ReleaseStats: &EmptyStruct,
+		}
+
+		respBz, _, err := s.instance.Query(env, query)
+		require.NoError(t, err)
+
+		var resp state.ReleaseStats
+		require.NoError(t, resp.UnmarshalJSON(respBz))
+
+		return resp
+	}
+
+	s.T().Run("No releases", func(t *testing.T) {
+		stats := runQuery(t)
+		assert.EqualValues(t, 0, stats.Count)
+		assert.Nil(t, stats.TotalAmount)
+	})
+
+	// Send Release msg and emulate Reply receive
+	totalAmtExpected := stdTypes.NewCoinFromUint64(123, "uatom")
+	{
+		info := mocks.MockInfo(s.creatorAddr, nil)
+		releaseMsg := types.MsgExecute{
+			Release: &EmptyStruct,
+		}
+
+		_, _, err := s.instance.Execute(env, info, releaseMsg)
+		s.Require().NoError(err)
+
+		replyMsg := wasmVmTypes.Reply{
+			ID: 0,
+			Result: wasmVmTypes.SubMsgResult{
+				Ok: &wasmVmTypes.SubMsgResponse{
+					Events: wasmVmTypes.Events{
+						{
+							Type: "transfer",
+							Attributes: wasmVmTypes.EventAttributes{
+								{Key: "amount", Value: totalAmtExpected.String()},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		_, _, err = s.instance.Reply(env, replyMsg)
+		s.Require().NoError(err)
+	}
+
+	s.T().Run("1 release", func(t *testing.T) {
+		stats := runQuery(t)
+		assert.EqualValues(t, 1, stats.Count)
+		assert.ElementsMatch(t, []stdTypes.Coin{totalAmtExpected}, stats.TotalAmount)
 	})
 }
