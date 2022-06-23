@@ -19,7 +19,7 @@ jobs:
           
           TAGS="--tag ${DOCKER_IMAGE}:latest"
           if [[ $GITHUB_REF == refs/tags/* ]]; then
-            VERSION=${GITHUB_REF#refs/tags/}
+            VERSION=${GITHUB_REF#refs/tags/v}
             TAGS="$TAGS --tag ${DOCKER_IMAGE}:${VERSION}"
           fi
           
