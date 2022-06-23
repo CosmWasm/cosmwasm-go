@@ -6,14 +6,14 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/cosmwasm/cosmwasm-go/std/math"
+	"github.com/CosmWasm/cosmwasm-go/std/math"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmwasm/cosmwasm-go/std"
-	"github.com/cosmwasm/cosmwasm-go/std/mock"
-	"github.com/cosmwasm/cosmwasm-go/std/types"
+	"github.com/CosmWasm/cosmwasm-go/std"
+	"github.com/CosmWasm/cosmwasm-go/std/mock"
+	"github.com/CosmWasm/cosmwasm-go/std/types"
 )
 
 func mustEncode(t *testing.T, msg interface{}) []byte {

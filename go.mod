@@ -1,4 +1,4 @@
-module github.com/cosmwasm/cosmwasm-go
+module github.com/CosmWasm/cosmwasm-go
 
 go 1.18
 

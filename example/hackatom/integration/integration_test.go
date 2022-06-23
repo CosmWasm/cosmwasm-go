@@ -13,8 +13,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmwasm/cosmwasm-go/example/hackatom/src"
-	"github.com/cosmwasm/cosmwasm-go/systest"
+	"github.com/CosmWasm/cosmwasm-go/example/hackatom/src"
+	"github.com/CosmWasm/cosmwasm-go/systest"
 )
 
 var CONTRACT = filepath.Join("..", "hackatom.wasm")

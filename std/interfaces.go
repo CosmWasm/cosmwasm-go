@@ -3,7 +3,7 @@ package std
 import (
 	"errors"
 
-	"github.com/cosmwasm/cosmwasm-go/std/types"
+	"github.com/CosmWasm/cosmwasm-go/std/types"
 )
 
 // Deps contains the dependencies passed to a contract's mutating entrypoints.

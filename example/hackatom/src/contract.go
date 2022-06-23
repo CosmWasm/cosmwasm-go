@@ -5,8 +5,8 @@ import (
 	"encoding/hex"
 	"errors"
 
-	"github.com/cosmwasm/cosmwasm-go/std"
-	"github.com/cosmwasm/cosmwasm-go/std/types"
+	"github.com/CosmWasm/cosmwasm-go/std"
+	"github.com/CosmWasm/cosmwasm-go/std/types"
 )
 
 func Instantiate(deps *std.Deps, env types.Env, info types.MessageInfo, msg []byte) (*types.Response, error) {
