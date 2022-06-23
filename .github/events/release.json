@@ -1,0 +1,6 @@
+{
+  "action": "published",
+  "release": {
+    "tag_name": "refs/tags/0.5.0"
+  }
+}
