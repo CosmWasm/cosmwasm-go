@@ -1,12 +1,13 @@
 package integration
 
 import (
-	mocks "github.com/CosmWasm/wasmvm/api"
-	"github.com/cosmwasm/cosmwasm-go/example/queue/src"
-	"github.com/cosmwasm/cosmwasm-go/systest"
-	"github.com/stretchr/testify/require"
 	"path/filepath"
 	"testing"
+
+	"github.com/CosmWasm/cosmwasm-go/example/queue/src"
+	"github.com/CosmWasm/cosmwasm-go/systest"
+	mocks "github.com/CosmWasm/wasmvm/api"
+	"github.com/stretchr/testify/require"
 )
 
 var contractPath = filepath.Join("..", "queue.wasm")

@@ -5,8 +5,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmwasm/cosmwasm-go/std"
-	"github.com/cosmwasm/cosmwasm-go/std/types"
+	"github.com/CosmWasm/cosmwasm-go/std"
+	"github.com/CosmWasm/cosmwasm-go/std/types"
 )
 
 func TestMockStorage(t *testing.T) {

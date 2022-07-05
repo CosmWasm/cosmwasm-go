@@ -9,6 +9,8 @@ import (
 	"math/big"
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 var maxUint128Big = func() *big.Int {
@@ -641,6 +643,52 @@ func TestUint128_UnmarshalJSON(t *testing.T) {
 					tc.expectedUint128, tc.expectedUint128.Lo, tc.expectedUint128.Hi,
 					gotU128, gotU128.Lo, gotU128.Hi)
 			}
+		})
+	}
+}
+
+func TestUint128_Cmp(t *testing.T) {
+	type testCase struct {
+		name string
+		a    Uint128
+		b    Uint128
+		//
+		expLT  bool
+		expLTE bool
+		expGT  bool
+		expGTE bool
+	}
+
+	testCases := []testCase{
+		{
+			name:  "0 vs 0",
+			a:     NewUint128FromUint64(0),
+			b:     NewUint128FromUint64(0),
+			expLT: false, expLTE: true,
+			expGT: false, expGTE: true,
+		},
+		{
+			name:  "1 vs 0",
+			a:     NewUint128FromUint64(1),
+			b:     NewUint128FromUint64(0),
+			expLT: false, expLTE: false,
+			expGT: true, expGTE: true,
+		},
+		{
+			name:  "0 vs 1",
+			a:     NewUint128FromUint64(0),
+			b:     NewUint128FromUint64(1),
+			expLT: true, expLTE: true,
+			expGT: false, expGTE: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equalf(t, tc.expLT, tc.a.LT(tc.b), "LT")
+			assert.Equalf(t, tc.expLTE, tc.a.LTE(tc.b), "LTE")
+			assert.Equalf(t, tc.expGT, tc.a.GT(tc.b), "GT")
+			assert.Equalf(t, tc.expGTE, tc.a.GTE(tc.b), "GTE")
 		})
 	}
 }

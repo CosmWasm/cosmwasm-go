@@ -3,8 +3,9 @@ package src
 
 import (
 	"errors"
-	"github.com/cosmwasm/cosmwasm-go/std"
-	"github.com/cosmwasm/cosmwasm-go/std/types"
+
+	"github.com/CosmWasm/cosmwasm-go/std"
+	"github.com/CosmWasm/cosmwasm-go/std/types"
 )
 
 // FirstKey defines the value of the default key,
