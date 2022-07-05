@@ -43,6 +43,8 @@ func Execute(deps *std.Deps, env stdTypes.Env, info stdTypes.MessageInfo, msgBz 
 		return handleMsgNewVoting(deps, env, info, *msg.NewVoting)
 	case msg.Vote != nil:
 		return handleMsgVote(deps, env, info, *msg.Vote)
+	case msg.SendIBCVote != nil:
+		return handleMsgSendIBCVote(deps, env, info, *msg.SendIBCVote)
 	}
 
 	return nil, types.NewErrInvalidRequest("unknown execute request")
@@ -112,6 +114,8 @@ func Query(deps *std.Deps, env stdTypes.Env, msgBz []byte) ([]byte, error) {
 		handlerRes, handlerErr = queryOpen(deps, env)
 	case msg.ReleaseStats != nil:
 		handlerRes, handlerErr = queryReleaseStats(deps)
+	case msg.IBCStats != nil:
+		handlerRes, handlerErr = queryIBCStats(deps, *msg.IBCStats)
 	default:
 		handlerErr = types.NewErrInvalidRequest("unknown query")
 	}
@@ -125,4 +129,89 @@ func Query(deps *std.Deps, env stdTypes.Env, msgBz []byte) ([]byte, error) {
 	}
 
 	return resBz, nil
+}
+
+// IBCChannelOpen performs the IBC handshake checks.
+// Endpoint is  called when the contract to participating in the IBC channel handshake step.
+// IBC protocol wise, this is either the "Channel Open Init" event on the initiating chain or the
+// "Channel Open Try" on the counterparty chain.
+// Protocol version and channel ordering should be verified for example.
+func IBCChannelOpen(deps *std.Deps, env stdTypes.Env, openMsg stdTypes.IBCChannelOpenMsg) error {
+	deps.Api.Debug("IBCChannelOpen called")
+
+	return handleIBCChannelOpen(openMsg)
+}
+
+// IBCChannelConnect performs the IBC handshake checks.
+// Endpoint is called when an IBC channel connection was established.
+// IBC protocol wise, this is either the "Channel Open Ack" event on the initiating chain or the "Channel Open Confirm"
+// on the counterparty chain).
+func IBCChannelConnect(deps *std.Deps, env stdTypes.Env, connectMsg stdTypes.IBCChannelConnectMsg) (*stdTypes.IBCBasicResponse, error) {
+	deps.Api.Debug("IBCChannelConnect called")
+
+	return handleIBCChannelConnect(connectMsg)
+}
+
+// IBCChannelClose informs the contract that an IBC channel was closed.
+// Endpoint is called when an IBC channel connection was closed.
+// Once closed, channels cannot be reopened and identifiers cannot be reused.
+func IBCChannelClose(deps *std.Deps, env stdTypes.Env, closeMsg stdTypes.IBCChannelCloseMsg) (*stdTypes.IBCBasicResponse, error) {
+	deps.Api.Debug("IBCChannelClose called")
+
+	return nil, types.NewErrUnimplemented("IBCChannelClose")
+}
+
+// IBCPacketReceive performs the contract state change on IBC received packet.
+// Endpoint is called when an incoming IBC packet is received by a counterparty chain and should be processed.
+func IBCPacketReceive(deps *std.Deps, env stdTypes.Env, receiveMsg stdTypes.IBCPacketReceiveMsg) (*stdTypes.IBCReceiveResponse, error) {
+	deps.Api.Debug("IBCPacketReceive called")
+
+	var msg types.MsgIBC
+	if err := msg.UnmarshalJSON(receiveMsg.Packet.Data); err != nil {
+		return nil, types.NewErrInvalidRequest("msg JSON unmarshal: " + err.Error())
+	}
+
+	switch {
+	case msg.Vote != nil:
+		return handleIBCMsgVote(deps, env, *msg.Vote)
+	}
+
+	return nil, types.NewErrInvalidRequest("unknown IBC packet")
+}
+
+// IBCPacketAck performs an optional contract state change on IBC sent packet acknowledgement.
+// Endpoint is called when an outgoing IBC packet is acknowledged by a counterparty chain (packet
+// processing success or failure).
+func IBCPacketAck(deps *std.Deps, env stdTypes.Env, ackMsg stdTypes.IBCPacketAckMsg) (*stdTypes.IBCBasicResponse, error) {
+	deps.Api.Debug("IBCPacketAck called")
+
+	var origMsg types.MsgIBC
+	if err := origMsg.UnmarshalJSON(ackMsg.OriginalPacket.Data); err != nil {
+		return nil, types.NewErrInvalidRequest("original msg JSON unmarshal: " + err.Error())
+	}
+
+	switch {
+	case origMsg.Vote != nil:
+		return handleIBCAckVote(deps, *origMsg.Vote, ackMsg.Acknowledgement)
+	}
+
+	return nil, types.NewErrInvalidRequest("unknown IBC original packet")
+}
+
+// IBCPacketTimeout inform the contract that an outgoing IBC packet has timed out.
+// Endpoint is called when an outgoing IBC packet wasn't received by a counterparty chain within timeout boundaries.
+func IBCPacketTimeout(deps *std.Deps, env stdTypes.Env, timeoutMsg stdTypes.IBCPacketTimeoutMsg) (*stdTypes.IBCBasicResponse, error) {
+	deps.Api.Debug("IBCPacketTimeout called♂️")
+
+	var msg types.MsgIBC
+	if err := msg.UnmarshalJSON(timeoutMsg.Packet.Data); err != nil {
+		return nil, types.NewErrInvalidRequest("msg JSON unmarshal: " + err.Error())
+	}
+
+	switch {
+	case msg.Vote != nil:
+		return handleIBCTimeoutVote(deps, *msg.Vote)
+	}
+
+	return nil, types.NewErrInvalidRequest("unknown IBC packet")
 }

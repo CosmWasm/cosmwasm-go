@@ -597,6 +597,8 @@ func tinyjson8354aa0cDecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes6(in *
 			(out.NewVotingCost).UnmarshalTinyJSON(in)
 		case "vote_cost":
 			(out.VoteCost).UnmarshalTinyJSON(in)
+		case "ibc_send_timeout":
+			out.IBCSendTimeout = uint64(in.Uint64())
 		default:
 			in.SkipRecursive()
 		}
@@ -625,6 +627,11 @@ func tinyjson8354aa0cEncodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes6(out 
 		const prefix string = ",\"vote_cost\":"
 		out.RawString(prefix)
 		(in.VoteCost).MarshalTinyJSON(out)
+	}
+	{
+		const prefix string = ",\"ibc_send_timeout\":"
+		out.RawString(prefix)
+		out.Uint64(uint64(in.IBCSendTimeout))
 	}
 	out.RawByte('}')
 }
@@ -750,7 +757,171 @@ func (v *QueryOpenResponse) UnmarshalJSON(data []byte) error {
 func (v *QueryOpenResponse) UnmarshalTinyJSON(l *jlexer.Lexer) {
 	tinyjson8354aa0cDecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes7(l, v)
 }
-func tinyjson8354aa0cDecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes8(in *jlexer.Lexer, out *MsgQuery) {
+func tinyjson8354aa0cDecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes8(in *jlexer.Lexer, out *QueryIBCStatsResponse) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeFieldName(false)
+		in.WantColon()
+		if in.IsNull() {
+			in.Skip()
+			in.WantComma()
+			continue
+		}
+		switch key {
+		case "stats":
+			if in.IsNull() {
+				in.Skip()
+				out.Stats = nil
+			} else {
+				in.Delim('[')
+				if out.Stats == nil {
+					if !in.IsDelim(']') {
+						out.Stats = make([]state.IBCStats, 0, 1)
+					} else {
+						out.Stats = []state.IBCStats{}
+					}
+				} else {
+					out.Stats = (out.Stats)[:0]
+				}
+				for !in.IsDelim(']') {
+					var v13 state.IBCStats
+					(v13).UnmarshalTinyJSON(in)
+					out.Stats = append(out.Stats, v13)
+					in.WantComma()
+				}
+				in.Delim(']')
+			}
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func tinyjson8354aa0cEncodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes8(out *jwriter.Writer, in QueryIBCStatsResponse) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"stats\":"
+		out.RawString(prefix[1:])
+		if in.Stats == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
+			out.RawString("null")
+		} else {
+			out.RawByte('[')
+			for v14, v15 := range in.Stats {
+				if v14 > 0 {
+					out.RawByte(',')
+				}
+				(v15).MarshalTinyJSON(out)
+			}
+			out.RawByte(']')
+		}
+	}
+	out.RawByte('}')
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v QueryIBCStatsResponse) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	tinyjson8354aa0cEncodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes8(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalTinyJSON supports tinyjson.Marshaler interface
+func (v QueryIBCStatsResponse) MarshalTinyJSON(w *jwriter.Writer) {
+	tinyjson8354aa0cEncodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes8(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *QueryIBCStatsResponse) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	tinyjson8354aa0cDecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes8(&r, v)
+	return r.Error()
+}
+
+// UnmarshalTinyJSON supports tinyjson.Unmarshaler interface
+func (v *QueryIBCStatsResponse) UnmarshalTinyJSON(l *jlexer.Lexer) {
+	tinyjson8354aa0cDecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes8(l, v)
+}
+func tinyjson8354aa0cDecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes9(in *jlexer.Lexer, out *QueryIBCStatsRequest) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeFieldName(false)
+		in.WantColon()
+		if in.IsNull() {
+			in.Skip()
+			in.WantComma()
+			continue
+		}
+		switch key {
+		case "from":
+			out.From = string(in.String())
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func tinyjson8354aa0cEncodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes9(out *jwriter.Writer, in QueryIBCStatsRequest) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"from\":"
+		out.RawString(prefix[1:])
+		out.String(string(in.From))
+	}
+	out.RawByte('}')
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v QueryIBCStatsRequest) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	tinyjson8354aa0cEncodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes9(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalTinyJSON supports tinyjson.Marshaler interface
+func (v QueryIBCStatsRequest) MarshalTinyJSON(w *jwriter.Writer) {
+	tinyjson8354aa0cEncodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes9(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *QueryIBCStatsRequest) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	tinyjson8354aa0cDecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes9(&r, v)
+	return r.Error()
+}
+
+// UnmarshalTinyJSON supports tinyjson.Unmarshaler interface
+func (v *QueryIBCStatsRequest) UnmarshalTinyJSON(l *jlexer.Lexer) {
+	tinyjson8354aa0cDecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes9(l, v)
+}
+func tinyjson8354aa0cDecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes10(in *jlexer.Lexer, out *MsgQuery) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -819,6 +990,16 @@ func tinyjson8354aa0cDecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes8(in *
 				}
 				tinyjson8354aa0cDecode(in, out.ReleaseStats)
 			}
+		case "ibc_stats":
+			if in.IsNull() {
+				in.Skip()
+				out.IBCStats = nil
+			} else {
+				if out.IBCStats == nil {
+					out.IBCStats = new(QueryIBCStatsRequest)
+				}
+				(*out.IBCStats).UnmarshalTinyJSON(in)
+			}
 		default:
 			in.SkipRecursive()
 		}
@@ -829,7 +1010,7 @@ func tinyjson8354aa0cDecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes8(in *
 		in.Consumed()
 	}
 }
-func tinyjson8354aa0cEncodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes8(out *jwriter.Writer, in MsgQuery) {
+func tinyjson8354aa0cEncodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes10(out *jwriter.Writer, in MsgQuery) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -879,31 +1060,41 @@ func tinyjson8354aa0cEncodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes8(out 
 		}
 		tinyjson8354aa0cEncode(out, *in.ReleaseStats)
 	}
+	if in.IBCStats != nil {
+		const prefix string = ",\"ibc_stats\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		(*in.IBCStats).MarshalTinyJSON(out)
+	}
 	out.RawByte('}')
 }
 
 // MarshalJSON supports json.Marshaler interface
 func (v MsgQuery) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	tinyjson8354aa0cEncodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes8(&w, v)
+	tinyjson8354aa0cEncodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes10(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalTinyJSON supports tinyjson.Marshaler interface
 func (v MsgQuery) MarshalTinyJSON(w *jwriter.Writer) {
-	tinyjson8354aa0cEncodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes8(w, v)
+	tinyjson8354aa0cEncodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes10(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *MsgQuery) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	tinyjson8354aa0cDecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes8(&r, v)
+	tinyjson8354aa0cDecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes10(&r, v)
 	return r.Error()
 }
 
 // UnmarshalTinyJSON supports tinyjson.Unmarshaler interface
 func (v *MsgQuery) UnmarshalTinyJSON(l *jlexer.Lexer) {
-	tinyjson8354aa0cDecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes8(l, v)
+	tinyjson8354aa0cDecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes10(l, v)
 }
 func tinyjson8354aa0cDecode(in *jlexer.Lexer, out *struct{}) {
 	isTopLevel := in.IsStart()

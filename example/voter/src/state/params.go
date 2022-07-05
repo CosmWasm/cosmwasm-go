@@ -18,6 +18,8 @@ type Params struct {
 	NewVotingCost stdTypes.Coin
 	// VoteCost is a cost of a single vote.
 	VoteCost stdTypes.Coin
+	// IBCSendTimeout is a timeout for IBC send [ns].
+	IBCSendTimeout uint64
 }
 
 // GetParams returns Params state.

@@ -14,6 +14,8 @@ type MsgQuery struct {
 	Open *struct{} `json:",omitempty"`
 	// ReleaseStats returns the current Release operations stats.
 	ReleaseStats *struct{} `json:",omitempty"`
+	// IBCStats returns sent IBC packets stats for a given senderAddress.
+	IBCStats *QueryIBCStatsRequest `json:",omitempty"`
 }
 
 // QueryParamsResponse defines MsgQuery.Params response.
@@ -61,3 +63,15 @@ type QueryOpenResponse struct {
 type QueryReleaseStatsResponse struct {
 	state.ReleaseStats
 }
+
+type (
+	// QueryIBCStatsRequest defines MsgQuery.IBCStats request.
+	QueryIBCStatsRequest struct {
+		From string
+	}
+
+	// QueryIBCStatsResponse defines MsgQuery.IBCStats response.
+	QueryIBCStatsResponse struct {
+		Stats []state.IBCStats
+	}
+)

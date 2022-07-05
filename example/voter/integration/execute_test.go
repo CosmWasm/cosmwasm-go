@@ -1,13 +1,9 @@
 package integration
 
 import (
-	"testing"
-
 	"github.com/CosmWasm/cosmwasm-go/example/voter/src/types"
 	mocks "github.com/CosmWasm/wasmvm/api"
 	wasmVmTypes "github.com/CosmWasm/wasmvm/types"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func (s *ContractTestSuite) TestExecuteNewVoting() {
@@ -16,7 +12,7 @@ func (s *ContractTestSuite) TestExecuteNewVoting() {
 	// Test OK
 	s.AddVoting(env, s.creatorAddr, "Test", 100, "a")
 
-	s.T().Run("Fail: invalid input", func(t *testing.T) {
+	s.Run("Fail: invalid input", func() {
 		info := mocks.MockInfo(s.creatorAddr, []wasmVmTypes.Coin{s.genParams.NewVotingCost.ToWasmVMCoin()})
 		msg := types.MsgExecute{
 			NewVoting: &types.NewVotingRequest{
@@ -27,10 +23,10 @@ func (s *ContractTestSuite) TestExecuteNewVoting() {
 		}
 
 		_, _, err := s.instance.Execute(env, info, msg)
-		assert.Error(t, err)
+		s.Assert().Error(err)
 	})
 
-	s.T().Run("Fail: invalid payment", func(t *testing.T) {
+	s.Run("Fail: invalid payment", func() {
 		payment := s.genParams.NewVotingCost
 		payment.Amount = payment.Amount.Sub64(1)
 
@@ -44,7 +40,7 @@ func (s *ContractTestSuite) TestExecuteNewVoting() {
 		}
 
 		_, _, err := s.instance.Execute(env, info, msg)
-		assert.Error(t, err)
+		s.Assert().Error(err)
 	})
 }
 
@@ -57,7 +53,7 @@ func (s *ContractTestSuite) TestExecuteVote() {
 	votingID := s.AddVoting(env, s.creatorAddr, "Test", 100, "a")
 	s.Vote(env, voter1Addr, votingID, "a", "yes")
 
-	s.T().Run("Fail: invalid input", func(t *testing.T) {
+	s.Run("Fail: invalid input", func() {
 		info := mocks.MockInfo(voter2Addr, []wasmVmTypes.Coin{s.genParams.VoteCost.ToWasmVMCoin()})
 		msg := types.MsgExecute{
 			Vote: &types.VoteRequest{
@@ -68,10 +64,10 @@ func (s *ContractTestSuite) TestExecuteVote() {
 		}
 
 		_, _, err := s.instance.Execute(env, info, msg)
-		assert.Error(t, err)
+		s.Assert().Error(err)
 	})
 
-	s.T().Run("Fail: invalid payment", func(t *testing.T) {
+	s.Run("Fail: invalid payment", func() {
 		payment := s.genParams.VoteCost
 		payment.Amount = payment.Amount.Sub64(1)
 
@@ -85,10 +81,10 @@ func (s *ContractTestSuite) TestExecuteVote() {
 		}
 
 		_, _, err := s.instance.Execute(env, info, msg)
-		assert.Error(t, err)
+		s.Assert().Error(err)
 	})
 
-	s.T().Run("Fail: non-existing voting", func(t *testing.T) {
+	s.Run("Fail: non-existing voting", func() {
 		info := mocks.MockInfo(voter2Addr, []wasmVmTypes.Coin{s.genParams.VoteCost.ToWasmVMCoin()})
 		msg := types.MsgExecute{
 			Vote: &types.VoteRequest{
@@ -99,10 +95,10 @@ func (s *ContractTestSuite) TestExecuteVote() {
 		}
 
 		_, _, err := s.instance.Execute(env, info, msg)
-		assert.Error(t, err)
+		s.Assert().Error(err)
 	})
 
-	s.T().Run("Fail: already voted", func(t *testing.T) {
+	s.Run("Fail: already voted", func() {
 		info := mocks.MockInfo(voter1Addr, []wasmVmTypes.Coin{s.genParams.VoteCost.ToWasmVMCoin()})
 		msg := types.MsgExecute{
 			Vote: &types.VoteRequest{
@@ -113,10 +109,10 @@ func (s *ContractTestSuite) TestExecuteVote() {
 		}
 
 		_, _, err := s.instance.Execute(env, info, msg)
-		assert.Error(t, err)
+		s.Assert().Error(err)
 	})
 
-	s.T().Run("Fail: voting is closed", func(t *testing.T) {
+	s.Run("Fail: voting is closed", func() {
 		env := mocks.MockEnv()
 		env.Block.Time += 200
 		info := mocks.MockInfo(voter2Addr, []wasmVmTypes.Coin{s.genParams.VoteCost.ToWasmVMCoin()})
@@ -129,10 +125,10 @@ func (s *ContractTestSuite) TestExecuteVote() {
 		}
 
 		_, _, err := s.instance.Execute(env, info, msg)
-		assert.Error(t, err)
+		s.Assert().Error(err)
 	})
 
-	s.T().Run("Fail: non-existing option", func(t *testing.T) {
+	s.Run("Fail: non-existing option", func() {
 		info := mocks.MockInfo(voter2Addr, []wasmVmTypes.Coin{s.genParams.VoteCost.ToWasmVMCoin()})
 		msg := types.MsgExecute{
 			Vote: &types.VoteRequest{
@@ -143,7 +139,7 @@ func (s *ContractTestSuite) TestExecuteVote() {
 		}
 
 		_, _, err := s.instance.Execute(env, info, msg)
-		assert.Error(t, err)
+		s.Assert().Error(err)
 	})
 }
 
@@ -157,29 +153,55 @@ func (s *ContractTestSuite) TestExecuteRelease() {
 	s.Vote(env, voter1Addr, votingID, "a", "yes")
 	s.Vote(env, voter2Addr, votingID, "a", "no")
 
-	s.T().Run("Fail: unauthorized", func(t *testing.T) {
+	s.Run("Fail: unauthorized", func() {
 		info := mocks.MockInfo(voter2Addr, nil)
 		msg := types.MsgExecute{
 			Release: &EmptyStruct,
 		}
 
 		_, _, err := s.instance.Execute(env, info, msg)
-		assert.Error(t, err)
+		s.Assert().Error(err)
 	})
 
-	s.T().Run("OK", func(t *testing.T) {
+	s.Run("OK", func() {
 		info := mocks.MockInfo(s.creatorAddr, nil)
 		msg := types.MsgExecute{
 			Release: &EmptyStruct,
 		}
 
 		res, _, err := s.instance.Execute(env, info, msg)
-		require.NoError(t, err)
-		require.NotNil(t, res)
+		s.Require().NoError(err)
+		s.Require().NotNil(res)
 
 		var resp types.ReleaseResponse
-		require.NoError(t, resp.UnmarshalJSON(res.Data))
+		s.Require().NoError(resp.UnmarshalJSON(res.Data))
 
-		assert.ElementsMatch(t, s.genFunds, resp.ReleasedAmount)
+		s.Assert().ElementsMatch(s.genFunds, resp.ReleasedAmount)
+	})
+}
+
+func (s *ContractTestSuite) TestExecuteSendIBCVote() {
+	env := mocks.MockEnv()
+	senderAddr := "SenderAddr"
+
+	s.Run("OK", func() {
+		s.IBCVote(env, senderAddr, 1, "a", "yes", "channel-1")
+	})
+
+	s.Run("Fail: invalid input", func() {
+		info := mocks.MockInfo(senderAddr, nil)
+		msg := types.MsgExecute{
+			SendIBCVote: &types.SendIBCVoteRequest{
+				VoteRequest: types.VoteRequest{
+					ID:     1,
+					Option: "a",
+					Vote:   "yes",
+				},
+				ChannelID: "invalid",
+			},
+		}
+
+		_, _, err := s.instance.Execute(env, info, msg)
+		s.Require().Error(err)
 	})
 }

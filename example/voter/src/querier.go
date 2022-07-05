@@ -95,3 +95,19 @@ func queryReleaseStats(deps *std.Deps) (*types.QueryReleaseStatsResponse, error)
 		ReleaseStats: stats,
 	}, nil
 }
+
+// queryIBCStats handles MsgQuery.IBCStats query.
+func queryIBCStats(deps *std.Deps, req types.QueryIBCStatsRequest) (*types.QueryIBCStatsResponse, error) {
+	var stats []state.IBCStats
+	err := state.IterateIBCStats(deps.Storage, req.From, func(ibcStats state.IBCStats) (stop bool) {
+		stats = append(stats, ibcStats)
+		return false
+	})
+	if err != nil {
+		return nil, types.NewErrInternal(err.Error())
+	}
+
+	return &types.QueryIBCStatsResponse{
+		Stats: stats,
+	}, nil
+}

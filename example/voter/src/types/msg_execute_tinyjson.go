@@ -96,7 +96,94 @@ func (v *VoteRequest) UnmarshalJSON(data []byte) error {
 func (v *VoteRequest) UnmarshalTinyJSON(l *jlexer.Lexer) {
 	tinyjson8d55ca79DecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes(l, v)
 }
-func tinyjson8d55ca79DecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes1(in *jlexer.Lexer, out *ReleaseResponse) {
+func tinyjson8d55ca79DecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes1(in *jlexer.Lexer, out *SendIBCVoteRequest) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeFieldName(false)
+		in.WantColon()
+		if in.IsNull() {
+			in.Skip()
+			in.WantComma()
+			continue
+		}
+		switch key {
+		case "channel_id":
+			out.ChannelID = string(in.String())
+		case "id":
+			out.ID = uint64(in.Uint64())
+		case "option":
+			out.Option = string(in.String())
+		case "vote":
+			out.Vote = string(in.String())
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func tinyjson8d55ca79EncodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes1(out *jwriter.Writer, in SendIBCVoteRequest) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"channel_id\":"
+		out.RawString(prefix[1:])
+		out.String(string(in.ChannelID))
+	}
+	{
+		const prefix string = ",\"id\":"
+		out.RawString(prefix)
+		out.Uint64(uint64(in.ID))
+	}
+	{
+		const prefix string = ",\"option\":"
+		out.RawString(prefix)
+		out.String(string(in.Option))
+	}
+	{
+		const prefix string = ",\"vote\":"
+		out.RawString(prefix)
+		out.String(string(in.Vote))
+	}
+	out.RawByte('}')
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v SendIBCVoteRequest) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	tinyjson8d55ca79EncodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes1(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalTinyJSON supports tinyjson.Marshaler interface
+func (v SendIBCVoteRequest) MarshalTinyJSON(w *jwriter.Writer) {
+	tinyjson8d55ca79EncodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes1(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *SendIBCVoteRequest) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	tinyjson8d55ca79DecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes1(&r, v)
+	return r.Error()
+}
+
+// UnmarshalTinyJSON supports tinyjson.Unmarshaler interface
+func (v *SendIBCVoteRequest) UnmarshalTinyJSON(l *jlexer.Lexer) {
+	tinyjson8d55ca79DecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes1(l, v)
+}
+func tinyjson8d55ca79DecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes2(in *jlexer.Lexer, out *ReleaseResponse) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -148,7 +235,7 @@ func tinyjson8d55ca79DecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes1(in *
 		in.Consumed()
 	}
 }
-func tinyjson8d55ca79EncodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes1(out *jwriter.Writer, in ReleaseResponse) {
+func tinyjson8d55ca79EncodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes2(out *jwriter.Writer, in ReleaseResponse) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -174,27 +261,27 @@ func tinyjson8d55ca79EncodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes1(out 
 // MarshalJSON supports json.Marshaler interface
 func (v ReleaseResponse) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	tinyjson8d55ca79EncodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes1(&w, v)
+	tinyjson8d55ca79EncodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes2(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalTinyJSON supports tinyjson.Marshaler interface
 func (v ReleaseResponse) MarshalTinyJSON(w *jwriter.Writer) {
-	tinyjson8d55ca79EncodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes1(w, v)
+	tinyjson8d55ca79EncodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes2(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *ReleaseResponse) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	tinyjson8d55ca79DecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes1(&r, v)
+	tinyjson8d55ca79DecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes2(&r, v)
 	return r.Error()
 }
 
 // UnmarshalTinyJSON supports tinyjson.Unmarshaler interface
 func (v *ReleaseResponse) UnmarshalTinyJSON(l *jlexer.Lexer) {
-	tinyjson8d55ca79DecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes1(l, v)
+	tinyjson8d55ca79DecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes2(l, v)
 }
-func tinyjson8d55ca79DecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes2(in *jlexer.Lexer, out *NewVotingResponse) {
+func tinyjson8d55ca79DecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes3(in *jlexer.Lexer, out *NewVotingResponse) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -225,7 +312,7 @@ func tinyjson8d55ca79DecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes2(in *
 		in.Consumed()
 	}
 }
-func tinyjson8d55ca79EncodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes2(out *jwriter.Writer, in NewVotingResponse) {
+func tinyjson8d55ca79EncodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes3(out *jwriter.Writer, in NewVotingResponse) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -240,27 +327,27 @@ func tinyjson8d55ca79EncodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes2(out 
 // MarshalJSON supports json.Marshaler interface
 func (v NewVotingResponse) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	tinyjson8d55ca79EncodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes2(&w, v)
+	tinyjson8d55ca79EncodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes3(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalTinyJSON supports tinyjson.Marshaler interface
 func (v NewVotingResponse) MarshalTinyJSON(w *jwriter.Writer) {
-	tinyjson8d55ca79EncodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes2(w, v)
+	tinyjson8d55ca79EncodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes3(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *NewVotingResponse) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	tinyjson8d55ca79DecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes2(&r, v)
+	tinyjson8d55ca79DecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes3(&r, v)
 	return r.Error()
 }
 
 // UnmarshalTinyJSON supports tinyjson.Unmarshaler interface
 func (v *NewVotingResponse) UnmarshalTinyJSON(l *jlexer.Lexer) {
-	tinyjson8d55ca79DecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes2(l, v)
+	tinyjson8d55ca79DecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes3(l, v)
 }
-func tinyjson8d55ca79DecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes3(in *jlexer.Lexer, out *NewVotingRequest) {
+func tinyjson8d55ca79DecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes4(in *jlexer.Lexer, out *NewVotingRequest) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -316,7 +403,7 @@ func tinyjson8d55ca79DecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes3(in *
 		in.Consumed()
 	}
 }
-func tinyjson8d55ca79EncodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes3(out *jwriter.Writer, in NewVotingRequest) {
+func tinyjson8d55ca79EncodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes4(out *jwriter.Writer, in NewVotingRequest) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -352,27 +439,27 @@ func tinyjson8d55ca79EncodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes3(out 
 // MarshalJSON supports json.Marshaler interface
 func (v NewVotingRequest) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	tinyjson8d55ca79EncodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes3(&w, v)
+	tinyjson8d55ca79EncodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes4(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalTinyJSON supports tinyjson.Marshaler interface
 func (v NewVotingRequest) MarshalTinyJSON(w *jwriter.Writer) {
-	tinyjson8d55ca79EncodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes3(w, v)
+	tinyjson8d55ca79EncodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes4(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *NewVotingRequest) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	tinyjson8d55ca79DecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes3(&r, v)
+	tinyjson8d55ca79DecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes4(&r, v)
 	return r.Error()
 }
 
 // UnmarshalTinyJSON supports tinyjson.Unmarshaler interface
 func (v *NewVotingRequest) UnmarshalTinyJSON(l *jlexer.Lexer) {
-	tinyjson8d55ca79DecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes3(l, v)
+	tinyjson8d55ca79DecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes4(l, v)
 }
-func tinyjson8d55ca79DecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes4(in *jlexer.Lexer, out *MsgExecute) {
+func tinyjson8d55ca79DecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes5(in *jlexer.Lexer, out *MsgExecute) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -421,6 +508,16 @@ func tinyjson8d55ca79DecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes4(in *
 				}
 				(*out.Vote).UnmarshalTinyJSON(in)
 			}
+		case "send_ibc_vote":
+			if in.IsNull() {
+				in.Skip()
+				out.SendIBCVote = nil
+			} else {
+				if out.SendIBCVote == nil {
+					out.SendIBCVote = new(SendIBCVoteRequest)
+				}
+				(*out.SendIBCVote).UnmarshalTinyJSON(in)
+			}
 		default:
 			in.SkipRecursive()
 		}
@@ -431,7 +528,7 @@ func tinyjson8d55ca79DecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes4(in *
 		in.Consumed()
 	}
 }
-func tinyjson8d55ca79EncodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes4(out *jwriter.Writer, in MsgExecute) {
+func tinyjson8d55ca79EncodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes5(out *jwriter.Writer, in MsgExecute) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -461,31 +558,41 @@ func tinyjson8d55ca79EncodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes4(out 
 		}
 		(*in.Vote).MarshalTinyJSON(out)
 	}
+	if in.SendIBCVote != nil {
+		const prefix string = ",\"send_ibc_vote\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		(*in.SendIBCVote).MarshalTinyJSON(out)
+	}
 	out.RawByte('}')
 }
 
 // MarshalJSON supports json.Marshaler interface
 func (v MsgExecute) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	tinyjson8d55ca79EncodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes4(&w, v)
+	tinyjson8d55ca79EncodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes5(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalTinyJSON supports tinyjson.Marshaler interface
 func (v MsgExecute) MarshalTinyJSON(w *jwriter.Writer) {
-	tinyjson8d55ca79EncodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes4(w, v)
+	tinyjson8d55ca79EncodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes5(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *MsgExecute) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	tinyjson8d55ca79DecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes4(&r, v)
+	tinyjson8d55ca79DecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes5(&r, v)
 	return r.Error()
 }
 
 // UnmarshalTinyJSON supports tinyjson.Unmarshaler interface
 func (v *MsgExecute) UnmarshalTinyJSON(l *jlexer.Lexer) {
-	tinyjson8d55ca79DecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes4(l, v)
+	tinyjson8d55ca79DecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcTypes5(l, v)
 }
 func tinyjson8d55ca79Decode(in *jlexer.Lexer, out *struct{}) {
 	isTopLevel := in.IsStart()

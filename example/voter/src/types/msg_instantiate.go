@@ -28,5 +28,9 @@ func (m MsgInstantiate) Validate(info stdTypes.MessageInfo) error {
 		return errors.New("params.voteCost: " + err.Error())
 	}
 
+	if m.Params.IBCSendTimeout == 0 {
+		return errors.New("params.ibcSendTimeout: must be GT 0")
+	}
+
 	return nil
 }

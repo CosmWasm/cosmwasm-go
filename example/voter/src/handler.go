@@ -165,12 +165,63 @@ func handleMsgVote(deps *std.Deps, env stdTypes.Env, info stdTypes.MessageInfo, 
 	}
 
 	if err := state.SetVoting(deps.Storage, *voting); err != nil {
-		return nil, types.NewErrInternal(voteErr.Error())
+		return nil, types.NewErrInternal(err.Error())
 	}
 
 	return &stdTypes.Response{
 		Events: []stdTypes.Event{
 			types.NewEventVoteAdded(info.Sender, req.ID, req.Option, req.Vote),
+		},
+	}, nil
+}
+
+// handleMsgSendIBCVote handles MsgExecute.SendIBCVote msg.
+func handleMsgSendIBCVote(deps *std.Deps, env stdTypes.Env, info stdTypes.MessageInfo, req types.SendIBCVoteRequest) (*stdTypes.Response, error) {
+	// Input check
+	if err := req.Validate(); err != nil {
+		return nil, types.NewErrInvalidRequest("req validation: " + err.Error())
+	}
+
+	// Build IBC message
+	params, err := state.GetParams(deps.Storage)
+	if err != nil {
+		return nil, types.NewErrInternal(err.Error())
+	}
+
+	ibcData := types.MsgIBC{
+		Vote: &types.IBCVoteRequest{
+			VoteRequest: req.VoteRequest,
+			From:        info.Sender,
+		},
+	}
+	ibcDataBz, err := ibcData.MarshalJSON()
+	if err != nil {
+		return nil, types.NewErrInternal("ibcData JSON marshal: " + err.Error())
+	}
+
+	ibcTimeout := env.Block.Time + params.IBCSendTimeout
+	ibcMsg := stdTypes.IBCMsg{
+		SendPacket: &stdTypes.SendPacketMsg{
+			ChannelID: req.ChannelID,
+			Data:      ibcDataBz,
+			Timeout: stdTypes.IBCTimeout{
+				Timestamp: ibcTimeout,
+			},
+		},
+	}
+
+	// Save IBC stats
+	ibcStats := state.NewIBCStats(info.Sender, req.ID, env)
+	if err := state.SetIBCStats(deps.Storage, ibcStats); err != nil {
+		return nil, types.NewErrInternal(err.Error())
+	}
+
+	return &stdTypes.Response{
+		Messages: []stdTypes.SubMsg{
+			stdTypes.NewSubMsg(ibcMsg),
+		},
+		Events: []stdTypes.Event{
+			types.NewEventIBCVoteSent(info.Sender, req.ID, req.Option, req.Vote),
 		},
 	}, nil
 }

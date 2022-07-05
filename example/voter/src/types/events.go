@@ -7,9 +7,11 @@ import (
 )
 
 const (
-	EventTypeRelease   = "release"
-	EventTypeNewVoting = "new_voting"
-	EventTypeVote      = "vote"
+	EventTypeRelease         = "release"
+	EventTypeNewVoting       = "new_voting"
+	EventTypeVote            = "vote"
+	EventTypeIBCVoteSent     = "ibc_vote_sent"
+	EventTypeIBCVoteReceived = "ibc_vote_received"
 
 	EventTypeNewVotingCostChanged = "new_voting_cost_change"
 	EventTypeVoteCostChanged      = "vote_cost_change"
@@ -75,6 +77,22 @@ func NewEventVoteAdded(senderAddr string, votingID uint64, option, vote string) 
 			},
 		},
 	}
+}
+
+// NewEventIBCVoteSent creates a new Event on IBC vote send event.
+func NewEventIBCVoteSent(fromAddr string, votingID uint64, option, vote string) stdTypes.Event {
+	event := NewEventVoteAdded(fromAddr, votingID, option, vote)
+	event.Type = EventTypeIBCVoteSent
+
+	return event
+}
+
+// NewEventIBCVoteAdded creates a new Event on IBC vote event.
+func NewEventIBCVoteAdded(fromAddr string, votingID uint64, option, vote string) stdTypes.Event {
+	event := NewEventVoteAdded(fromAddr, votingID, option, vote)
+	event.Type = EventTypeIBCVoteReceived
+
+	return event
 }
 
 // NewEventNewVotingCostChanged creates a new Event on new voting cost change sudo event.

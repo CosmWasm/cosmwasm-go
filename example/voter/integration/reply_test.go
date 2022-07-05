@@ -1,15 +1,11 @@
 package integration
 
 import (
-	"testing"
-
 	"github.com/CosmWasm/cosmwasm-go/example/voter/src/state"
 	"github.com/CosmWasm/cosmwasm-go/example/voter/src/types"
 	stdTypes "github.com/CosmWasm/cosmwasm-go/std/types"
 	mocks "github.com/CosmWasm/wasmvm/api"
 	wasmVmTypes "github.com/CosmWasm/wasmvm/types"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func (s *ContractTestSuite) TestReplyBankSend() {
@@ -18,14 +14,14 @@ func (s *ContractTestSuite) TestReplyBankSend() {
 	// Add voting
 	s.AddVoting(env, s.creatorAddr, "Test", 100, "a")
 
-	s.T().Run("Fail: no reply ID found", func(t *testing.T) {
+	s.Run("Fail: no reply ID found", func() {
 		msg := wasmVmTypes.Reply{
 			ID: 0,
 		}
 
 		_, _, err := s.instance.Reply(env, msg)
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "not found")
+		s.Assert().Error(err)
+		s.Assert().Contains(err.Error(), "not found")
 	})
 
 	// Release funds (replyID 0 is created here)
@@ -39,7 +35,7 @@ func (s *ContractTestSuite) TestReplyBankSend() {
 		s.Require().NoError(err)
 	}
 
-	s.T().Run("Fail: invalid reply: with error", func(t *testing.T) {
+	s.Run("Fail: invalid reply: with error", func() {
 		msg := wasmVmTypes.Reply{
 			ID: 0,
 			Result: wasmVmTypes.SubMsgResult{
@@ -48,11 +44,11 @@ func (s *ContractTestSuite) TestReplyBankSend() {
 		}
 
 		_, _, err := s.instance.Reply(env, msg)
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "x/bank reply: error received")
+		s.Assert().Error(err)
+		s.Assert().Contains(err.Error(), "x/bank reply: error received")
 	})
 
-	s.T().Run("Fail: invalid reply: invalid message type received (wrong events)", func(t *testing.T) {
+	s.Run("Fail: invalid reply: invalid message type received (wrong events)", func() {
 		msg := wasmVmTypes.Reply{
 			ID: 0,
 			Result: wasmVmTypes.SubMsgResult{
@@ -61,11 +57,11 @@ func (s *ContractTestSuite) TestReplyBankSend() {
 		}
 
 		_, _, err := s.instance.Reply(env, msg)
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "x/bank reply: transfer.amount attribute: not found")
+		s.Assert().Error(err)
+		s.Assert().Contains(err.Error(), "x/bank reply: transfer.amount attribute: not found")
 	})
 
-	s.T().Run("OK", func(t *testing.T) {
+	s.Run("OK", func() {
 		releaseAmtExpected := stdTypes.NewCoinFromUint64(1000, "uatom")
 
 		msg := wasmVmTypes.Reply{
@@ -85,7 +81,7 @@ func (s *ContractTestSuite) TestReplyBankSend() {
 		}
 
 		_, _, err := s.instance.Reply(env, msg)
-		assert.NoError(t, err)
+		s.Assert().NoError(err)
 
 		// Verify stats changed
 		{
@@ -94,14 +90,14 @@ func (s *ContractTestSuite) TestReplyBankSend() {
 			}
 
 			respBz, _, err := s.instance.Query(env, query)
-			require.NoError(t, err)
-			require.NotNil(t, respBz)
+			s.Require().NoError(err)
+			s.Require().NotNil(respBz)
 
 			var stats state.ReleaseStats
-			require.NoError(t, stats.UnmarshalJSON(respBz))
+			s.Require().NoError(stats.UnmarshalJSON(respBz))
 
-			assert.EqualValues(t, 1, stats.Count)
-			assert.ElementsMatch(t, []stdTypes.Coin{releaseAmtExpected}, stats.TotalAmount)
+			s.Assert().EqualValues(1, stats.Count)
+			s.Assert().ElementsMatch([]stdTypes.Coin{releaseAmtExpected}, stats.TotalAmount)
 		}
 	})
 }

@@ -40,6 +40,8 @@ func tinyjson54f20b6DecodeGithubComCosmWasmCosmwasmGoExampleVoterSrcState(in *jl
 			(out.NewVotingCost).UnmarshalTinyJSON(in)
 		case "vote_cost":
 			(out.VoteCost).UnmarshalTinyJSON(in)
+		case "ibc_send_timeout":
+			out.IBCSendTimeout = uint64(in.Uint64())
 		default:
 			in.SkipRecursive()
 		}
@@ -68,6 +70,11 @@ func tinyjson54f20b6EncodeGithubComCosmWasmCosmwasmGoExampleVoterSrcState(out *j
 		const prefix string = ",\"vote_cost\":"
 		out.RawString(prefix)
 		(in.VoteCost).MarshalTinyJSON(out)
+	}
+	{
+		const prefix string = ",\"ibc_send_timeout\":"
+		out.RawString(prefix)
+		out.Uint64(uint64(in.IBCSendTimeout))
 	}
 	out.RawByte('}')
 }

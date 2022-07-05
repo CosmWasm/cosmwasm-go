@@ -1,13 +1,9 @@
 package integration
 
 import (
-	"testing"
-
 	"github.com/CosmWasm/cosmwasm-go/example/voter/src/types"
 	stdTypes "github.com/CosmWasm/cosmwasm-go/std/types"
 	mocks "github.com/CosmWasm/wasmvm/api"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func (s *ContractTestSuite) TestSudoChangeAddVotingCost() {
@@ -17,7 +13,7 @@ func (s *ContractTestSuite) TestSudoChangeAddVotingCost() {
 		Amount: s.genParams.NewVotingCost.Amount.Sub64(1),
 	}
 
-	s.T().Run("OK", func(t *testing.T) {
+	s.Run("OK", func() {
 		msg := types.MsgSudo{
 			ChangeNewVotingCost: &types.ChangeCostRequest{
 				NewCost: expectedCoin,
@@ -25,35 +21,35 @@ func (s *ContractTestSuite) TestSudoChangeAddVotingCost() {
 		}
 
 		res, _, err := s.instance.Sudo(env, msg)
-		require.NoError(t, err)
-		require.NotNil(t, res)
-		assert.Empty(t, res.Data)
-		assert.Empty(t, res.Messages)
-		assert.Empty(t, res.Attributes)
+		s.Require().NoError(err)
+		s.Require().NotNil(res)
+		s.Assert().Empty(res.Data)
+		s.Assert().Empty(res.Messages)
+		s.Assert().Empty(res.Attributes)
 
 		// Verify events
-		require.Len(t, res.Events, 1)
+		s.Require().Len(res.Events, 1)
 		rcvEvent := res.Events[0]
-		assert.Equal(t, types.EventTypeNewVotingCostChanged, rcvEvent.Type)
+		s.Assert().Equal(types.EventTypeNewVotingCostChanged, rcvEvent.Type)
 
-		require.Len(t, rcvEvent.Attributes, 2)
-		assert.Equal(t, types.EventAttrKeyOldCost, rcvEvent.Attributes[0].Key)
-		assert.Equal(t, s.genParams.NewVotingCost.String(), rcvEvent.Attributes[0].Value)
-		assert.Equal(t, types.EventAttrKeyNewCost, rcvEvent.Attributes[1].Key)
-		assert.Equal(t, expectedCoin.String(), rcvEvent.Attributes[1].Value)
+		s.Require().Len(rcvEvent.Attributes, 2)
+		s.Assert().Equal(types.EventAttrKeyOldCost, rcvEvent.Attributes[0].Key)
+		s.Assert().Equal(s.genParams.NewVotingCost.String(), rcvEvent.Attributes[0].Value)
+		s.Assert().Equal(types.EventAttrKeyNewCost, rcvEvent.Attributes[1].Key)
+		s.Assert().Equal(expectedCoin.String(), rcvEvent.Attributes[1].Value)
 
 		// Verify state change
 		query := types.MsgQuery{Params: &EmptyStruct}
 		paramsBz, _, err := s.instance.Query(env, query)
-		require.NoError(t, err)
-		require.NotNil(t, paramsBz)
+		s.Require().NoError(err)
+		s.Require().NotNil(paramsBz)
 
 		var params types.QueryParamsResponse
-		require.NoError(t, params.UnmarshalJSON(paramsBz))
-		assert.Equal(t, expectedCoin, params.NewVotingCost)
+		s.Require().NoError(params.UnmarshalJSON(paramsBz))
+		s.Assert().Equal(expectedCoin, params.NewVotingCost)
 	})
 
-	s.T().Run("Fail: invalid input", func(t *testing.T) {
+	s.Run("Fail: invalid input", func() {
 		msg := types.MsgSudo{
 			ChangeNewVotingCost: &types.ChangeCostRequest{
 				NewCost: stdTypes.Coin{
@@ -64,7 +60,7 @@ func (s *ContractTestSuite) TestSudoChangeAddVotingCost() {
 		}
 
 		_, _, err := s.instance.Sudo(env, msg)
-		require.Error(t, err)
+		s.Require().Error(err)
 	})
 }
 
@@ -75,7 +71,7 @@ func (s *ContractTestSuite) TestSudoChangeVoteCost() {
 		Amount: s.genParams.VoteCost.Amount.Sub64(1),
 	}
 
-	s.T().Run("OK", func(t *testing.T) {
+	s.Run("OK", func() {
 		msg := types.MsgSudo{
 			ChangeVoteCost: &types.ChangeCostRequest{
 				NewCost: expectedCoin,
@@ -83,35 +79,35 @@ func (s *ContractTestSuite) TestSudoChangeVoteCost() {
 		}
 
 		res, _, err := s.instance.Sudo(env, msg)
-		require.NoError(t, err)
-		require.NotNil(t, res)
-		assert.Empty(t, res.Data)
-		assert.Empty(t, res.Messages)
-		assert.Empty(t, res.Attributes)
+		s.Require().NoError(err)
+		s.Require().NotNil(res)
+		s.Assert().Empty(res.Data)
+		s.Assert().Empty(res.Messages)
+		s.Assert().Empty(res.Attributes)
 
 		// Verify events
-		require.Len(t, res.Events, 1)
+		s.Require().Len(res.Events, 1)
 		rcvEvent := res.Events[0]
-		assert.Equal(t, types.EventTypeVoteCostChanged, rcvEvent.Type)
+		s.Assert().Equal(types.EventTypeVoteCostChanged, rcvEvent.Type)
 
-		require.Len(t, rcvEvent.Attributes, 2)
-		assert.Equal(t, types.EventAttrKeyOldCost, rcvEvent.Attributes[0].Key)
-		assert.Equal(t, s.genParams.VoteCost.String(), rcvEvent.Attributes[0].Value)
-		assert.Equal(t, types.EventAttrKeyNewCost, rcvEvent.Attributes[1].Key)
-		assert.Equal(t, expectedCoin.String(), rcvEvent.Attributes[1].Value)
+		s.Require().Len(rcvEvent.Attributes, 2)
+		s.Assert().Equal(types.EventAttrKeyOldCost, rcvEvent.Attributes[0].Key)
+		s.Assert().Equal(s.genParams.VoteCost.String(), rcvEvent.Attributes[0].Value)
+		s.Assert().Equal(types.EventAttrKeyNewCost, rcvEvent.Attributes[1].Key)
+		s.Assert().Equal(expectedCoin.String(), rcvEvent.Attributes[1].Value)
 
 		// Verify state change
 		query := types.MsgQuery{Params: &EmptyStruct}
 		paramsBz, _, err := s.instance.Query(env, query)
-		require.NoError(t, err)
-		require.NotNil(t, paramsBz)
+		s.Require().NoError(err)
+		s.Require().NotNil(paramsBz)
 
 		var params types.QueryParamsResponse
-		require.NoError(t, params.UnmarshalJSON(paramsBz))
-		assert.Equal(t, expectedCoin, params.VoteCost)
+		s.Require().NoError(params.UnmarshalJSON(paramsBz))
+		s.Assert().Equal(expectedCoin, params.VoteCost)
 	})
 
-	s.T().Run("Fail: invalid input", func(t *testing.T) {
+	s.Run("Fail: invalid input", func() {
 		msg := types.MsgSudo{
 			ChangeVoteCost: &types.ChangeCostRequest{
 				NewCost: stdTypes.Coin{
@@ -122,6 +118,6 @@ func (s *ContractTestSuite) TestSudoChangeVoteCost() {
 		}
 
 		_, _, err := s.instance.Sudo(env, msg)
-		require.Error(t, err)
+		s.Require().Error(err)
 	})
 }

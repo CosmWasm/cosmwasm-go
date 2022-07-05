@@ -22,10 +22,29 @@ type (
 	ReplyFunc func(deps *Deps, env types.Env, replyMsg types.Reply) (*types.Response, error)
 	// QueryFunc defines the function ran by the contracts in query execution.
 	QueryFunc func(deps *Deps, env types.Env, messageBytes []byte) ([]byte, error)
+	// IBCChannelOpenFunc defines the function ran by the contracts in IBC channel open.
+	IBCChannelOpenFunc func(deps *Deps, env types.Env, messageOpen types.IBCChannelOpenMsg) error
+	// IBCChannelConnectFunc defines the function ran by the contracts in IBC channel connect.
+	IBCChannelConnectFunc func(deps *Deps, env types.Env, messageConnect types.IBCChannelConnectMsg) (*types.IBCBasicResponse, error)
+	// IBCChannelCloseFunc defines the function ran by the contracts in IBC channel close.
+	IBCChannelCloseFunc func(deps *Deps, env types.Env, messageClose types.IBCChannelCloseMsg) (*types.IBCBasicResponse, error)
+	// IBCPacketReceiveFunc defines the function ran by the contracts in IBC packet receive.
+	IBCPacketReceiveFunc func(deps *Deps, env types.Env, messageReceive types.IBCPacketReceiveMsg) (*types.IBCReceiveResponse, error)
+	// IBCPacketAckFunc defines the function ran by the contracts in IBC packet ack.
+	IBCPacketAckFunc func(deps *Deps, env types.Env, messageAck types.IBCPacketAckMsg) (*types.IBCBasicResponse, error)
+	// IBCPacketTimeoutFunc defines the function ran by the contracts in IBC packet timeout.
+	IBCPacketTimeoutFunc func(deps *Deps, env types.Env, messageAck types.IBCPacketTimeoutMsg) (*types.IBCBasicResponse, error)
 )
 
 func StdErrResult(err error) unsafe.Pointer {
 	wrapped := types.ContractResult{Err: err.Error()}
+	bz, _ := wrapped.MarshalJSON()
+
+	return Package_message(bz)
+}
+
+func IBCErrResult(err error) unsafe.Pointer {
+	wrapped := types.IBCBasicResult{Err: err.Error()}
 	bz, _ := wrapped.MarshalJSON()
 
 	return Package_message(bz)
@@ -53,6 +72,54 @@ func parseReply(replyPtr uint32) (types.Reply, error) {
 	err := reply.UnmarshalJSON(replyData)
 
 	return reply, err
+}
+
+func parseIBCChannelOpen(openPtr uint32) (types.IBCChannelOpenMsg, error) {
+	openData := TranslateToSlice(uintptr(openPtr))
+	var openMsg types.IBCChannelOpenMsg
+	err := openMsg.UnmarshalJSON(openData)
+
+	return openMsg, err
+}
+
+func parseIBCChannelConnect(connectPtr uint32) (types.IBCChannelConnectMsg, error) {
+	connectData := TranslateToSlice(uintptr(connectPtr))
+	var connectMsg types.IBCChannelConnectMsg
+	err := connectMsg.UnmarshalJSON(connectData)
+
+	return connectMsg, err
+}
+
+func parseIBCChannelClose(connectPtr uint32) (types.IBCChannelCloseMsg, error) {
+	closeData := TranslateToSlice(uintptr(connectPtr))
+	var closeMsg types.IBCChannelCloseMsg
+	err := closeMsg.UnmarshalJSON(closeData)
+
+	return closeMsg, err
+}
+
+func parseIBCPacketReceive(receivePtr uint32) (types.IBCPacketReceiveMsg, error) {
+	receiveData := TranslateToSlice(uintptr(receivePtr))
+	var receiveMsg types.IBCPacketReceiveMsg
+	err := receiveMsg.UnmarshalJSON(receiveData)
+
+	return receiveMsg, err
+}
+
+func parseIBCPacketAck(ackPtr uint32) (types.IBCPacketAckMsg, error) {
+	ackData := TranslateToSlice(uintptr(ackPtr))
+	var ackMsg types.IBCPacketAckMsg
+	err := ackMsg.UnmarshalJSON(ackData)
+
+	return ackMsg, err
+}
+
+func parseIBCPacketTimeout(timeoutPtr uint32) (types.IBCPacketTimeoutMsg, error) {
+	timeoutData := TranslateToSlice(uintptr(timeoutPtr))
+	var timeoutMsg types.IBCPacketTimeoutMsg
+	err := timeoutMsg.UnmarshalJSON(timeoutData)
+
+	return timeoutMsg, err
 }
 
 // DoInstantiate converts the environment, info and message pointers to concrete golang objects
@@ -232,6 +299,202 @@ func DoQuery(queryFunc QueryFunc, envPtr, msgPtr uint32) unsafe.Pointer {
 	data, err := result.MarshalJSON()
 	if err != nil {
 		return StdErrResult(err)
+	}
+
+	return Package_message(data)
+}
+
+// DoIBCChannelOpen converts the environment and IBC channel open message pointers to concrete golang objects
+// and executes the contract's IBC channel open logic.
+// Function uses types.IBCBasicResult to return an error instead of a proper types.IBCChannelOpenResult since
+// both of them are equal in terms of JSON serialization.
+// Successful result is empty as it is not used by the VM.
+func DoIBCChannelOpen(ibcFunc IBCChannelOpenFunc, envPtr, msgPtr uint32) unsafe.Pointer {
+	env := types.Env{}
+	envData := TranslateToSlice(uintptr(envPtr))
+	err := env.UnmarshalJSON(envData)
+	if err != nil {
+		return IBCErrResult(err)
+	}
+
+	openMsg, err := parseIBCChannelOpen(msgPtr)
+	if err != nil {
+		return IBCErrResult(err)
+	}
+
+	deps := make_dependencies()
+	if err := ibcFunc(&deps, env, openMsg); err != nil {
+		return IBCErrResult(err)
+	}
+
+	result := &types.IBCChannelOpenResult{
+		Ok: &struct{}{},
+	}
+	data, err := result.MarshalJSON()
+	if err != nil {
+		return IBCErrResult(err)
+	}
+
+	return Package_message(data)
+}
+
+// DoIBCChannelConnect converts the environment and IBC channel connect message pointers to concrete golang objects
+// and executes the contract's IBC channel connect logic.
+func DoIBCChannelConnect(ibcFunc IBCChannelConnectFunc, envPtr, msgPtr uint32) unsafe.Pointer {
+	env := types.Env{}
+	envData := TranslateToSlice(uintptr(envPtr))
+	err := env.UnmarshalJSON(envData)
+	if err != nil {
+		return IBCErrResult(err)
+	}
+
+	connectMsg, err := parseIBCChannelConnect(msgPtr)
+	if err != nil {
+		return IBCErrResult(err)
+	}
+
+	deps := make_dependencies()
+	respBytes, err := ibcFunc(&deps, env, connectMsg)
+	if err != nil {
+		return IBCErrResult(err)
+	}
+
+	result := &types.IBCBasicResult{
+		Ok: respBytes,
+	}
+	data, err := result.MarshalJSON()
+	if err != nil {
+		return IBCErrResult(err)
+	}
+
+	return Package_message(data)
+}
+
+// DoIBCChannelClose converts the environment and IBC channel close message pointers to concrete golang objects
+// and executes the contract's IBC channel close logic.
+func DoIBCChannelClose(ibcFunc IBCChannelCloseFunc, envPtr, msgPtr uint32) unsafe.Pointer {
+	env := types.Env{}
+	envData := TranslateToSlice(uintptr(envPtr))
+	err := env.UnmarshalJSON(envData)
+	if err != nil {
+		return IBCErrResult(err)
+	}
+
+	closeMsg, err := parseIBCChannelClose(msgPtr)
+	if err != nil {
+		return IBCErrResult(err)
+	}
+
+	deps := make_dependencies()
+	respBytes, err := ibcFunc(&deps, env, closeMsg)
+	if err != nil {
+		return IBCErrResult(err)
+	}
+
+	result := &types.IBCBasicResult{
+		Ok: respBytes,
+	}
+	data, err := result.MarshalJSON()
+	if err != nil {
+		return IBCErrResult(err)
+	}
+
+	return Package_message(data)
+}
+
+// DoIBCPacketReceive converts the environment and IBC receive message pointers to concrete golang objects
+// and executes the contract's IBC packet receive logic.
+// Function uses types.IBCBasicResult to return an error instead of a proper types.IBCReceiveResult since
+// both of them are equal in terms of JSON serialization.
+func DoIBCPacketReceive(ibcFunc IBCPacketReceiveFunc, envPtr, msgPtr uint32) unsafe.Pointer {
+	env := types.Env{}
+	envData := TranslateToSlice(uintptr(envPtr))
+	err := env.UnmarshalJSON(envData)
+	if err != nil {
+		return IBCErrResult(err)
+	}
+
+	receiveMsg, err := parseIBCPacketReceive(msgPtr)
+	if err != nil {
+		return IBCErrResult(err)
+	}
+
+	deps := make_dependencies()
+	respBytes, err := ibcFunc(&deps, env, receiveMsg)
+	if err != nil {
+		return IBCErrResult(err)
+	}
+
+	result := &types.IBCReceiveResult{
+		Ok: respBytes,
+	}
+	data, err := result.MarshalJSON()
+	if err != nil {
+		return IBCErrResult(err)
+	}
+
+	return Package_message(data)
+}
+
+// DoIBCPacketAck converts the environment and IBC packet ack message pointers to concrete golang objects
+// and executes the contract's IBC packet ack logic.
+func DoIBCPacketAck(ibcFunc IBCPacketAckFunc, envPtr, msgPtr uint32) unsafe.Pointer {
+	env := types.Env{}
+	envData := TranslateToSlice(uintptr(envPtr))
+	err := env.UnmarshalJSON(envData)
+	if err != nil {
+		return IBCErrResult(err)
+	}
+
+	receiveMsg, err := parseIBCPacketAck(msgPtr)
+	if err != nil {
+		return IBCErrResult(err)
+	}
+
+	deps := make_dependencies()
+	respBytes, err := ibcFunc(&deps, env, receiveMsg)
+	if err != nil {
+		return IBCErrResult(err)
+	}
+
+	result := &types.IBCBasicResult{
+		Ok: respBytes,
+	}
+	data, err := result.MarshalJSON()
+	if err != nil {
+		return IBCErrResult(err)
+	}
+
+	return Package_message(data)
+}
+
+// DoIBCPacketTimeout converts the environment and IBC packet timeout message pointers to concrete golang objects
+// and executes the contract's IBC packet timeout logic.
+func DoIBCPacketTimeout(ibcFunc IBCPacketTimeoutFunc, envPtr, msgPtr uint32) unsafe.Pointer {
+	env := types.Env{}
+	envData := TranslateToSlice(uintptr(envPtr))
+	err := env.UnmarshalJSON(envData)
+	if err != nil {
+		return IBCErrResult(err)
+	}
+
+	timeoutMsg, err := parseIBCPacketTimeout(msgPtr)
+	if err != nil {
+		return IBCErrResult(err)
+	}
+
+	deps := make_dependencies()
+	respBytes, err := ibcFunc(&deps, env, timeoutMsg)
+	if err != nil {
+		return IBCErrResult(err)
+	}
+
+	result := &types.IBCBasicResult{
+		Ok: respBytes,
+	}
+	data, err := result.MarshalJSON()
+	if err != nil {
+		return IBCErrResult(err)
 	}
 
 	return Package_message(data)

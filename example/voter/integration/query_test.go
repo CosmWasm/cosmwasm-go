@@ -1,15 +1,11 @@
 package integration
 
 import (
-	"testing"
-
 	"github.com/CosmWasm/cosmwasm-go/example/voter/src/state"
 	"github.com/CosmWasm/cosmwasm-go/example/voter/src/types"
 	stdTypes "github.com/CosmWasm/cosmwasm-go/std/types"
 	mocks "github.com/CosmWasm/wasmvm/api"
 	wasmVmTypes "github.com/CosmWasm/wasmvm/types"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func (s *ContractTestSuite) TestQueryParams() {
@@ -27,21 +23,22 @@ func (s *ContractTestSuite) TestQueryParams() {
 	s.Assert().Equal(s.genParams.NewVotingCost.Amount, resp.NewVotingCost.Amount)
 	s.Assert().Equal(s.genParams.VoteCost.Denom, resp.VoteCost.Denom)
 	s.Assert().Equal(s.genParams.VoteCost.Amount, resp.VoteCost.Amount)
+	s.Assert().Equal(s.genParams.IBCSendTimeout, resp.IBCSendTimeout)
 }
 
 func (s *ContractTestSuite) TestQueryVoting() {
 	env := mocks.MockEnv()
 
-	s.T().Run("Fail: non-existing", func(t *testing.T) {
+	s.Run("Fail: non-existing", func() {
 		query := types.MsgQuery{
 			Voting: &types.QueryVotingRequest{ID: 0},
 		}
 
 		_, _, err := s.instance.Query(env, query)
-		assert.Error(t, err)
+		s.Assert().Error(err)
 	})
 
-	s.T().Run("OK", func(t *testing.T) {
+	s.Run("OK", func() {
 		// Add voting
 		votingID := s.AddVoting(env, s.creatorAddr, "Test", 1000, "a", "b")
 
@@ -50,25 +47,25 @@ func (s *ContractTestSuite) TestQueryVoting() {
 		}
 
 		respBz, _, err := s.instance.Query(env, query)
-		require.NoError(t, err)
+		s.Require().NoError(err)
 
-		require.NotNil(t, respBz)
+		s.Require().NotNil(respBz)
 		var resp state.Voting
-		require.NoError(t, resp.UnmarshalJSON(respBz))
+		s.Require().NoError(resp.UnmarshalJSON(respBz))
 
-		assert.Equal(t, votingID, resp.ID)
-		assert.Equal(t, s.creatorAddr, resp.CreatorAddr)
-		assert.Equal(t, "Test", resp.Name)
-		assert.Equal(t, env.Block.Time, resp.StartTime)
-		assert.Equal(t, env.Block.Time+1000, resp.EndTime)
+		s.Assert().Equal(votingID, resp.ID)
+		s.Assert().Equal(s.creatorAddr, resp.CreatorAddr)
+		s.Assert().Equal("Test", resp.Name)
+		s.Assert().Equal(env.Block.Time, resp.StartTime)
+		s.Assert().Equal(env.Block.Time+1000, resp.EndTime)
 
-		require.Len(t, resp.Tallies, 2)
-		assert.Equal(t, "a", resp.Tallies[0].Option)
-		assert.Empty(t, resp.Tallies[0].YesAddrs)
-		assert.Empty(t, resp.Tallies[0].NoAddrs)
-		assert.Equal(t, "b", resp.Tallies[1].Option)
-		assert.Empty(t, resp.Tallies[1].YesAddrs)
-		assert.Empty(t, resp.Tallies[1].NoAddrs)
+		s.Require().Len(resp.Tallies, 2)
+		s.Assert().Equal("a", resp.Tallies[0].Option)
+		s.Assert().Empty(resp.Tallies[0].YesAddrs)
+		s.Assert().Empty(resp.Tallies[0].NoAddrs)
+		s.Assert().Equal("b", resp.Tallies[1].Option)
+		s.Assert().Empty(resp.Tallies[1].YesAddrs)
+		s.Assert().Empty(resp.Tallies[1].NoAddrs)
 	})
 }
 
@@ -76,16 +73,16 @@ func (s *ContractTestSuite) TestQueryTally() {
 	voter1Addr, voter2Addr := "Voter1Addr", "Voter2Addr"
 	env := mocks.MockEnv()
 
-	s.T().Run("Fail: non-existing", func(t *testing.T) {
+	s.Run("Fail: non-existing", func() {
 		query := types.MsgQuery{
 			Tally: &types.QueryTallyRequest{ID: 0},
 		}
 
 		_, _, err := s.instance.Query(env, query)
-		assert.Error(t, err)
+		s.Assert().Error(err)
 	})
 
-	s.T().Run("OK", func(t *testing.T) {
+	s.Run("OK", func() {
 		// Add voting and votes
 		votingID := s.AddVoting(env, s.creatorAddr, "Test", 1000, "a", "b")
 		env.Block.Time++
@@ -97,22 +94,22 @@ func (s *ContractTestSuite) TestQueryTally() {
 		}
 
 		respBz, _, err := s.instance.Query(env, query)
-		require.NoError(t, err)
-		require.NotNil(t, respBz)
+		s.Require().NoError(err)
+		s.Require().NotNil(respBz)
 
 		var resp types.QueryTallyResponse
-		require.NoError(t, resp.UnmarshalJSON(respBz))
+		s.Require().NoError(resp.UnmarshalJSON(respBz))
 
-		assert.True(t, resp.Open)
-		require.Len(t, resp.Votes, 2)
+		s.Assert().True(resp.Open)
+		s.Require().Len(resp.Votes, 2)
 
-		assert.Equal(t, "a", resp.Votes[0].Option)
-		assert.EqualValues(t, 1, resp.Votes[0].TotalYes)
-		assert.EqualValues(t, 0, resp.Votes[0].TotalNo)
+		s.Assert().Equal("a", resp.Votes[0].Option)
+		s.Assert().EqualValues(1, resp.Votes[0].TotalYes)
+		s.Assert().EqualValues(0, resp.Votes[0].TotalNo)
 
-		assert.Equal(t, "b", resp.Votes[1].Option)
-		assert.EqualValues(t, 0, resp.Votes[1].TotalYes)
-		assert.EqualValues(t, 1, resp.Votes[1].TotalNo)
+		s.Assert().Equal("b", resp.Votes[1].Option)
+		s.Assert().EqualValues(0, resp.Votes[1].TotalYes)
+		s.Assert().EqualValues(1, resp.Votes[1].TotalNo)
 	})
 }
 
@@ -120,22 +117,22 @@ func (s *ContractTestSuite) TestQueryOpen() {
 	env := mocks.MockEnv()
 	env.Block.Time = 1
 
-	runQuery := func(t *testing.T) []uint64 {
+	runQuery := func() []uint64 {
 		query := types.MsgQuery{
 			Open: &EmptyStruct,
 		}
 
 		respBz, _, err := s.instance.Query(env, query)
-		require.NoError(t, err)
+		s.Require().NoError(err)
 
 		var resp types.QueryOpenResponse
-		require.NoError(t, resp.UnmarshalJSON(respBz))
+		s.Require().NoError(resp.UnmarshalJSON(respBz))
 
 		return resp.Ids
 	}
 
-	s.T().Run("No votings", func(t *testing.T) {
-		assert.Len(t, runQuery(t), 0)
+	s.Run("No votings", func() {
+		s.Assert().Len(runQuery(), 0)
 	})
 
 	// Add votings with different durations
@@ -143,35 +140,35 @@ func (s *ContractTestSuite) TestQueryOpen() {
 	votingID2 := s.AddVoting(env, s.creatorAddr, "Test2", 20, "a")
 	votingID3 := s.AddVoting(env, s.creatorAddr, "Test3", 30, "a")
 
-	s.T().Run("3 open", func(t *testing.T) {
+	s.Run("3 open", func() {
 		env.Block.Time++
 
 		idsExpected := []uint64{votingID1, votingID2, votingID3}
-		idsReceived := runQuery(t)
-		assert.ElementsMatch(t, idsExpected, idsReceived)
+		idsReceived := runQuery()
+		s.Assert().ElementsMatch(idsExpected, idsReceived)
 	})
 
-	s.T().Run("2 open", func(t *testing.T) {
+	s.Run("2 open", func() {
 		env.Block.Time = 15
 
 		idsExpected := []uint64{votingID2, votingID3}
-		idsReceived := runQuery(t)
-		assert.ElementsMatch(t, idsExpected, idsReceived)
+		idsReceived := runQuery()
+		s.Assert().ElementsMatch(idsExpected, idsReceived)
 	})
 
-	s.T().Run("1 open", func(t *testing.T) {
+	s.Run("1 open", func() {
 		env.Block.Time = 25
 
 		idsExpected := []uint64{votingID3}
-		idsReceived := runQuery(t)
-		assert.ElementsMatch(t, idsExpected, idsReceived)
+		idsReceived := runQuery()
+		s.Assert().ElementsMatch(idsExpected, idsReceived)
 	})
 
-	s.T().Run("0 open (again)", func(t *testing.T) {
+	s.Run("0 open (again)", func() {
 		env.Block.Time = 35
 
-		idsReceived := runQuery(t)
-		assert.Empty(t, idsReceived)
+		idsReceived := runQuery()
+		s.Assert().Empty(idsReceived)
 	})
 }
 
@@ -179,24 +176,24 @@ func (s *ContractTestSuite) TestQueryReleaseStats() {
 	env := mocks.MockEnv()
 	env.Block.Time = 1
 
-	runQuery := func(t *testing.T) state.ReleaseStats {
+	runQuery := func() state.ReleaseStats {
 		query := types.MsgQuery{
 			ReleaseStats: &EmptyStruct,
 		}
 
 		respBz, _, err := s.instance.Query(env, query)
-		require.NoError(t, err)
+		s.Require().NoError(err)
 
 		var resp state.ReleaseStats
-		require.NoError(t, resp.UnmarshalJSON(respBz))
+		s.Require().NoError(resp.UnmarshalJSON(respBz))
 
 		return resp
 	}
 
-	s.T().Run("No releases", func(t *testing.T) {
-		stats := runQuery(t)
-		assert.EqualValues(t, 0, stats.Count)
-		assert.Nil(t, stats.TotalAmount)
+	s.Run("No releases", func() {
+		stats := runQuery()
+		s.Assert().EqualValues(0, stats.Count)
+		s.Assert().Nil(stats.TotalAmount)
 	})
 
 	// Send Release msg and emulate Reply receive
@@ -230,9 +227,81 @@ func (s *ContractTestSuite) TestQueryReleaseStats() {
 		s.Require().NoError(err)
 	}
 
-	s.T().Run("1 release", func(t *testing.T) {
-		stats := runQuery(t)
-		assert.EqualValues(t, 1, stats.Count)
-		assert.ElementsMatch(t, []stdTypes.Coin{totalAmtExpected}, stats.TotalAmount)
+	s.Run("1 release", func() {
+		stats := runQuery()
+		s.Assert().EqualValues(1, stats.Count)
+		s.Assert().ElementsMatch([]stdTypes.Coin{totalAmtExpected}, stats.TotalAmount)
+	})
+}
+
+func (s *ContractTestSuite) TestQueryIBCStats() {
+	env := mocks.MockEnv()
+	senderAddr1, senderAddr2, senderAddr3 := "SenderAddr1", "SenderAddr2", "SenderAddr3"
+
+	runQuery := func(senderAddr string) types.QueryIBCStatsResponse {
+		query := types.MsgQuery{
+			IBCStats: &types.QueryIBCStatsRequest{
+				From: senderAddr,
+			},
+		}
+
+		respBz, _, err := s.instance.Query(env, query)
+		s.Require().NoError(err)
+
+		var resp types.QueryIBCStatsResponse
+		s.Require().NoError(resp.UnmarshalJSON(respBz))
+
+		return resp
+	}
+
+	// Add stats
+	ibcStats1Exp := types.QueryIBCStatsResponse{
+		Stats: []state.IBCStats{
+			{
+				VotingID:  1,
+				From:      senderAddr1,
+				Status:    state.IBCPkgSentStatus,
+				CreatedAt: env.Block.Time,
+			},
+			{
+				VotingID:  2,
+				From:      senderAddr1,
+				Status:    state.IBCPkgSentStatus,
+				CreatedAt: env.Block.Time,
+			},
+		},
+	}
+
+	ibcStats2Exp := types.QueryIBCStatsResponse{
+		Stats: []state.IBCStats{
+			{
+				VotingID:  3,
+				From:      senderAddr2,
+				Status:    state.IBCPkgSentStatus,
+				CreatedAt: env.Block.Time,
+			},
+		},
+	}
+
+	for _, stats := range ibcStats1Exp.Stats {
+		s.IBCVote(env, stats.From, stats.VotingID, "a", "yes", "channel-1")
+	}
+	for _, stats := range ibcStats2Exp.Stats {
+		s.IBCVote(env, stats.From, stats.VotingID, "b", "no", "channel-2")
+	}
+
+	s.Run("OK: non-existing", func() {
+		resp := runQuery(senderAddr3)
+		s.Assert().Empty(resp.Stats)
+	})
+
+	s.Run("OK: sender 1", func() {
+		resp := runQuery(senderAddr1)
+		s.Assert().ElementsMatch(ibcStats1Exp.Stats, resp.Stats)
+	})
+
+	s.Run("OK: sender 2", func() {
+		resp := runQuery(senderAddr2)
+		s.Assert().ElementsMatch(ibcStats2Exp.Stats, resp.Stats)
 	})
 }

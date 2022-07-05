@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strconv"
 
+	"github.com/CosmWasm/cosmwasm-go/example/voter/src/pkg"
 	stdTypes "github.com/CosmWasm/cosmwasm-go/std/types"
 )
 
@@ -15,6 +16,8 @@ type MsgExecute struct {
 	NewVoting *NewVotingRequest `json:",omitempty"`
 	// Vote append a new vote to an existing voting.
 	Vote *VoteRequest `json:",omitempty"`
+	// SendIBCVote append a new vote to an existing voting over IBC.
+	SendIBCVote *SendIBCVoteRequest `json:",omitempty"`
 }
 
 // ReleaseResponse defines MsgExecute.Release response.
@@ -83,6 +86,27 @@ func (r VoteRequest) Validate() error {
 	case "no":
 	default:
 		return errors.New("unknown vote enum value (yes/no is expected)")
+	}
+
+	return nil
+}
+
+// SendIBCVoteRequest defines MsgExecute.SendIBCVoteRequest request.
+type SendIBCVoteRequest struct {
+	VoteRequest
+
+	// ChannelID is an IBC destination channel.
+	ChannelID string
+}
+
+// Validate performs object fields validation.
+func (r SendIBCVoteRequest) Validate() error {
+	if err := r.VoteRequest.Validate(); err != nil {
+		return err
+	}
+
+	if err := pkg.ValidateChannelID(r.ChannelID); err != nil {
+		return errors.New("channelID: " + err.Error())
 	}
 
 	return nil

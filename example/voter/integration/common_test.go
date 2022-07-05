@@ -12,8 +12,6 @@ import (
 	"github.com/CosmWasm/cosmwasm-go/systest"
 	mocks "github.com/CosmWasm/wasmvm/api"
 	wasmVmTypes "github.com/CosmWasm/wasmvm/types"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -32,14 +30,12 @@ type ContractTestSuite struct {
 }
 
 func (s *ContractTestSuite) SetupTest() {
-	t := s.T()
-
 	contractPath := filepath.Join("..", "voter.wasm")
 	creatorAddr := "archway1c5qs4le2n6ljgv8fyfy8swu0yf02fh60ccpx75"
 	contractFundsCoin := stdTypes.NewCoinFromUint64(1200, "uatom")
 
 	// Load
-	instance := systest.NewInstance(t,
+	instance := systest.NewInstance(s.T(),
 		contractPath,
 		15_000_000_000_000,
 		[]wasmVmTypes.Coin{contractFundsCoin.ToWasmVMCoin()},
@@ -58,18 +54,19 @@ func (s *ContractTestSuite) SetupTest() {
 				Denom:  "uatom",
 				Amount: math.NewUint128FromUint64(10),
 			},
+			IBCSendTimeout: 10000000000,
 		},
 	}
 
 	// Instantiate
 	res, _, err := instance.Instantiate(env, info, msg)
-	require.NoError(t, err)
+	s.Require().NoError(err)
 
 	// Verify response
-	require.NotNil(t, res)
-	assert.Empty(t, res.Messages)
-	assert.Empty(t, res.Attributes)
-	assert.Empty(t, res.Events)
+	s.Require().NotNil(res)
+	s.Assert().Empty(res.Messages)
+	s.Assert().Empty(res.Attributes)
+	s.Assert().Empty(res.Events)
 
 	// Setup
 	s.instance = instance
@@ -147,6 +144,73 @@ func (s *ContractTestSuite) Vote(env wasmVmTypes.Env, voterAddr string, votingID
 
 	s.Require().Equal(types.EventAttrKeyVoteDecision, event.Attributes[3].Key)
 	s.Require().Equal(vote, event.Attributes[3].Value)
+}
+
+func (s *ContractTestSuite) IBCVote(env wasmVmTypes.Env, voterAddr string, votingID uint64, opt, vote, channelID string) types.MsgIBC {
+	info := mocks.MockInfo(voterAddr, nil)
+	msg := types.MsgExecute{
+		SendIBCVote: &types.SendIBCVoteRequest{
+			VoteRequest: types.VoteRequest{
+				ID:     votingID,
+				Option: opt,
+				Vote:   vote,
+			},
+			ChannelID: channelID,
+		},
+	}
+
+	res, _, err := s.instance.Execute(env, info, msg)
+	s.Require().NoError(err)
+	s.Require().NotNil(res)
+	s.Require().Len(res.Messages, 1)
+
+	// Validate events
+	s.Require().Len(res.Events, 1)
+	s.Assert().Equal(types.EventTypeIBCVoteSent, res.Events[0].Type)
+	s.Require().Len(res.Events[0].Attributes, 4)
+	s.Assert().Equal(types.EventAttrKeySender, res.Events[0].Attributes[0].Key)
+	s.Assert().Equal(voterAddr, res.Events[0].Attributes[0].Value)
+	s.Assert().Equal(types.EventAttrKeyVotingID, res.Events[0].Attributes[1].Key)
+	s.Assert().Equal(strconv.FormatUint(votingID, 10), res.Events[0].Attributes[1].Value)
+	s.Assert().Equal(types.EventAttrKeyVoteOption, res.Events[0].Attributes[2].Key)
+	s.Assert().Equal(opt, res.Events[0].Attributes[2].Value)
+	s.Assert().Equal(types.EventAttrKeyVoteDecision, res.Events[0].Attributes[3].Key)
+	s.Assert().Equal(vote, res.Events[0].Attributes[3].Value)
+
+	// Build and return IBC message
+	return types.MsgIBC{
+		Vote: &types.IBCVoteRequest{
+			VoteRequest: types.VoteRequest{
+				ID:     votingID,
+				Option: opt,
+				Vote:   vote,
+			},
+			From: voterAddr,
+		},
+	}
+}
+
+func (s *ContractTestSuite) GetIBCStats(env wasmVmTypes.Env, senderAddr string, votingID uint64) state.IBCStats {
+	query := types.MsgQuery{
+		IBCStats: &types.QueryIBCStatsRequest{
+			From: senderAddr,
+		},
+	}
+
+	respBz, _, err := s.instance.Query(env, query)
+	s.Require().NoError(err)
+
+	var resp types.QueryIBCStatsResponse
+	s.Require().NoError(resp.UnmarshalJSON(respBz))
+
+	for _, ibcStats := range resp.Stats {
+		if ibcStats.VotingID == votingID {
+			return ibcStats
+		}
+	}
+	s.Failf("No ibcStats found", "senderAddr: %s, votingID: %d", senderAddr, votingID)
+
+	return state.IBCStats{}
 }
 
 func TestContract(t *testing.T) {

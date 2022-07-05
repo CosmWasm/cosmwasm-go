@@ -183,6 +183,90 @@ func (i *Instance) Reply(env types.Env, replyMsg types.Reply) (*types.Response, 
 	)
 }
 
+func (i *Instance) IBCChannelOpen(env types.Env, openMsg types.IBCChannelOpenMsg) (uint64, error) {
+	return i.Wasmer.IBCChannelOpen(
+		i.CodeID,
+		env,
+		openMsg,
+		i.Store,
+		*i.Api,
+		i.Querier,
+		i.GasMeter,
+		i.GasLimit,
+		deserCost,
+	)
+}
+
+func (i *Instance) IBCChannelConnect(env types.Env, connectMsg types.IBCChannelConnectMsg) (*types.IBCBasicResponse, uint64, error) {
+	return i.Wasmer.IBCChannelConnect(
+		i.CodeID,
+		env,
+		connectMsg,
+		i.Store,
+		*i.Api,
+		i.Querier,
+		i.GasMeter,
+		i.GasLimit,
+		deserCost,
+	)
+}
+
+func (i *Instance) IBCChannelClose(env types.Env, closeMsg types.IBCChannelCloseMsg) (*types.IBCBasicResponse, uint64, error) {
+	return i.Wasmer.IBCChannelClose(
+		i.CodeID,
+		env,
+		closeMsg,
+		i.Store,
+		*i.Api,
+		i.Querier,
+		i.GasMeter,
+		i.GasLimit,
+		deserCost,
+	)
+}
+
+func (i *Instance) IBCPacketReceive(env types.Env, receiveMsg types.IBCPacketReceiveMsg) (*types.IBCReceiveResult, uint64, error) {
+	return i.Wasmer.IBCPacketReceive(
+		i.CodeID,
+		env,
+		receiveMsg,
+		i.Store,
+		*i.Api,
+		i.Querier,
+		i.GasMeter,
+		i.GasLimit,
+		deserCost,
+	)
+}
+
+func (i *Instance) IBCPacketAck(env types.Env, ackMsg types.IBCPacketAckMsg) (*types.IBCBasicResponse, uint64, error) {
+	return i.Wasmer.IBCPacketAck(
+		i.CodeID,
+		env,
+		ackMsg,
+		i.Store,
+		*i.Api,
+		i.Querier,
+		i.GasMeter,
+		i.GasLimit,
+		deserCost,
+	)
+}
+
+func (i *Instance) IBCPacketTimeout(env types.Env, timeoutMsg types.IBCPacketTimeoutMsg) (*types.IBCBasicResponse, uint64, error) {
+	return i.Wasmer.IBCPacketTimeout(
+		i.CodeID,
+		env,
+		timeoutMsg,
+		i.Store,
+		*i.Api,
+		i.Querier,
+		i.GasMeter,
+		i.GasLimit,
+		deserCost,
+	)
+}
+
 // setupWasmer instantiates a new wasmvm.VM with a contract given its path.
 func setupWasmer(t *testing.T, contractPath string) (*wasmvm.VM, []byte) {
 	// setup wasmer instance
