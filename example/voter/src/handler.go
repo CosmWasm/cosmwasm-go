@@ -1,6 +1,8 @@
 package src
 
 import (
+	"bytes"
+
 	"github.com/CosmWasm/cosmwasm-go/example/voter/src/pkg"
 	"github.com/CosmWasm/cosmwasm-go/example/voter/src/state"
 	"github.com/CosmWasm/cosmwasm-go/example/voter/src/types"
@@ -11,12 +13,13 @@ import (
 // handleMsgInstantiate handles types.MsgInstantiate msg.
 func handleMsgInstantiate(deps *std.Deps, info stdTypes.MessageInfo, msg types.MsgInstantiate) (*stdTypes.Response, error) {
 	// Input check
-	if err := msg.Validate(info); err != nil {
-		return nil, types.NewErrInvalidRequest("msg validation: " + err.Error())
+	params, err := msg.Params.ValidateAndConvert(deps.Api, info)
+	if err != nil {
+		return nil, types.NewErrInvalidRequest("msg validation: params: " + err.Error())
 	}
 
 	// Set initial contract state
-	if err := state.SetParams(deps.Storage, msg.Params); err != nil {
+	if err := state.SetParams(deps.Storage, params); err != nil {
 		return nil, types.NewErrInternal(err.Error())
 	}
 
@@ -26,12 +29,17 @@ func handleMsgInstantiate(deps *std.Deps, info stdTypes.MessageInfo, msg types.M
 // handleMsgRelease handles MsgExecute.Release msg.
 func handleMsgRelease(deps *std.Deps, env stdTypes.Env, info stdTypes.MessageInfo) (*stdTypes.Response, error) {
 	// Input check
+	senderAddr, err := deps.Api.CanonicalAddress(info.Sender)
+	if err != nil {
+		return nil, types.NewErrInvalidRequest("sender address: canonical convert: " + err.Error())
+	}
+
 	params, err := state.GetParams(deps.Storage)
 	if err != nil {
 		return nil, types.NewErrInternal(err.Error())
 	}
 
-	if info.Sender != params.OwnerAddr {
+	if !bytes.Equal(senderAddr, params.OwnerAddr) {
 		return nil, types.NewErrInvalidRequest("release can be done only by the contract owner")
 	}
 

@@ -1,8 +1,10 @@
 package mock
 
 import (
+	"encoding/hex"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/CosmWasm/cosmwasm-go/std"
@@ -98,4 +100,135 @@ func TestMockApi_HumanAddress(t *testing.T) {
 	humanAddr, err = ea.HumanAddress(inputCanonAddr)
 	require.NoError(t, err)
 	require.Equal(t, "aaaaaaaaa", humanAddr)
+}
+
+func TestMockApi_VerifySecp256k1Signature(t *testing.T) {
+	type testCase struct {
+		name            string
+		hashHexStr      string
+		signatureHexStr string
+		pubKeyHexStr    string
+		//
+		errExpected bool
+		resExpected bool
+	}
+
+	testCases := []testCase{
+		{
+			name:            "OK: valid signature",
+			hashHexStr:      "5ae8317d34d1e595e3fa7247db80c0af4320cce1116de187f8f7e2e099c0d8d0",
+			signatureHexStr: "207082eb2c3dfa0b454e0906051270ba4074ac93760ba9e7110cd9471475111151eb0dbbc9920e72146fb564f99d039802bf6ef2561446eb126ef364d21ee9c4",
+			pubKeyHexStr:    "04051c1ee2190ecfb174bfe4f90763f2b4ff7517b70a2aec1876ebcfd644c4633fb03f3cfbd94b1f376e34592d9d41ccaf640bb751b00a1fadeb0c01157769eb73",
+			resExpected:     true,
+		},
+		{
+			name:            "OK: invalid signature",
+			hashHexStr:      "5ae8317d34d1e595e3fa7247db80c0af4320cce1116de187f8f7e2e099c0d8d0",
+			signatureHexStr: "207082eb2c3dfa0b454e0906051270ba4074ac93760ba9e7110cd9471475111151eb0dbbc9920e72146fb564f99d039802bf6ef2561446eb126ef364d21ee900",
+			pubKeyHexStr:    "04051c1ee2190ecfb174bfe4f90763f2b4ff7517b70a2aec1876ebcfd644c4633fb03f3cfbd94b1f376e34592d9d41ccaf640bb751b00a1fadeb0c01157769eb73",
+			resExpected:     false,
+		},
+		{
+			name:            "Fail: invalid hash",
+			hashHexStr:      "",
+			signatureHexStr: "207082eb2c3dfa0b454e0906051270ba4074ac93760ba9e7110cd9471475111151eb0dbbc9920e72146fb564f99d039802bf6ef2561446eb126ef364d21ee9c4",
+			pubKeyHexStr:    "04051c1ee2190ecfb174bfe4f90763f2b4ff7517b70a2aec1876ebcfd644c4633fb03f3cfbd94b1f376e34592d9d41ccaf640bb751b00a1fadeb0c01157769eb73",
+			errExpected:     true,
+		},
+		{
+			name:            "Fail: invalid signature",
+			hashHexStr:      "5ae8317d34d1e595e3fa7247db80c0af4320cce1116de187f8f7e2e099c0d8d0",
+			signatureHexStr: "207082eb2c3dfa0b454e0906051270ba4074ac93760ba9e7110cd9471475111151eb0dbbc9920e72146fb564f99d039802bf6ef2561446eb126ef364d21ee9",
+			pubKeyHexStr:    "04051c1ee2190ecfb174bfe4f90763f2b4ff7517b70a2aec1876ebcfd644c4633fb03f3cfbd94b1f376e34592d9d41ccaf640bb751b00a1fadeb0c01157769eb73",
+			errExpected:     true,
+		},
+		{
+			name:            "Fail: invalid pubKey",
+			hashHexStr:      "5ae8317d34d1e595e3fa7247db80c0af4320cce1116de187f8f7e2e099c0d8d0",
+			signatureHexStr: "207082eb2c3dfa0b454e0906051270ba4074ac93760ba9e7110cd9471475111151eb0dbbc9920e72146fb564f99d039802bf6ef2561446eb126ef364d21ee9c4",
+			pubKeyHexStr:    "04051c1ee2190ecfb174bfe4f90763f2b4ff7517b70a2aec1876ebcfd644c4633fb03f3cfbd94b1f376e34592d9d41ccaf640bb751b00a1fadeb0c01157769eb",
+			errExpected:     true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			hash, err := hex.DecodeString(tc.hashHexStr)
+			require.NoError(t, err)
+			sig, err := hex.DecodeString(tc.signatureHexStr)
+			require.NoError(t, err)
+			pubKey, err := hex.DecodeString(tc.pubKeyHexStr)
+			require.NoError(t, err)
+
+			res, err := api{}.VerifySecp256k1Signature(hash, sig, pubKey)
+			if tc.errExpected {
+				assert.Error(t, err)
+				return
+			}
+
+			require.NoError(t, err)
+			assert.Equal(t, tc.resExpected, res)
+		})
+	}
+}
+
+func TestMockApi_VerifyEd25519Signature(t *testing.T) {
+	type testCase struct {
+		name            string
+		msg             []byte
+		signatureHexStr string
+		pubKeyHexStr    string
+		//
+		errExpected bool
+		resExpected bool
+	}
+
+	testCases := []testCase{
+		{
+			name:            "OK: valid signature (cosmwasm example)",
+			msg:             []byte("Hello World!"),
+			signatureHexStr: "dea09a2edbcc545c3875ec482602dd61b68273a24f7562db3fb425ee9dbd863ae732a6ade9e72e04bc32c2bd269b25b59342d6da66898f809d0b7e40d8914f05",
+			pubKeyHexStr:    "bc1c3a48e8b583d7b990e8cbdd0a54744a3152715e20dd4f9451c532d6bbbd7b",
+			resExpected:     true,
+		},
+		{
+			name:            "OK: invalid signature",
+			msg:             []byte("Hello!"),
+			signatureHexStr: "dea09a2edbcc545c3875ec482602dd61b68273a24f7562db3fb425ee9dbd863ae732a6ade9e72e04bc32c2bd269b25b59342d6da66898f809d0b7e40d8914f05",
+			pubKeyHexStr:    "bc1c3a48e8b583d7b990e8cbdd0a54744a3152715e20dd4f9451c532d6bbbd7b",
+			resExpected:     false,
+		},
+		{
+			name:            "Fail: invalid signature len",
+			msg:             []byte("Hello World!"),
+			signatureHexStr: "dea09a2edbcc545c3875ec482602dd61b68273a24f7562db3fb425ee9dbd863ae732a6ade9e72e04bc32c2bd269b25b59342d6da66898f809d0b7e40d8914f",
+			pubKeyHexStr:    "bc1c3a48e8b583d7b990e8cbdd0a54744a3152715e20dd4f9451c532d6bbbd7b",
+			errExpected:     true,
+		},
+		{
+			name:            "Fail: invalid pubKey len",
+			msg:             []byte("Hello World!"),
+			signatureHexStr: "dea09a2edbcc545c3875ec482602dd61b68273a24f7562db3fb425ee9dbd863ae732a6ade9e72e04bc32c2bd269b25b59342d6da66898f809d0b7e40d8914f",
+			pubKeyHexStr:    "bc1c3a48e8b583d7b990e8cbdd0a54744a3152715e20dd4f9451c532d6bbbd",
+			errExpected:     true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			sig, err := hex.DecodeString(tc.signatureHexStr)
+			require.NoError(t, err)
+			pubKey, err := hex.DecodeString(tc.pubKeyHexStr)
+			require.NoError(t, err)
+
+			res, err := api{}.VerifyEd25519Signature(tc.msg, sig, pubKey)
+			if tc.errExpected {
+				assert.Error(t, err)
+				return
+			}
+
+			require.NoError(t, err)
+			assert.Equal(t, tc.resExpected, res)
+		})
+	}
 }

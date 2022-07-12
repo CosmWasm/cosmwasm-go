@@ -8,10 +8,8 @@ import (
 
 func (s *ContractTestSuite) TestSudoChangeAddVotingCost() {
 	env := mocks.MockEnv()
-	expectedCoin := stdTypes.Coin{
-		Denom:  s.genParams.NewVotingCost.Denom,
-		Amount: s.genParams.NewVotingCost.Amount.Sub64(1),
-	}
+	expectedCoin := s.ParamsNewVotingCoin()
+	expectedCoin.Amount = expectedCoin.Amount.Sub64(1)
 
 	s.Run("OK", func() {
 		msg := types.MsgSudo{
@@ -34,7 +32,7 @@ func (s *ContractTestSuite) TestSudoChangeAddVotingCost() {
 
 		s.Require().Len(rcvEvent.Attributes, 2)
 		s.Assert().Equal(types.EventAttrKeyOldCost, rcvEvent.Attributes[0].Key)
-		s.Assert().Equal(s.genParams.NewVotingCost.String(), rcvEvent.Attributes[0].Value)
+		s.Assert().Equal(s.genParams.NewVotingCost, rcvEvent.Attributes[0].Value)
 		s.Assert().Equal(types.EventAttrKeyNewCost, rcvEvent.Attributes[1].Key)
 		s.Assert().Equal(expectedCoin.String(), rcvEvent.Attributes[1].Value)
 
@@ -46,7 +44,7 @@ func (s *ContractTestSuite) TestSudoChangeAddVotingCost() {
 
 		var params types.QueryParamsResponse
 		s.Require().NoError(params.UnmarshalJSON(paramsBz))
-		s.Assert().Equal(expectedCoin, params.NewVotingCost)
+		s.Assert().Equal(expectedCoin.String(), params.NewVotingCost)
 	})
 
 	s.Run("Fail: invalid input", func() {
@@ -66,10 +64,8 @@ func (s *ContractTestSuite) TestSudoChangeAddVotingCost() {
 
 func (s *ContractTestSuite) TestSudoChangeVoteCost() {
 	env := mocks.MockEnv()
-	expectedCoin := stdTypes.Coin{
-		Denom:  s.genParams.VoteCost.Denom,
-		Amount: s.genParams.VoteCost.Amount.Sub64(1),
-	}
+	expectedCoin := s.ParamsVoteCoin()
+	expectedCoin.Amount = expectedCoin.Amount.Sub64(1)
 
 	s.Run("OK", func() {
 		msg := types.MsgSudo{
@@ -92,7 +88,7 @@ func (s *ContractTestSuite) TestSudoChangeVoteCost() {
 
 		s.Require().Len(rcvEvent.Attributes, 2)
 		s.Assert().Equal(types.EventAttrKeyOldCost, rcvEvent.Attributes[0].Key)
-		s.Assert().Equal(s.genParams.VoteCost.String(), rcvEvent.Attributes[0].Value)
+		s.Assert().Equal(s.genParams.VoteCost, rcvEvent.Attributes[0].Value)
 		s.Assert().Equal(types.EventAttrKeyNewCost, rcvEvent.Attributes[1].Key)
 		s.Assert().Equal(expectedCoin.String(), rcvEvent.Attributes[1].Value)
 
@@ -104,7 +100,7 @@ func (s *ContractTestSuite) TestSudoChangeVoteCost() {
 
 		var params types.QueryParamsResponse
 		s.Require().NoError(params.UnmarshalJSON(paramsBz))
-		s.Assert().Equal(expectedCoin, params.VoteCost)
+		s.Assert().Equal(expectedCoin.String(), params.VoteCost)
 	})
 
 	s.Run("Fail: invalid input", func() {

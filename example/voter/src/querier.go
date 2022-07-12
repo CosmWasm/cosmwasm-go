@@ -9,13 +9,18 @@ import (
 
 // queryParams handles MsgQuery.Params query.
 func queryParams(deps *std.Deps) (*types.QueryParamsResponse, error) {
-	params, err := state.GetParams(deps.Storage)
+	stateParams, err := state.GetParams(deps.Storage)
 	if err != nil {
 		return nil, err
 	}
 
+	queryParams, err := types.NewParamsFromState(deps.Api, stateParams)
+	if err != nil {
+		return nil, types.NewErrInternal(err.Error())
+	}
+
 	return &types.QueryParamsResponse{
-		Params: params,
+		Params: queryParams,
 	}, nil
 }
 
@@ -109,5 +114,53 @@ func queryIBCStats(deps *std.Deps, req types.QueryIBCStatsRequest) (*types.Query
 
 	return &types.QueryIBCStatsResponse{
 		Stats: stats,
+	}, nil
+}
+
+// queryAPIVerifySecp256k1Signature defines MsgQuery.APIVerifySecp256k1Signature query.
+func queryAPIVerifySecp256k1Signature(deps *std.Deps, req types.QueryAPIVerifySecp256k1SignatureRequest) (*types.QueryAPIVerifySecp256k1SignatureResponse, error) {
+	ok, err := deps.Api.VerifySecp256k1Signature(req.Hash, req.Signature, req.PubKey)
+	if err != nil {
+		return nil, types.NewErrInvalidRequest(err.Error())
+	}
+
+	return &types.QueryAPIVerifySecp256k1SignatureResponse{
+		Valid: ok,
+	}, nil
+}
+
+// queryAPIRecoverSecp256k1PubKey defines MsgQuery.APIRecoverSecp256k1PubKey query.
+func queryAPIRecoverSecp256k1PubKey(deps *std.Deps, req types.QueryAPIRecoverSecp256k1PubKeyRequest) (*types.QueryAPIRecoverSecp256k1PubKeyResponse, error) {
+	pubKey, err := deps.Api.RecoverSecp256k1PubKey(req.Hash, req.Signature, req.RecoveryParam)
+	if err != nil {
+		return nil, types.NewErrInvalidRequest(err.Error())
+	}
+
+	return &types.QueryAPIRecoverSecp256k1PubKeyResponse{
+		PubKey: pubKey,
+	}, nil
+}
+
+// queryAPIVerifyEd25519Signature defines MsgQuery.VerifyEd25519Signature query.
+func queryAPIVerifyEd25519Signature(deps *std.Deps, req types.QueryAPIVerifyEd25519SignatureRequest) (*types.QueryAPIVerifyEd25519SignatureResponse, error) {
+	ok, err := deps.Api.VerifyEd25519Signature(req.Message, req.Signature, req.PubKey)
+	if err != nil {
+		return nil, types.NewErrInvalidRequest(err.Error())
+	}
+
+	return &types.QueryAPIVerifyEd25519SignatureResponse{
+		Valid: ok,
+	}, nil
+}
+
+// queryAPIVerifyEd25519Signatures defines MsgQuery.VerifyEd25519Signatures query.
+func queryAPIVerifyEd25519Signatures(deps *std.Deps, req types.QueryAPIVerifyEd25519SignaturesRequest) (*types.QueryAPIVerifyEd25519SignaturesResponse, error) {
+	ok, err := deps.Api.VerifyEd25519Signatures(req.Messages, req.Signatures, req.PubKeys)
+	if err != nil {
+		return nil, types.NewErrInvalidRequest(err.Error())
+	}
+
+	return &types.QueryAPIVerifyEd25519SignaturesResponse{
+		Valid: ok,
 	}, nil
 }

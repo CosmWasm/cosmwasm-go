@@ -1,8 +1,10 @@
 package mock
 
 import (
+	"crypto/ed25519"
 	"errors"
 	"fmt"
+	"math/big"
 
 	"github.com/CosmWasm/cosmwasm-go/std/math"
 
@@ -10,6 +12,9 @@ import (
 
 	"github.com/CosmWasm/cosmwasm-go/std"
 	"github.com/CosmWasm/cosmwasm-go/std/types"
+
+	secp256k1 "github.com/btcsuite/btcd/btcec"
+	ed25519Consensus "github.com/hdevalence/ed25519consensus"
 )
 
 const (
@@ -188,6 +193,73 @@ func (a api) ValidateAddress(human string) error {
 
 func (a api) Debug(msg string) {
 	fmt.Println("DEBUG: " + msg)
+}
+
+func (a api) VerifySecp256k1Signature(hash, signature, publicKey []byte) (bool, error) {
+	if len(hash) != 32 {
+		return false, errors.New("invalid hash len (32 is expected)")
+	}
+	if len(signature) != 64 {
+		return false, errors.New("invalid signature len (64 is expected)")
+	}
+
+	secpPubKey, err := secp256k1.ParsePubKey(publicKey, secp256k1.S256())
+	if err != nil {
+		return false, errors.New("parsing pubKey: " + err.Error())
+	}
+
+	secpSig := &secp256k1.Signature{
+		R: new(big.Int).SetBytes(signature[:32]),
+		S: new(big.Int).SetBytes(signature[32:64]),
+	}
+
+	return secpSig.Verify(hash, secpPubKey), nil
+}
+
+func (a api) RecoverSecp256k1PubKey(hash, signature []byte, recoveryParam std.Secp256k1RecoveryParam) ([]byte, error) {
+	if len(hash) != 32 {
+		return nil, errors.New("invalid hash len (32 is expected)")
+	}
+	if len(signature) != 64 {
+		return nil, errors.New("invalid signature len (64 is expected)")
+	}
+	// TODO: add proper implementation (github.com/btcsuite/btcd/btcec analog gives different results than the CosmWasm's one)
+
+	mockPubKey := make([]byte, 0, 65)
+	for i := 0; i < cap(mockPubKey); i++ {
+		mockPubKey = append(mockPubKey, byte(i))
+	}
+
+	return mockPubKey, nil
+}
+
+func (a api) VerifyEd25519Signature(message, signature, publicKey []byte) (bool, error) {
+	if len(signature) != ed25519.SignatureSize {
+		return false, errors.New("invalid signature len (64 is expected)")
+	}
+	if len(publicKey) != ed25519.PublicKeySize {
+		return false, errors.New("invalid pubKey len (32 is expected)")
+	}
+
+	return ed25519Consensus.Verify(publicKey, message, signature), nil
+}
+
+func (a api) VerifyEd25519Signatures(messages, signatures, publicKeys [][]byte) (bool, error) {
+	if len(messages) != len(signatures) || len(messages) != len(publicKeys) {
+		return false, errors.New("batch lengths mismatch")
+	}
+
+	for i := 0; i < len(messages); i++ {
+		ok, err := a.VerifyEd25519Signature(messages[i], signatures[i], publicKeys[i])
+		if err != nil {
+			return false, err
+		}
+		if !ok {
+			return false, nil
+		}
+	}
+
+	return true, nil
 }
 
 type querier struct {

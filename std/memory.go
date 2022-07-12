@@ -4,6 +4,7 @@ package std
 //#include "string.h"
 import "C"
 import (
+	"encoding/binary"
 	"unsafe"
 )
 
@@ -93,6 +94,63 @@ func TranslateToRegion(b []byte, ptr uintptr) uintptr {
 	region.Capacity = uint32(header.Cap)
 	region.Offset = uint32(header.Data)
 	return ptr
+}
+
+// BuildSectionsRegion creates a new MemRegion with sections.
+// Section format: data [uint8...] | size [uint32, big endian]
+func BuildSectionsRegion(bs [][]byte) (unsafe.Pointer, *MemRegion) {
+	if bs == nil {
+		// Invalid input
+		return nil, nil
+	}
+
+	// Estimate sections size
+	sectionsSize, sectionsSizePrev := uint32(0), uint32(0)
+	for i := 0; i < len(bs); i++ {
+		if bs[i] == nil {
+			// Skip nil slice (not an empty slice)
+			continue
+		}
+
+		sectionsSize += uint32(len(bs[i])) + 4
+		if sectionsSize < sectionsSizePrev {
+			// Invalid input: overflow
+			return nil, nil
+		}
+		sectionsSizePrev = sectionsSize
+	}
+
+	// Build region
+	regionPtr := C.malloc(C.ulong(sectionsSize) + C.ulong(REGION_HEAD_SIZE))
+	var region = new(MemRegion)
+	region.Offset = uint32(uintptr(regionPtr)) + REGION_HEAD_SIZE
+	region.Capacity = sectionsSize
+	region.Length = sectionsSize
+	C.memcpy(regionPtr, unsafe.Pointer(region), C.ulong(REGION_HEAD_SIZE))
+
+	// Fill up region data section by section
+	regionCurOffset := unsafe.Add(regionPtr, REGION_HEAD_SIZE)
+	for i := 0; i < len(bs); i++ {
+		if bs[i] == nil {
+			continue
+		}
+
+		sectionSize := uint32(len(bs[i]))
+
+		// Append section data
+		if sectionSize > 0 {
+			C.memcpy(unsafe.Pointer(regionCurOffset), unsafe.Pointer(&bs[i][0]), C.ulong(sectionSize))
+			regionCurOffset = unsafe.Add(regionCurOffset, sectionSize)
+		}
+
+		// Append section header
+		sectionHeader := make([]byte, 4)
+		binary.BigEndian.PutUint32(sectionHeader, sectionSize)
+		C.memcpy(unsafe.Pointer(regionCurOffset), unsafe.Pointer(&sectionHeader[0]), 4)
+		regionCurOffset = unsafe.Add(regionCurOffset, 4)
+	}
+
+	return regionPtr, region
 }
 
 func Deallocate(pointer unsafe.Pointer) {

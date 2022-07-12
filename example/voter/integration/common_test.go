@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/CosmWasm/cosmwasm-go/example/voter/src/pkg"
 	"github.com/CosmWasm/cosmwasm-go/example/voter/src/state"
 	"github.com/CosmWasm/cosmwasm-go/example/voter/src/types"
 	"github.com/CosmWasm/cosmwasm-go/std/math"
@@ -13,6 +14,11 @@ import (
 	mocks "github.com/CosmWasm/wasmvm/api"
 	wasmVmTypes "github.com/CosmWasm/wasmvm/types"
 	"github.com/stretchr/testify/suite"
+)
+
+const (
+	ContractWasmFileName = "voter.wasm"
+	ValidAddr            = "01234567890abcdefghijklmnopqrstu"
 )
 
 var (
@@ -26,12 +32,12 @@ type ContractTestSuite struct {
 
 	creatorAddr string
 	genFunds    []stdTypes.Coin
-	genParams   state.Params
+	genParams   types.Params
 }
 
 func (s *ContractTestSuite) SetupTest() {
-	contractPath := filepath.Join("..", "voter.wasm")
-	creatorAddr := "archway1c5qs4le2n6ljgv8fyfy8swu0yf02fh60ccpx75"
+	contractPath := filepath.Join("..", ContractWasmFileName)
+	creatorAddr := ValidAddr
 	contractFundsCoin := stdTypes.NewCoinFromUint64(1200, "uatom")
 
 	// Load
@@ -41,21 +47,23 @@ func (s *ContractTestSuite) SetupTest() {
 		[]wasmVmTypes.Coin{contractFundsCoin.ToWasmVMCoin()},
 	)
 
+	params := types.Params{
+		OwnerAddr: creatorAddr,
+		NewVotingCost: stdTypes.Coin{
+			Denom:  "uatom",
+			Amount: math.NewUint128FromUint64(100),
+		}.String(),
+		VoteCost: stdTypes.Coin{
+			Denom:  "uatom",
+			Amount: math.NewUint128FromUint64(10),
+		}.String(),
+		IBCSendTimeout: 10000000000,
+	}
+
 	env := mocks.MockEnv()
 	info := mocks.MockInfo(creatorAddr, nil)
 	msg := types.MsgInstantiate{
-		Params: state.Params{
-			OwnerAddr: creatorAddr,
-			NewVotingCost: stdTypes.Coin{
-				Denom:  "uatom",
-				Amount: math.NewUint128FromUint64(100),
-			},
-			VoteCost: stdTypes.Coin{
-				Denom:  "uatom",
-				Amount: math.NewUint128FromUint64(10),
-			},
-			IBCSendTimeout: 10000000000,
-		},
+		Params: params,
 	}
 
 	// Instantiate
@@ -75,8 +83,22 @@ func (s *ContractTestSuite) SetupTest() {
 	s.genParams = msg.Params
 }
 
+func (s *ContractTestSuite) ParamsNewVotingCoin() stdTypes.Coin {
+	coin, err := pkg.ParseCoinFromString(s.genParams.NewVotingCost)
+	s.Require().NoError(err)
+
+	return coin
+}
+
+func (s *ContractTestSuite) ParamsVoteCoin() stdTypes.Coin {
+	coin, err := pkg.ParseCoinFromString(s.genParams.VoteCost)
+	s.Require().NoError(err)
+
+	return coin
+}
+
 func (s *ContractTestSuite) AddVoting(env wasmVmTypes.Env, creatorAddr, name string, dur uint64, opts ...string) uint64 {
-	info := mocks.MockInfo(creatorAddr, []wasmVmTypes.Coin{s.genParams.NewVotingCost.ToWasmVMCoin()})
+	info := mocks.MockInfo(creatorAddr, []wasmVmTypes.Coin{s.ParamsNewVotingCoin().ToWasmVMCoin()})
 	msg := types.MsgExecute{
 		NewVoting: &types.NewVotingRequest{
 			Name:        name,
@@ -111,7 +133,7 @@ func (s *ContractTestSuite) AddVoting(env wasmVmTypes.Env, creatorAddr, name str
 }
 
 func (s *ContractTestSuite) Vote(env wasmVmTypes.Env, voterAddr string, votingID uint64, opt, vote string) {
-	info := mocks.MockInfo(voterAddr, []wasmVmTypes.Coin{s.genParams.VoteCost.ToWasmVMCoin()})
+	info := mocks.MockInfo(voterAddr, []wasmVmTypes.Coin{s.ParamsVoteCoin().ToWasmVMCoin()})
 	msg := types.MsgExecute{
 		Vote: &types.VoteRequest{
 			ID:     votingID,

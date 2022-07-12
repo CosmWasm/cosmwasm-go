@@ -116,6 +116,14 @@ func Query(deps *std.Deps, env stdTypes.Env, msgBz []byte) ([]byte, error) {
 		handlerRes, handlerErr = queryReleaseStats(deps)
 	case msg.IBCStats != nil:
 		handlerRes, handlerErr = queryIBCStats(deps, *msg.IBCStats)
+	case msg.APIVerifySecp256k1Signature != nil:
+		handlerRes, handlerErr = queryAPIVerifySecp256k1Signature(deps, *msg.APIVerifySecp256k1Signature)
+	case msg.APIRecoverSecp256k1PubKey != nil:
+		handlerRes, handlerErr = queryAPIRecoverSecp256k1PubKey(deps, *msg.APIRecoverSecp256k1PubKey)
+	case msg.APIVerifyEd25519Signature != nil:
+		handlerRes, handlerErr = queryAPIVerifyEd25519Signature(deps, *msg.APIVerifyEd25519Signature)
+	case msg.APIVerifyEd25519Signatures != nil:
+		handlerRes, handlerErr = queryAPIVerifyEd25519Signatures(deps, *msg.APIVerifyEd25519Signatures)
 	default:
 		handlerErr = types.NewErrInvalidRequest("unknown query")
 	}

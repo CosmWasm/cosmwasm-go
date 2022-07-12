@@ -19,10 +19,9 @@ func (s *ContractTestSuite) TestQueryParams() {
 	var resp types.QueryParamsResponse
 	s.Require().NoError(resp.UnmarshalJSON(res))
 
-	s.Assert().Equal(s.genParams.NewVotingCost.Denom, resp.NewVotingCost.Denom)
-	s.Assert().Equal(s.genParams.NewVotingCost.Amount, resp.NewVotingCost.Amount)
-	s.Assert().Equal(s.genParams.VoteCost.Denom, resp.VoteCost.Denom)
-	s.Assert().Equal(s.genParams.VoteCost.Amount, resp.VoteCost.Amount)
+	s.Assert().Equal(s.genParams.OwnerAddr, resp.OwnerAddr)
+	s.Assert().Equal(s.genParams.NewVotingCost, resp.NewVotingCost)
+	s.Assert().Equal(s.genParams.VoteCost, resp.VoteCost)
 	s.Assert().Equal(s.genParams.IBCSendTimeout, resp.IBCSendTimeout)
 }
 

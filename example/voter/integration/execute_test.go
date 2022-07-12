@@ -13,7 +13,7 @@ func (s *ContractTestSuite) TestExecuteNewVoting() {
 	s.AddVoting(env, s.creatorAddr, "Test", 100, "a")
 
 	s.Run("Fail: invalid input", func() {
-		info := mocks.MockInfo(s.creatorAddr, []wasmVmTypes.Coin{s.genParams.NewVotingCost.ToWasmVMCoin()})
+		info := mocks.MockInfo(s.creatorAddr, []wasmVmTypes.Coin{s.ParamsNewVotingCoin().ToWasmVMCoin()})
 		msg := types.MsgExecute{
 			NewVoting: &types.NewVotingRequest{
 				Name:        "Test",
@@ -27,7 +27,7 @@ func (s *ContractTestSuite) TestExecuteNewVoting() {
 	})
 
 	s.Run("Fail: invalid payment", func() {
-		payment := s.genParams.NewVotingCost
+		payment := s.ParamsNewVotingCoin()
 		payment.Amount = payment.Amount.Sub64(1)
 
 		info := mocks.MockInfo(s.creatorAddr, []wasmVmTypes.Coin{payment.ToWasmVMCoin()})
@@ -54,7 +54,7 @@ func (s *ContractTestSuite) TestExecuteVote() {
 	s.Vote(env, voter1Addr, votingID, "a", "yes")
 
 	s.Run("Fail: invalid input", func() {
-		info := mocks.MockInfo(voter2Addr, []wasmVmTypes.Coin{s.genParams.VoteCost.ToWasmVMCoin()})
+		info := mocks.MockInfo(voter2Addr, []wasmVmTypes.Coin{s.ParamsVoteCoin().ToWasmVMCoin()})
 		msg := types.MsgExecute{
 			Vote: &types.VoteRequest{
 				ID:     votingID,
@@ -68,7 +68,7 @@ func (s *ContractTestSuite) TestExecuteVote() {
 	})
 
 	s.Run("Fail: invalid payment", func() {
-		payment := s.genParams.VoteCost
+		payment := s.ParamsVoteCoin()
 		payment.Amount = payment.Amount.Sub64(1)
 
 		info := mocks.MockInfo(voter2Addr, []wasmVmTypes.Coin{payment.ToWasmVMCoin()})
@@ -85,7 +85,7 @@ func (s *ContractTestSuite) TestExecuteVote() {
 	})
 
 	s.Run("Fail: non-existing voting", func() {
-		info := mocks.MockInfo(voter2Addr, []wasmVmTypes.Coin{s.genParams.VoteCost.ToWasmVMCoin()})
+		info := mocks.MockInfo(voter2Addr, []wasmVmTypes.Coin{s.ParamsVoteCoin().ToWasmVMCoin()})
 		msg := types.MsgExecute{
 			Vote: &types.VoteRequest{
 				ID:     votingID + 1,
@@ -99,7 +99,7 @@ func (s *ContractTestSuite) TestExecuteVote() {
 	})
 
 	s.Run("Fail: already voted", func() {
-		info := mocks.MockInfo(voter1Addr, []wasmVmTypes.Coin{s.genParams.VoteCost.ToWasmVMCoin()})
+		info := mocks.MockInfo(voter1Addr, []wasmVmTypes.Coin{s.ParamsVoteCoin().ToWasmVMCoin()})
 		msg := types.MsgExecute{
 			Vote: &types.VoteRequest{
 				ID:     votingID,
@@ -115,7 +115,7 @@ func (s *ContractTestSuite) TestExecuteVote() {
 	s.Run("Fail: voting is closed", func() {
 		env := mocks.MockEnv()
 		env.Block.Time += 200
-		info := mocks.MockInfo(voter2Addr, []wasmVmTypes.Coin{s.genParams.VoteCost.ToWasmVMCoin()})
+		info := mocks.MockInfo(voter2Addr, []wasmVmTypes.Coin{s.ParamsVoteCoin().ToWasmVMCoin()})
 		msg := types.MsgExecute{
 			Vote: &types.VoteRequest{
 				ID:     votingID,
@@ -129,7 +129,7 @@ func (s *ContractTestSuite) TestExecuteVote() {
 	})
 
 	s.Run("Fail: non-existing option", func() {
-		info := mocks.MockInfo(voter2Addr, []wasmVmTypes.Coin{s.genParams.VoteCost.ToWasmVMCoin()})
+		info := mocks.MockInfo(voter2Addr, []wasmVmTypes.Coin{s.ParamsVoteCoin().ToWasmVMCoin()})
 		msg := types.MsgExecute{
 			Vote: &types.VoteRequest{
 				ID:     votingID,

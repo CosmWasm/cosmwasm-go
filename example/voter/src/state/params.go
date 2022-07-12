@@ -12,8 +12,8 @@ var ParamsKey = []byte("Params")
 
 // Params defines the contract parameters (set via Instantiate endpoint).
 type Params struct {
-	// OwnerAddr is a contract owner address (he can redeem funds).
-	OwnerAddr string
+	// OwnerAddr is a contract owner canonical address (he can redeem funds).
+	OwnerAddr stdTypes.CanonicalAddress
 	// NewVotingCost is a cost one should pay for creating a new voting.
 	NewVotingCost stdTypes.Coin
 	// VoteCost is a cost of a single vote.
