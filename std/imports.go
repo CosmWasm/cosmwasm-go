@@ -5,6 +5,8 @@ package std
 
 import (
 	"encoding/binary"
+	"errors"
+	"strconv"
 	"unsafe"
 
 	"github.com/CosmWasm/cosmwasm-go/std/types"
@@ -22,6 +24,11 @@ extern void* db_next(unsigned iterator_id);
 extern unsigned addr_canonicalize(void* human, void* canonical);
 extern unsigned addr_humanize(void* canonical, void* human);
 extern unsigned addr_validate(void* human);
+
+extern unsigned secp256k1_verify(void* hash_ptr, void* signature_ptr, void* pubkey_ptr);
+extern long long secp256k1_recover_pubkey(void* hash_ptr, void* signature_ptr, int recover_param);
+extern unsigned ed25519_verify(void* message_ptr, void* signature_ptr, void* pubkey_ptr);
+extern unsigned ed25519_batch_verify(void* messages_ptr, void* signatures_ptr, void* pubkeys_ptr);
 
 extern void debug(void* msg);
 
@@ -176,7 +183,7 @@ type ExternalApi struct{}
 
 func (api ExternalApi) CanonicalAddress(human string) (types.CanonicalAddress, error) {
 	humanAddr := []byte(human)
-	humanPtr := C.malloc(C.ulong(len(humanAddr)))
+	humanPtr := C.malloc(C.ulong(REGION_HEAD_SIZE))
 	regionHuman := TranslateToRegion(humanAddr, uintptr(humanPtr))
 
 	regionCanon, _ := Build_region(CANONICAL_ADDRESS_BUFFER_LENGTH, 0)
@@ -195,7 +202,7 @@ func (api ExternalApi) CanonicalAddress(human string) (types.CanonicalAddress, e
 }
 
 func (api ExternalApi) HumanAddress(canonical types.CanonicalAddress) (string, error) {
-	canonPtr := C.malloc(C.ulong(len(canonical)))
+	canonPtr := C.malloc(C.ulong(REGION_HEAD_SIZE))
 	regionCanon := TranslateToRegion(canonical, uintptr(canonPtr))
 
 	regionHuman, _ := Build_region(HUMAN_ADDRESS_BUFFER_LENGTH, 0)
@@ -215,7 +222,7 @@ func (api ExternalApi) HumanAddress(canonical types.CanonicalAddress) (string, e
 
 func (api ExternalApi) ValidateAddress(human string) error {
 	humanAddr := []byte(human)
-	humanPtr := C.malloc(C.ulong(len(humanAddr)))
+	humanPtr := C.malloc(C.ulong(REGION_HEAD_SIZE))
 	regionHuman := TranslateToRegion(humanAddr, uintptr(humanPtr))
 
 	ret := C.addr_validate(unsafe.Pointer(regionHuman))
@@ -229,10 +236,175 @@ func (api ExternalApi) ValidateAddress(human string) error {
 }
 
 func (api ExternalApi) Debug(msg string) {
-	msgPtr := C.malloc(C.ulong(len(msg)))
+	msgPtr := C.malloc(C.ulong(REGION_HEAD_SIZE))
 	regionMsg := TranslateToRegion([]byte(msg), uintptr(msgPtr))
 	C.debug(unsafe.Pointer(regionMsg))
 	C.free(msgPtr)
+}
+
+func (api ExternalApi) VerifySecp256k1Signature(hash, signature, publicKey []byte) (ok bool, retErr error) {
+	hashPtr := C.malloc(C.ulong(REGION_HEAD_SIZE))
+	regionHash := TranslateToRegion(hash, uintptr(hashPtr))
+
+	sigPtr := C.malloc(C.ulong(REGION_HEAD_SIZE))
+	regionSig := TranslateToRegion(signature, uintptr(sigPtr))
+
+	pubKeyPtr := C.malloc(C.ulong(REGION_HEAD_SIZE))
+	regionPubKey := TranslateToRegion(publicKey, uintptr(pubKeyPtr))
+
+	ret := C.secp256k1_verify(unsafe.Pointer(regionHash), unsafe.Pointer(regionSig), unsafe.Pointer(regionPubKey))
+	C.free(hashPtr)
+	C.free(sigPtr)
+	C.free(pubKeyPtr)
+
+	// Result is the u32 code
+	var errMsg string
+	switch retCode := uint32(ret); retCode {
+	case 0:
+		// OK: valid signature
+		ok = true
+	case 1:
+		// OK: invalid signature
+	case 3:
+		errMsg = "invalid hash format"
+	case 4:
+		errMsg = "invalid signature format"
+	case 5:
+		errMsg = "invalid pubKey format"
+	case 10:
+		errMsg = "generic error"
+	default:
+		errMsg = "unknown error code (" + strconv.FormatUint(uint64(retCode), 10) + ")"
+	}
+	if errMsg != "" {
+		retErr = types.GenericError("secp256k1_verify errored: " + errMsg)
+	}
+
+	return
+}
+
+func (api ExternalApi) RecoverSecp256k1PubKey(hash, signature []byte, recoveryParam Secp256k1RecoveryParam) (pubKey []byte, retErr error) {
+	hashPtr := C.malloc(C.ulong(REGION_HEAD_SIZE))
+	regionHash := TranslateToRegion(hash, uintptr(hashPtr))
+
+	sigPtr := C.malloc(C.ulong(REGION_HEAD_SIZE))
+	regionSig := TranslateToRegion(signature, uintptr(sigPtr))
+
+	ret := C.secp256k1_recover_pubkey(unsafe.Pointer(regionHash), unsafe.Pointer(regionSig), C.int(recoveryParam))
+	C.free(hashPtr)
+	C.free(sigPtr)
+
+	// Result is the u64 word (errorCode | pubKeyPtr)
+	var errMsg string
+	switch retCode := uint64(ret) >> 32; retCode {
+	case 0:
+		// OK: pubKey recovered
+	case 3:
+		errMsg = "invalid hash format"
+	case 4:
+		errMsg = "invalid signature format"
+	case 6:
+		errMsg = "invalid recovery param"
+	case 10:
+		errMsg = "generic error"
+	default:
+		errMsg = "unknown error code (" + strconv.FormatUint(retCode, 10) + ")"
+	}
+	if errMsg != "" {
+		retErr = types.GenericError("secp256k1_recover_pubkey errored: " + errMsg)
+		return
+	}
+
+	pubKey = TranslateToSlice(uintptr(ret & 0xFFFFFFFF))
+
+	return
+}
+
+func (api ExternalApi) VerifyEd25519Signature(message, signature, publicKey []byte) (ok bool, retErr error) {
+	msgPtr := C.malloc(C.ulong(REGION_HEAD_SIZE))
+	regionMsg := TranslateToRegion(message, uintptr(msgPtr))
+
+	sigPtr := C.malloc(C.ulong(REGION_HEAD_SIZE))
+	regionSig := TranslateToRegion(signature, uintptr(sigPtr))
+
+	pubKeyPtr := C.malloc(C.ulong(REGION_HEAD_SIZE))
+	regionPubKey := TranslateToRegion(publicKey, uintptr(pubKeyPtr))
+
+	ret := C.ed25519_verify(unsafe.Pointer(regionMsg), unsafe.Pointer(regionSig), unsafe.Pointer(regionPubKey))
+	C.free(msgPtr)
+	C.free(sigPtr)
+	C.free(pubKeyPtr)
+
+	// Result is the u32 code
+	var errMsg string
+	switch retCode := uint32(ret); retCode {
+	case 0:
+		// OK: valid signature
+		ok = true
+	case 1:
+		// OK: invalid signature
+	case 4:
+		errMsg = "invalid signature format"
+	case 5:
+		errMsg = "invalid pubKey format"
+	case 10:
+		errMsg = "generic error"
+	default:
+		errMsg = "unknown error code (" + strconv.FormatUint(uint64(retCode), 10) + ")"
+	}
+	if errMsg != "" {
+		retErr = types.GenericError("ed25519_verify errored: " + errMsg)
+	}
+
+	return
+}
+
+func (api ExternalApi) VerifyEd25519Signatures(messages, signatures, publicKeys [][]byte) (ok bool, retErr error) {
+	msgsPtr, regionMsgs := BuildSectionsRegion(messages)
+	if msgsPtr == nil {
+		retErr = errors.New("failed to build messages region")
+		return
+	}
+	sigsPtr, regionSigs := BuildSectionsRegion(signatures)
+	if sigsPtr == nil {
+		retErr = errors.New("failed to build signatures region")
+		return
+	}
+	pubKeysPtr, regionPubKeys := BuildSectionsRegion(publicKeys)
+	if pubKeysPtr == nil {
+		retErr = errors.New("failed to build pubKeys region")
+		return
+	}
+
+	ret := C.ed25519_batch_verify(unsafe.Pointer(regionMsgs), unsafe.Pointer(regionSigs), unsafe.Pointer(regionPubKeys))
+	C.free(msgsPtr)
+	C.free(sigsPtr)
+	C.free(pubKeysPtr)
+
+	// Result is the u32 code
+	var errMsg string
+	switch retCode := uint32(ret); retCode {
+	case 0:
+		// OK: valid signature
+		ok = true
+	case 1:
+		// OK: invalid signature
+	case 4:
+		errMsg = "invalid signature format"
+	case 5:
+		errMsg = "invalid pubKey format"
+	case 7:
+		errMsg = "batch error"
+	case 10:
+		errMsg = "generic error"
+	default:
+		errMsg = "unknown error code (" + strconv.FormatUint(uint64(retCode), 10) + ")"
+	}
+	if errMsg != "" {
+		retErr = types.GenericError("ed25519_batch_verify errored: " + errMsg)
+	}
+
+	return
 }
 
 // ====== Querier ======

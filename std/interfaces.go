@@ -52,11 +52,41 @@ type Iterator interface {
 	Next() (key, value []byte, err error)
 }
 
+// Secp256k1RecoveryParam is used by the RecoverSecp256k1PubKey and indicates whether or not the y-coordinate of the original VerifyingKey is odd.
+type Secp256k1RecoveryParam uint8
+
+const (
+	Secp256k1RecoveryParamYCoordIsOdd  Secp256k1RecoveryParam = 0
+	Secp256k1RecoveryParamYCoordNotOdd Secp256k1RecoveryParam = 1
+)
+
 type Api interface {
+	// CanonicalAddress converts the human-readable address to a canonical representation.
 	CanonicalAddress(human types.HumanAddress) (types.CanonicalAddress, error)
+
+	// HumanAddress converts the canonical address to a human-readable representation.
 	HumanAddress(canonical types.CanonicalAddress) (types.HumanAddress, error)
+
+	// ValidateAddress validates the human-readable address performing CanonicalAddress and HumanAddress conversions.
 	ValidateAddress(human types.HumanAddress) error
+
+	// Debug sends the debug log message to the host which can either process or ignore it.
 	Debug(msg string)
+
+	// VerifySecp256k1Signature verifies the given message hash against the signature with the public key, using the secp256k1 ECDSA parametrization.
+	// Returns true if the signature is valid, false otherwise.
+	VerifySecp256k1Signature(hash, signature, publicKey []byte) (bool, error)
+
+	// RecoverSecp256k1PubKey recovers a public key from the message hash agains the signature, using the secp256k1 ECDSA parametrization and recovery param (0/1).
+	RecoverSecp256k1PubKey(hash, signature []byte, recoveryParam Secp256k1RecoveryParam) ([]byte, error)
+
+	// VerifyEd25519Signature verifies the given message against the signature with the public key, using the ed25519 parametrization.
+	// Returns true if the signature is valid, false otherwise.
+	VerifyEd25519Signature(message, signature, publicKey []byte) (bool, error)
+
+	// VerifyEd25519Signatures verifies given messages against signatures with the public keys, using the ed25519 parametrization.
+	// Returns true if all signature are valid, false otherwise.
+	VerifyEd25519Signatures(messages, signatures, publicKeys [][]byte) (bool, error)
 }
 
 type Querier interface {
